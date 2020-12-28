@@ -10,10 +10,12 @@
     ```
 
 2. Methods access `data` through `this`. That is the only way to access it.
+    **Methods introduced with layerCompose cannot be accessed thorough `this`!  
+    If, however, `data` itself has methods they can accessed through `this`**
 
 3. If a `this.key === undefined` throw an error. All accessed values on the `data` object must be defined (or `null`)
 
-3. Only one layer can set a particular key on `data`. It must BORROW the value by giving it a default.  
+4. Only one layer can set a particular key on `data`. It must BORROW the value by giving it a default.  
 If another layer tries to borrow the same key `layerCompose` throws an error.
     ```javascript
     const layer = function (borrow) {
@@ -32,14 +34,21 @@ If another layer tries to borrow the same key `layerCompose` throws an error.
    }
     ```
 
-4. When a data object is wrapped with `layerCompose`, it should not be extended or replaced.
+5. When a data object is wrapped with `layerCompose`, in Dev mode it is protected from outside access:  
+- `data` object is frozen to prevent unauthorized writes from outside
+- accidental reads are also protected: calling `data.key` throws an error if `data.key` is `undefined`
 ```javascript
-const data = {}
+const data = {prop: ''}
 
 const Wrapper = layerCompose(/*...*/)
 
 const wrapped = Wrapper(data)
 
-/* `data` should still refer to the same object, with the same prototype */
+data.key // throws
+data.key = '' // throws
+
+data.prop // is fine
 ```
-The caveat to this rule is that in DEV mode, `data` object is frozen to prevent unauthorized writes from outside
+
+6. `data` object should not have its prototype modified, and could be continued to use as a Plain Old JS Object.
+In example above, while `Wrapper` is aware of `data`, `data` is not aware of `Wrapper`. 
