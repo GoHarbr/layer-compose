@@ -34,6 +34,8 @@ function commonFunction() {
 
 ```
 
+https://jsben.ch/7Pgxg
+
 Layers are NOT allowed to access other layers; @see initializers-aka-constructors.md
 
 ### Overrides
