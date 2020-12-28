@@ -55,3 +55,31 @@ A object in a shape
 
 So this would not be valid, and should throw an error (in dev mode)
 @see exploration/super.js
+```javascript
+layerCompose(
+{
+    top() {
+        super.bottom() // throws an error
+    }
+}, 
+{
+    bottom() {}
+})
+```
+
+
+### Composability
+```javascript
+layerCompose({
+                 dataManager: [relationManager, dataManager],
+                 domManager: [subtaskDom, dom],
+             })
+
+// is same as
+
+layerCompose({
+                 dataManager: layerCompose(relationManager, dataManager),
+                 domManager: layerCompose(subtaskDom, dom),
+             })
+
+```
