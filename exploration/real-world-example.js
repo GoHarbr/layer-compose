@@ -21,6 +21,20 @@
 
 /* file: */
 const dataManager = [
+    /* Not all tasks will have subtasks, so putting into a separate layer(s), which can live in different files (etc) */
+
+    (borrow) => {
+        borrow.subtaskIds = []
+        return {
+            setTaskData(d) {
+                if (d.subtaskIds) this.subtaskIds = d.subtaskIds
+            },
+            getActiveSubtaskIds() {}
+        }
+    },
+
+    /* Handling most basic task properties */
+
     (_super) => {
         return {
             setTaskData(d) {
@@ -70,9 +84,9 @@ function gatedContainerRenderer(borrow) {
     borrow.isEnabled = false
 
     return {
-        render(continueRendering) {
+        render() {
             if (this.isEnabled && this.domContainer) {
-                continueRendering()
+                this.renderContainer()
             }
         },
         toggleDisplay() {},
@@ -111,10 +125,17 @@ function getColumn(columns, name) {
 /* file */
 
 /* file */
-const rowViewRenderer = function (borrow) {
-    return {
-        render() {
+const rowViewRenderer = function ({borrow, services}) {
+    borrow.subtaskContainer = null
 
+    return {
+        setContainer(elem) {
+            const [nameSlot, startDateSlot] = [elem.children[1], elem.children[2]]
+            this.subtaskContainer = elem.children[0]
+            super.setColumnRenderer('name', () => nameSlot.innerHTML = services.dataManager.data.name)
+
+            // refresh view
+            super.render()
         }
     }
 }
@@ -126,12 +147,19 @@ const expendedViewRenderer = {
 
 /* file */
 const subtaskRenderer = layerCompose(
-    function (_super) {
+    function ({_super, services}) {
         return {
             render() {
-                const ids = this.data.subtaskIds
-                _super.render(/*() => ... */)
+                let ids = services.dataManager.subtaskIds
+                // OR perhaps
+                ids = services.dataManager.getActiveSubtaskIds()
+                _super.render(/*() => ... use `ids` */)
             }
+        }
+    },
+    {
+        setContainer() {
+            super.setContainer(this.subtaskContainer)
         }
     },
     gatedContainerRenderer
@@ -144,9 +172,9 @@ const subtaskRenderer = layerCompose(
 
 const commonRenderStack = layerCompose(
     _super => {
-        _super.render.override(layers => {
+        _super.render.override(function (layers, ...rest) { // this function is curried internally, thus becoming just `function(...rest)`
             // layers is an array only includes the ones that have `render` method defined
-            layers.top()
+            layers.top.render()
         })
     },
     gatedContainerRenderer, baseColumnRenderer, subtaskRenderer
@@ -171,16 +199,18 @@ const Task = layerCompose(
             }
         }
     },
-    (_super) => {
-        // ??? maybe use immer.js to make it work like this or similar
-        _super.setDefaults(task => ({
-            views: {}, // will do nothing since views are defined on initialization
-            data: {id: task.id}
-        }))
-        _super.dataManager.takeSubset(task => task.data) // dataManager will not see `views` prop
+    ({_super}) => {
+        _super.dataManager.createDataView(task => task.data) // dataManager will not see `views` prop
+        _super.viewManager.row.createDataView(task => task.views.row)
+        _super.viewManager.expanded.createDataView(task => task.views.expanded)
+
+        // both row and expanded renderers will now be able to access `dataManager` (but only after initialization)
+        _super.viewManager.$all.addServices({
+            dataManager: _super.dataManager
+        })
     },
     {
-        dataManager: [dataLoader, dataManager],
+        dataManager: [dataLoader, ...dataManager],
         viewManager: {
             row: [rowViewRenderer, ],
             expanded: [expandedViewRenderer]
