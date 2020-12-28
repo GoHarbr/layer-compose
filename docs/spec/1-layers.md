@@ -12,10 +12,9 @@ const layer = {
 
 b. A function that returns an object as in `a.`
 ```javascript
-function layer () {
-    let internalState;
 
-    function commonFunction() {}
+function layer (borrow) {
+    borrow.key = false // see more in data-encapsulation.md
 
     return {
         methodA() {
@@ -25,10 +24,14 @@ function layer () {
             commonFunction()
         },
         methodC() {
-            internalState = true
+            this.key = true
         }
     }
 }
+function commonFunction() {
+    /* that does not rely on state/data directly */
+}
+
 ```
 
 Layers are NOT allowed to access other layers; @see initializers-aka-constructors.md
