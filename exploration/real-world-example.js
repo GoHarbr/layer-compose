@@ -212,8 +212,8 @@ const Task = layerCompose(
     {
         dataManager: [dataLoader, ...dataManager],
         viewManager: {
-            row: [rowViewRenderer, ],
-            expanded: [expandedViewRenderer]
+            row: [rowViewRenderer, commonRenderStack],
+            expanded: [expandedViewRenderer, commonRenderStack]
         }
     }
 )
