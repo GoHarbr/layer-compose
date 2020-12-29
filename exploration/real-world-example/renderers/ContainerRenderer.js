@@ -10,7 +10,7 @@ export default function ({Super, borrow}) {
 
 
     return {
-        render({prepareContainer}) {
+        render({prepareContainer}, ...rest) {
             if (this.isEnabled && this.domContainer) {
                 prepareContainer(this.domContainer)
 
@@ -20,6 +20,8 @@ export default function ({Super, borrow}) {
                 * plus any additional specified on it here
                 *
                 * ??? can this be done?
+                *
+                * @see below for an approach that will work
                 * */
 
                 render()
@@ -33,3 +35,37 @@ export default function ({Super, borrow}) {
         }
     }
 }
+
+
+/* Curry/Passthrough/Merge approach */
+
+function example ({Super, borrow}) {
+    borrow.domContainer = null
+    borrow.isEnabled = false
+
+    const {render} = Super
+
+    return {
+        render: render.withArgsMerge((_render, {prepareContainer}, ...rest) => {
+            if (this.isEnabled && this.domContainer) {
+                prepareContainer(this.domContainer)
+
+                /*
+                * IMPORTANT
+                * The following render call will receive all the same parameters as this render call,
+                * plus any additional specified on it here
+                * */
+
+                _render({additionalProp: true}) // so the underlying render call with get ({prepareContainer, additionalProp}, ...rest)
+            }
+        }),
+        toggleDisplay() {
+            this.isEnabled = !this.isEnabled
+        },
+        setContainer(elem) {
+            this.domContainer = elem
+        }
+    }
+}
+
+
