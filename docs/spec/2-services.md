@@ -24,7 +24,7 @@ const Task = layerCompose(
     {
         show() {
             const subtasks = super.dataManager.loadSubtasks()
-            super.subtaskDom
+            super.subtaskDom.show()
         }       
     },
     {

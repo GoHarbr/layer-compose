@@ -11,3 +11,17 @@ const data = {key: 'value'}
 const Wrapper = layerCompose(...)
 
 ```
+
+
+
+### Return values
+
+```javascript
+const o = Wrapper.method() // if returns object or array
+// eg. o = [1,2]
+// will be wrapped in proxy that check validity of access
+
+o[0] // good
+o[1] // good
+o[2] // throws
+```

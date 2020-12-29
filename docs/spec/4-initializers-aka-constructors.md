@@ -1,4 +1,4 @@
-An intializer is a function 
+An intializer is a function ...
 All initializers in `layerCompose` are static in a sense that they don't have direct access to the underlying data object/state.  
 They are called during the constuction of the factory, and thus can be cached
 
@@ -48,3 +48,4 @@ const Task = layerCompose(
 Task({prop: '', dom: {elem: ''}}) // domManager will operate on the subset (data.dom) of the passed in data
 ```
 
+### 
