@@ -66,6 +66,11 @@ dataHolderLayer = {
     setData(d) {
         super.watcher.watchMethod(super.data.setData.name, d)
         super.data.setData(d)
+    },
+
+    thisCanBeAnything() {
+        super.data.setData('super_still_works')
+        console.log(this)
     }
 }
 DataHolder = Object.create(dataHolderLayer)
@@ -77,9 +82,10 @@ Object.setPrototypeOf(dataHolderLayer, services) // this is an expensive and pot
 DataHolder = Object.create(dataHolderLayer)
 
 DataHolder.setData('proto_data')
+DataHolder.thisCanBeAnything.call({"this_can_be_changed": "yes"})
+console.log(DataHolder.data)
 
-
-/* In dev mode: if the layer underneath is detected to NOT be a service object  */
+/* Regulating super access  */
 
 
 let hasNoSuperAccess = true

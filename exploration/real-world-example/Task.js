@@ -1,47 +1,51 @@
-const commonRenderStack = layerCompose(
-    _super => {
-        _super.render.override(function (layers, ...rest) { // this function is curried internally, thus becoming just `function(...rest)`
-            // layers is an array only includes the ones that have `render` method defined
-            layers.top.render()
-        })
-    },
-    gatedContainerRenderer, baseColumnRenderer, subtaskRenderer
-)
+import RowView      from "./views/RowView"
+import ExpandedView from "./views/ExpandedView"
+import DataManager  from "./DataManager"
 
 export default layerCompose(
-    {
-        async toggleRowView(insideDomElem){
-            if (!!insideDomElem) {
-                await super.dataManager.loadRemote()
-                super.viewManager.row.setContainer(insideDomElem)
-                super.viewManager.row.toggleDisplay(true)
-                super.viewManager.row.render()
-            }
-        },
-        async toggleExpandedView(insideDomElem){
-            if (!!insideDomElem) {
-                await super.dataManager.loadRemote()
-                super.viewManager.expanded.setContainer(insideDomElem)
-                super.viewManager.expanded.toggleDisplay(true)
-                super.viewManager.expanded.render()
+    function ({services}) {
+        const {row, expanded} = services.viewManagers
+        const {dataManager} = services
+
+        return {
+            async toggleRowView(insideDomElem) {
+                if (!!insideDomElem) {
+                    await dataManager.loadRemote()
+                    row.setContainer(insideDomElem)
+                    row.toggleDisplay(true)
+                    row.render()
+                }
+            },
+            async toggleExpandedView(insideDomElem) {
+                if (!!insideDomElem) {
+                    await dataManager.loadRemote()
+                    expanded.setContainer(insideDomElem)
+                    expanded.toggleDisplay(true)
+                    expanded.render()
+                }
             }
         }
     },
-    ({_super}) => {
-        _super.dataManager.createDataView(task => task.data) // dataManager will not see `views` prop
-        _super.viewManager.row.createDataView(task => task.views.row)
-        _super.viewManager.expanded.createDataView(task => task.views.expanded)
+    ({services, borrow}) => {
+        borrow.id = undefined // effectively prevents id from being changed anywhere
+        // and since the default is `undefined`, layerCompose will force it to be set to a non-undefined value on instantiation
 
-        // both row and expanded renderers will now be able to access `dataManager` (but only after initialization)
-        _super.viewManager.$all.addServices({
-            dataManager: _super.dataManager
-        })
+        const {row, expanded} = services.viewManagers
+        const {dataManager} = services
+
+        dataManager.createDataView(task => task.data) // dataManager will not see `views` prop
+        // this will need to work closely with `borrow` to keep track of which properties have been borrowed
+
+        row.createDataView(task => task.views.row)
+        expanded.createDataView(task => task.views.expanded)
+    },
+    {
+        viewManagers: {
+            row: RowView,
+            expanded: ExpandedView
+        }
     },
     {
         dataManager: DataManager,
-        viewManager: {
-            row: [rowViewRenderer, commonRenderStack],
-            expanded: [expandedViewRenderer, commonRenderStack]
-        }
     }
 )
