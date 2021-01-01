@@ -42,6 +42,12 @@ function _compose(spec, composition = []) {
 
 function _bind(methodsAndServices, contents) {
     const ms = methodsAndServices
+
+    ms[key].call(obj_to_be_bound_as_this, [...params])
+    ms[key].apply(obj_to_be_bound_as_this, param1, param2, param3)
+
+    const boundF = ms[key].bind(obj_to_be_bound_as_this)-
+
     Object.keys(ms).forEach(key => {
         if (ms[key].bind) {
             ms[key] = ms[key].bind(contents)

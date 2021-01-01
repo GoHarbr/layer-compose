@@ -38,14 +38,29 @@ If another layer tries to borrow the same key `layerCompose` throws an error.
 - `data` object is frozen to prevent unauthorized writes from outside
 - accidental reads are also protected: calling `data.key` throws an error if `data.key` is `undefined`
 ```javascript
-const data = {prop: ''}
+const data = {prop: '', keyTop: {
+    keyMiddle: {
+        keyBottom: 1
+    }
+}}
 
-const Wrapper = layerCompose(/*...*/)
+const Wrapper = layerCompose({
+    method() {}
+}, {
+    method() {},
+    func() {}
+})
 
 const wrapped = Wrapper(data)
 
 data.key // throws
 data.key = '' // throws
+
+data.keyTop.keyMiddle.keyBottom
+wrapped.keyTop.keyMiddle.keyBottom
+
+wrapped.method() // () => (layer[0].method(); layer[1].method()) 
+wrapped.func()
 
 data.prop // is fine
 ```
