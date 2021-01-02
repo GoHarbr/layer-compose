@@ -1,5 +1,5 @@
-import {isLcConstructor, isService}              from './utils'
-import {$dataPointer, $isService, $onInitialize} from "./const"
+import {getDataFromPointer, isLcConstructor, isService} from './utils'
+import {$dataPointer, $isService, $onInitialize}        from "./const"
 
 const $setData = Symbol()
 
@@ -29,6 +29,12 @@ export function createConstructor(composedLayers) {
         return compositionInstance
     }
     function setData(d) {
+        if (d === undefined) {
+            d = {}
+        }
+        if (typeof d !== 'object') {
+            throw new Error('Data must be an object')
+        }
         compositionInstance[$dataPointer] = d
         for (const name of serviceNames) {
             compositionInstance[name][$setData](d)

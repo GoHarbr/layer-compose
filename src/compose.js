@@ -1,18 +1,7 @@
 import layerCompose                  from "./index"
 import {isServiceLayer, mustBeBuilt} from "./utils"
 import {$onInitialize}               from "./const"
-
-function generateDataAccessor() {
-
-    return {
-        constructor: function (defaults, asNewDataLayer) {
-            console.log(defaults)
-        },
-        initializer: (compositionInstance) => {
-
-        }
-    }
-}
+import {generateDataAccessor}        from "./generateDataAccessor"
 
 export function compose(layer, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()

@@ -1,5 +1,5 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$isService, lcSymbol} from "./const"
+import {$dataPointer, $isService, lcSymbol} from "./const"
 
 export function isServiceLayer(l) {
     // todo change to
@@ -21,4 +21,8 @@ export function mustBeBuilt(l) {
 
 function isFunction(what) {
     return (typeof what === 'function') // fixme, this will not always be correct
+}
+
+export function getDataFromPointer(compositionInstance) {
+    return compositionInstance[$dataPointer]
 }
