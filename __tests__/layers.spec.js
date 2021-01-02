@@ -3,12 +3,12 @@ import layerCompose from "../src"
 describe("Basic layering", () => {
     test("should keep `this` context to passed in data", () => {
         const C = layerCompose({
-            method() {
-                console.log("A", this)
+            method(d) {
+                console.log("A", d)
             }
         },{
-            method() {
-                console.log("B", this)
+            method(d) {
+                console.log("B", d)
             }
         })
 

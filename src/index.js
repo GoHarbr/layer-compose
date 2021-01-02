@@ -1,54 +1,22 @@
-const lcSymbol = Symbol();
-const isDevMode = process.env.NODE_ENV !== 'production'
+import {createConstructor} from "./createConstructor"
+import {compose}           from "./compose"
+import {lcSymbol}          from "./const"
 
 export default function layerCompose(...layers) {
     const executeOnInitialize = []
     let composed = {}
 
     for (const layer of layers) {
-        if (mustBeBuilt(layer)) {
-
-        } else if (isServiceLayer(layer)) {
-
-        } else {
-            const next = Object.fromEntries(
-                Object.entries(layer).map(([name, func]) => {
-                    let composedFunction
-
-                    const existing = composed[name]
-                    if (existing) {
-                        composedFunction = function(...args) {existing.call(this, args); func.call(this, args)}
-                    } else {
-                        composedFunction = function(...args) {func.call(this, args)}
-                    }
-
-                    return [name, composedFunction]
-                })
-            )
-
-            Object.assign(composed, next)
-        }
+        compose(layer, composed)
     }
 
-    function constructor(data) {
-        return Object.fromEntries(Object.entries(composed).map(([name, func]) => {
-            return [name, func.bind(data)]
-        }))
-    }
-    constructor.lc = lcSymbol
+    const constructor = createConstructor(composed)
+    constructor.lcId = lcSymbol
+    constructor.spec = layers
+    // constructor.curry = (_) => () => constructor(_) // todo. explore a more performant approach
 
     return constructor
 }
 
-/* Object that who's keys are not all arrays or composed functions */
-function isServiceLayer(l) {
-    return Object.values(l).indexOf(_ => Array.isArray(_) || _.lc === lcSymbol) !== -1
-}
+/* services are composed into the methods and accessed through super */
 
-function mustBeBuilt(l) {
-    return isFunction(l)
-}
-
-function isFunction(what) {
-    return (typeof what === 'function') // fixme, this will not always be correct
-}
