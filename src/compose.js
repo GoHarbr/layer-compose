@@ -1,9 +1,26 @@
 import layerCompose                  from "./index"
 import {isServiceLayer, mustBeBuilt} from "./utils"
+import {$onInitialize}               from "./const"
 
-export function compose(layer, composeInto = {}) {
+function generateDataAccessor() {
+
+    return {
+        constructor: function (defaults, asNewDataLayer) {
+            console.log(defaults)
+        },
+        initializer: (compositionInstance) => {
+
+        }
+    }
+}
+
+export function compose(layer, composeInto = {[$onInitialize]: []}) {
     if (mustBeBuilt(layer)) {
-        const built = layer({$: composeInto, b: {/* implement borrow */}})
+        const accessors = {
+            d: generateDataAccessor()
+        }
+        const built = layer({$: composeInto, d: accessors.d.constructor})
+        composeInto[$onInitialize].push(accessors.d.initializer)
         compose(built, composeInto)
     } else if (isServiceLayer(layer)) {
         const services = layer
