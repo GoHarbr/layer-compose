@@ -1,12 +1,12 @@
 import layerCompose from "../src"
 
 describe("Services", () => {
-    test.skip("should be callable", () => {
-        // const
+    test("should be callable", () => {
+        const checkFn = jest.fn();
         const C = layerCompose({
             service: [{
                 sm() {
-                    console.log('sm')
+                    checkFn()
                 }
             }]
         }, ({$}) => {
@@ -25,14 +25,16 @@ describe("Services", () => {
 
         const c = C({})
         c.method()
+        expect(checkFn).toHaveBeenCalled()
     }),
 
     test("should have access to data", () => {
-        // const
+        const checkFn = jest.fn();
+
         const C = layerCompose({
             service: [{
                 sm(_) {
-                    console.log('sm', _)
+                    checkFn(_)
                 }
             }]
         }, ({$}) => {
@@ -52,7 +54,10 @@ describe("Services", () => {
             }
         })
 
-        const c = C({key: 'data'})
+        const d = {key: 'data'}
+        const c = C(d)
         c.method()
+
+        expect(checkFn).toHaveBeenCalledWith(d)
     })
 })
