@@ -1,10 +1,9 @@
 import {createConstructor} from "./createConstructor"
-import {compose}           from "./compose"
-import {lcSymbol}          from "./const"
+import {compose}                 from "./compose"
+import {$onInitialize, lcSymbol} from "./const"
 
 export default function layerCompose(...layers) {
-    const executeOnInitialize = []
-    let composed = {}
+    let composed = {[$onInitialize]: []}
 
     for (const layer of layers) {
         compose(layer, composed)

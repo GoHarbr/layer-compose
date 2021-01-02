@@ -14,7 +14,9 @@ function generateDataAccessor() {
     }
 }
 
-export function compose(layer, composeInto = {[$onInitialize]: []}) {
+export function compose(layer, composeInto) {
+    if (!composeInto[$onInitialize]) throw new Error()
+
     if (mustBeBuilt(layer)) {
         const accessors = {
             d: generateDataAccessor()

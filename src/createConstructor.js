@@ -29,7 +29,7 @@ export function createConstructor(composedLayers) {
         return compositionInstance
     }
     function setData(d) {
-        compositionInstance[$dataPointer].data = d
+        compositionInstance[$dataPointer] = d
         for (const name of serviceNames) {
             compositionInstance[name][$setData](d)
         }
