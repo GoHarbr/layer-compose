@@ -19,7 +19,7 @@ export function compose(layerLike, composeInto, accessors) {
     if (mustBeBuilt(layerLike)) {
         const accessors = {
             d: generateDataAccessor(),
-            $: generateSuperAccessor()
+            $: generateSuperAccessor(composeInto)
         }
         const built = layerLike({$: accessors.$, d: accessors.d.constructor})
         composeInto[$onInitialize].push(accessors.d.initializer)

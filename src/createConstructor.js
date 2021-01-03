@@ -48,6 +48,7 @@ export function createConstructor(composedLayers) {
         }
     }
 
+
     const initializer = composedLayers[$onInitialize].length === 0 ? undefined :
         composedLayers[$onInitialize].reduce((a,b) => function (instance) {
         // layers go in order from bottom (first executed) to top (last executed)
@@ -60,9 +61,10 @@ export function createConstructor(composedLayers) {
         }
     }
 
+
     constructor.asService = () => {
         compositionInstance[$isService] = true
-        compositionInstance[$onInitialize] = initialize()
+        compositionInstance[$onInitialize] = initialize
         return compositionInstance
     }
 
