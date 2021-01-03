@@ -6,11 +6,14 @@
 * */
 
 const Benchmark = require('benchmark')
-const layerCompose = require('../../lib').default
+const {default: layerCompose, IS_DEV_MODE} = require('../lib')
+
+console.log('IS_DEV_MODE', IS_DEV_MODE)
+
 
 var suite = new Benchmark.Suite
 
-const data = "this_obj"
+const data = {}
 
 function log(what) {
     return what
@@ -41,12 +44,12 @@ function two_frozenArray_global() {
 }
 
 const C = layerCompose({
-    method() {
-        log("A", this)
+    method(d) {
+        log("B", d)
     }
 }, {
-    method() {
-        log("B", this)
+    method(d) {
+        log("A", d)
     }
 })
 const c = C(data)
