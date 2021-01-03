@@ -13,7 +13,7 @@ function generateSuperAccessor(composedUpTo) {
     }
 }
 
-export function compose(layerLike, composeInto, accessors) {
+export function compose(layerLike, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()
 
     if (mustBeBuilt(layerLike)) {
@@ -54,7 +54,7 @@ export function compose(layerLike, composeInto, accessors) {
                 if (existing) {
                     composedFunction = function (data, opt) {
                         let re = existing(data, opt)
-                        const rt = func(accessors?.d?.initializer ? accessors?.d?.initializer(data) : data, opt)
+                        const rt = func(data, opt)
 
                         // todo find out how much of a performance draw for combining results
                         if (re && rt) {

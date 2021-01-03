@@ -2,7 +2,7 @@
 * Records
 * layerCompose x 660,319,297 ops/sec ±0.58% (89 runs sampled)
 * layerCompose x 771,980,180 ops/sec ±1.10% (88 runs sampled)
-*
+* layerCompose x 779,712,326 ops/sec ±0.10% (83 runs sampled) --- almost complete
 * */
 
 const Benchmark = require('benchmark')
@@ -59,20 +59,13 @@ suite
 //     .add('direct global', function () {
 //     twoLogs_global()
 // })
-    .add('direct this', function () {
-        twoLogs_this.call(data)
-    })
-    // these two are obviously slow
-    // .add('array', function () {
-    //     two_array_global()
-    // })
-    // .add('frozen array', function () {
-    //     two_frozenArray_global()
-    // })
-    .add('two direct calls', function () {
-        log(data)
-        log(data)
-    })
+//     .add('direct this', function () {
+//         twoLogs_this.call(data)
+//     })
+//     .add('two direct calls', function () {
+//         log(data)
+//         log(data)
+//     })
     .add('layerCompose', function () {
         c.method()
     })
@@ -84,3 +77,13 @@ suite
         console.log('Fastest is ' + this.filter('fastest').map('name'))
     })
     .run({'async': false})
+
+
+
+// these two are obviously slow
+// .add('array', function () {
+//     two_array_global()
+// })
+// .add('frozen array', function () {
+//     two_frozenArray_global()
+// })
