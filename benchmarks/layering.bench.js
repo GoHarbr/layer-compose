@@ -3,6 +3,8 @@
 * layerCompose x 660,319,297 ops/sec ±0.58% (89 runs sampled)
 * layerCompose x 771,980,180 ops/sec ±1.10% (88 runs sampled)
 * layerCompose x 779,712,326 ops/sec ±0.10% (83 runs sampled) --- almost complete
+* layerCompose x 778,883,461 ops/sec ±0.11% (85 runs sampled)
+
 * */
 
 const Benchmark = require('benchmark')

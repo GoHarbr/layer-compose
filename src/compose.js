@@ -1,29 +1,24 @@
-import layerCompose                                                       from "./index"
-import {isFragmentOfLayers, isLcConstructor, isServiceLayer, mustBeBuilt} from "./utils"
-import {$onInitialize, $spec, IS_DEV_MODE}                                from "./const"
+import layerCompose                                                                              from "./index"
+import {isConstructorLayer, isFragmentOfLayers, isLcConstructor, isServiceLayer, isLayerBuilder} from "./utils"
+import {$onInitialize, $spec}                                                                    from "./const"
 import {generateDataAccessor}                                             from "./generateDataAccessor"
-import wrapWithProxy                 from "./wrapWithProxy"
-
-function generateSuperAccessor(composedUpTo) {
-    if (IS_DEV_MODE) {
-        // fixme. use own proxy to prevent sets / throw on gets
-        return wrapWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
-    } else {
-        return composedUpTo
-    }
-}
+import {generateSuperAccessor}                                            from "./generateSuperAccessor"
 
 export function compose(layerLike, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()
 
-    if (mustBeBuilt(layerLike)) {
+    if (isLayerBuilder(layerLike)) {
         const accessors = {
             d: generateDataAccessor(),
             $: generateSuperAccessor(composeInto)
         }
-        const built = layerLike({$: accessors.$, d: accessors.d.constructor})
+
+        const built = layerLike(accessors.$, accessors.d.constructor)
+
         composeInto[$onInitialize].push(accessors.d.initializer)
-        compose(built, composeInto)
+        if (typeof built === "object") {
+            compose(built, composeInto)
+        }
     } else if (isServiceLayer(layerLike)) {
         const services = layerLike
         for (const name of Object.keys(services)) {
@@ -48,6 +43,7 @@ export function compose(layerLike, composeInto) {
     } else {
         const next = Object.fromEntries(
             Object.entries(layerLike).map(([name, func]) => { // fixme. func could be a LC
+                if (func.length !== 2) throw new Error("Layer method must have exactly 2 arguments: `data` and `opts`")
                 let composedFunction
 
                 const existing = composeInto[name]

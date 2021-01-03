@@ -17,11 +17,12 @@ export function createConstructor(composedLayers) {
             compositionInstance[name] = methodOrService
             serviceNames.push(name)
         } else {
+            const defaultOpt = {} // defaults injected into here during initialization
             compositionInstance[name] = (opt) => {
-                if (!!opt && typeof opt != 'object') {
+                if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
                 }
-                methodOrService(compositionInstance[$dataPointer], opt)
+                methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
             }
         }
     }

@@ -71,4 +71,24 @@ describe("Layering", () => {
         c.middle()
         expect(middle).toEqual(0)
     })
+
+    test("methods could be overridden", () => {
+        let pass, fail
+        const C = layerCompose(($) => {
+            $.method.override(m => {
+                pass = true
+                m({isFail: false})
+            })
+        }, {
+            method(d, {isFail = true}) {
+                expect(pass).toBe(true)
+                fail = isFail
+            }
+        })
+
+        C().method()
+
+        expect(pass).toBe(true)
+        expect(fail).toBe(false)
+    })
 })
