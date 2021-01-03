@@ -2,7 +2,9 @@
 
 const definedGetProxy = {
     get(target, prop) {
-        return target[prop] || throw new Error('Property does not exist: ' + prop)
+        const v = target[prop]
+        // null is a valid optional value
+        return v !== undefined ? v : throw new Error('Property does not exist: ' + prop)
     }
 }
 const borrowProxy = (keys) => ({

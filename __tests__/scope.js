@@ -27,6 +27,38 @@ describe("Scope", () => {
         expect(getDataFromPointer(c).defaultKey).toEqual('defaultValue')
     })
 
+    test("borrowed values are accessible for writes", () => {
+        const C = layerCompose(({d}) => {
+            d({
+                first: 'defaultValue',
+                second: {
+                    subsecond: 1
+                }
+            })
+
+            return {
+                writeShallow(d) {
+                    d.first = ''
+                },
+                writeDeep(d) {
+                    d.second.subsecond = 2
+                },
+            }
+        })
+
+        const c = C({
+            deepDefault: {
+                originalKey: 2
+            }
+        })
+
+        c.writeShallow()
+        expect(getDataFromPointer(c).first).toEqual('')
+
+        c.writeDeep()
+        expect(getDataFromPointer(c).second.subsecond).toEqual(2)
+    })
+
     test("borrowed values are the only accessible ones", () => {
         const C = layerCompose(({d}) => {
             d({
