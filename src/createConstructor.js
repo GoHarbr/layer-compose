@@ -1,11 +1,11 @@
-import {getDataFromPointer, isLcConstructor, isService} from './utils'
-import {$dataPointer, $isService, $onInitialize}        from "./const"
-
-const $setData = Symbol()
+import {isService}                                                      from './utils'
+import {$dataPointer, $isService, $onInitialize, $setData, IS_DEV_MODE} from "./const"
+import wrapWithProxy                                                    from "./wrapWithProxy"
 
 export function createConstructor(composedLayers) {
     const compositionInstance = {
-        [$dataPointer]: undefined // this is filled with actual data during instantiation
+        [$dataPointer]: undefined, // this is filled with actual data during instantiation
+        [$setData]: setData
     }
 
     const serviceNames = []
@@ -18,6 +18,9 @@ export function createConstructor(composedLayers) {
             serviceNames.push(name)
         } else {
             compositionInstance[name] = (opt) => {
+                if (!!opt && typeof opt != 'object') {
+                    throw new Error("Layer methods can take only named parameters")
+                }
                 methodOrService(compositionInstance[$dataPointer], opt)
             }
         }
@@ -26,6 +29,10 @@ export function createConstructor(composedLayers) {
     function constructor (data) {
         setData(data)
         initialize()
+        if (IS_DEV_MODE) {
+            // fixme. use own proxy to prevent sets / throw on gets
+            return wrapWithProxy(compositionInstance, {/* empty borrow, thus no setting */}, {isGetOnly: false})
+        }
         return compositionInstance
     }
     function setData(d) {
@@ -54,7 +61,6 @@ export function createConstructor(composedLayers) {
 
     constructor.asService = () => {
         compositionInstance[$isService] = true
-        compositionInstance[$setData] = setData
         compositionInstance[$onInitialize] = initialize()
         return compositionInstance
     }

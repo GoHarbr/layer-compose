@@ -1,22 +1,37 @@
+import wrapWithProxy        from "./wrapWithProxy"
+import {IS_DEV_MODE}        from "./const"
 import {getDataFromPointer} from "./utils"
+import {$setData} from './const'
 
 export function generateDataAccessor() {
     let defaults
-    let borrowedKeys
+    let isDataPrivate = false
 
     return {
-        constructor: function (borrowedWithDefaults, asNewDataLayer) {
+        constructor: function (borrowedWithDefaults, usePrivateDataLayer) {
             if (typeof borrowedWithDefaults !== 'object') {
                 throw new Error('Default data must be an object, not a primitive')
             }
             defaults = borrowedWithDefaults
-            borrowedKeys = Object.keys(borrowedWithDefaults)
+            isDataPrivate = usePrivateDataLayer
         },
         initializer: (compositionInstance) => {
-            const d = getDataFromPointer(compositionInstance)
+            let data = getDataFromPointer(compositionInstance)
+
+            if (isDataPrivate) {
+                data = Object.create(data)
+            }
 
             if (defaults) {
-                injectDefaults(d, defaults)
+                injectDefaults(data, defaults)
+            }
+
+            if(!isDataPrivate) {
+                if (IS_DEV_MODE) {
+                    //* defaults also act as the borrow definition */
+                    data = wrapWithProxy(data, defaults, {isGetOnly: false})
+                    compositionInstance[$setData](data)
+                }
             }
         }
     }

@@ -25,19 +25,27 @@ describe("Scope", () => {
         expect(getDataFromPointer(c).deepDefault.originalKey).toEqual(2)
         expect(getDataFromPointer(c).deepDefault.defaultKey).toEqual(1)
         expect(getDataFromPointer(c).defaultKey).toEqual('defaultValue')
-
-        console.log(getDataFromPointer(c))
     })
 
-    test.skip("can be borrowed", () => {
+    test("borrowed values are the only accessible ones", () => {
         const C = layerCompose(({d}) => {
             d({
-                defaultKey: 'defaultValue',
-                deepDefault: {
-                    key: 1
+                first: 'defaultValue',
+                second: {
+                    subsecond: 1
                 }
             })
-            return {}
+            return {
+                writeShallow(d) {
+                    d.third = 3
+                },
+                writeDeep(d) {
+                    d.second.key = 3
+                },
+                writeDeeper(d) {
+                    d.second.key.key = 3
+                },
+            }
         })
 
         const c = C({
@@ -45,7 +53,9 @@ describe("Scope", () => {
                 originalKey: 2
             }
         })
-        expect()
-        console.log(getDataFromPointer(c))
+
+        expect(c.writeShallow).toThrow()
+        expect(c.writeDeep).toThrow()
+        expect(c.writeDeeper).toThrow()
     })
 })

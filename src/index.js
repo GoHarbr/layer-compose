@@ -1,6 +1,6 @@
 import {createConstructor} from "./createConstructor"
-import {compose}                 from "./compose"
-import {$onInitialize, lcSymbol} from "./const"
+import {compose}                  from "./compose"
+import {$onInitialize, LC_SYMBOL} from "./const"
 
 export default function layerCompose(...layers) {
     let composed = {[$onInitialize]: []}
@@ -10,7 +10,7 @@ export default function layerCompose(...layers) {
     }
 
     const constructor = createConstructor(composed)
-    constructor.lcId = lcSymbol
+    constructor.lcId = LC_SYMBOL
     constructor.spec = layers
     // constructor.curry = (_) => () => constructor(_) // todo. explore a more performant approach
 

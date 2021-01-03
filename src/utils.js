@@ -1,5 +1,5 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$dataPointer, $isService, lcSymbol} from "./const"
+import {$dataPointer, $isService, LC_SYMBOL} from "./const"
 
 export function isServiceLayer(l) {
     // todo change to
@@ -8,7 +8,7 @@ export function isServiceLayer(l) {
 }
 
 export function isLcConstructor(what) {
-    return what.lcId === lcSymbol
+    return what.lcId === LC_SYMBOL
 }
 
 export function isService(what) {
