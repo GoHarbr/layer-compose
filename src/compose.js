@@ -1,8 +1,9 @@
 import layerCompose                                                                              from "./index"
 import {isConstructorLayer, isFragmentOfLayers, isLcConstructor, isServiceLayer, isLayerBuilder} from "./utils"
 import {$onInitialize, $spec}                                                                    from "./const"
-import {generateDataAccessor}                                             from "./generateDataAccessor"
-import {generateSuperAccessor}                                            from "./generateSuperAccessor"
+import {generateDataAccessor}                                                                    from "./generateDataAccessor"
+import {generateSuperAccessor}                                                                   from "./generateSuperAccessor"
+import {layerMethodFormatCheck}                                                                  from "./dev-checks"
 
 export function compose(layerLike, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()
@@ -43,7 +44,7 @@ export function compose(layerLike, composeInto) {
     } else {
         const next = Object.fromEntries(
             Object.entries(layerLike).map(([name, func]) => { // fixme. func could be a LC
-                if (func.length !== 2) throw new Error("Layer method must have exactly 2 arguments: `data` and `opts`")
+                layerMethodFormatCheck(func)
                 let composedFunction
 
                 const existing = composeInto[name]

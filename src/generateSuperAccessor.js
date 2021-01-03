@@ -4,6 +4,15 @@ import {isService, isFunction}   from "./utils"
 
 export function generateSuperAccessor(composedUpTo) {
     attachModifiers(composedUpTo)
+
+    /*
+    * Spawn!
+    * spawns a new service that has access all existing services,
+    * but has it's own data context
+    *
+    * const newService = $(spec)
+    * */
+
     if (IS_DEV_MODE) {
         // fixme. use own proxy to prevent sets / throw on gets
         return wrapWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
