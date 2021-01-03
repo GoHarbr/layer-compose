@@ -15,6 +15,10 @@ export function generateSuperAccessor(composedUpTo) {
 
     if (IS_DEV_MODE) {
         // fixme. use own proxy to prevent sets / throw on gets
+        /*
+        * todo.
+        *
+        * */
         return wrapWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
     } else {
         return composedUpTo
@@ -25,6 +29,10 @@ function attachModifiers(composition) {
     for (const k of Object.keys(composition)) {
         const v = composition[k]
         if (!isService(v)) {
+            /*
+            * If this check ever goes, and we can overrides services, make sure that in the constructor we create
+            * a copy of the service in `asService()`
+            * */
             if (!isFunction(v)) throw new Error('Programmer error: `v` should be a method')
 
             // todo. is setting composition[k] modifies it across several layerCompose instances? // bad wording

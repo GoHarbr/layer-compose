@@ -2,10 +2,21 @@ import {isService}                                                      from './
 import {$dataPointer, $isService, $onInitialize, $setData, IS_DEV_MODE} from "./const"
 import wrapWithProxy                                                    from "./wrapWithProxy"
 
-export function createConstructor(composedLayers) {
+function createInstance(composedLayers) {
     const compositionInstance = {
         [$dataPointer]: undefined, // this is filled with actual data during instantiation
-        [$setData]: setData
+        [$setData]: function setData(d) {
+                if (d === undefined) {
+                    d = {}
+                }
+                if (typeof d !== 'object') {
+                    throw new Error('Data must be an object')
+                }
+                compositionInstance[$dataPointer] = d
+                for (const name of serviceNames) {
+                    compositionInstance[name][$setData](d)
+                }
+            }
     }
 
     const serviceNames = []
@@ -17,7 +28,7 @@ export function createConstructor(composedLayers) {
             compositionInstance[name] = methodOrService
             serviceNames.push(name)
         } else {
-            const defaultOpt = {} // defaults injected into here during initialization
+            const defaultOpt = {} // todo. check if defaults injected into here during initialization
             compositionInstance[name] = (opt) => {
                 if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
@@ -27,26 +38,20 @@ export function createConstructor(composedLayers) {
         }
     }
 
+    return {compositionInstance, serviceNames}
+}
+
+export function createConstructor(composedLayers) {
+    const {compositionInstance, serviceNames} = createInstance(composedLayers)
+
     function constructor (data) {
-        if (data !== undefined) setData(data)
+        if (data !== undefined) compositionInstance[$setData](data)
         initialize()
         if (IS_DEV_MODE) {
             // fixme. use own proxy to prevent sets / throw on gets
             return wrapWithProxy(compositionInstance, {/* empty borrow, thus no setting */}, {isGetOnly: false})
         }
         return compositionInstance
-    }
-    function setData(d) {
-        if (d === undefined) {
-            d = {}
-        }
-        if (typeof d !== 'object') {
-            throw new Error('Data must be an object')
-        }
-        compositionInstance[$dataPointer] = d
-        for (const name of serviceNames) {
-            compositionInstance[name][$setData](d)
-        }
     }
 
 
@@ -63,7 +68,17 @@ export function createConstructor(composedLayers) {
     }
 
 
-    constructor.asService = () => {
+    constructor.asService = (additionalServices) => {
+        const {compositionInstance, serviceNames} = createInstance(composedLayers)
+
+        const _asn = Object.keys(additionalServices)
+        const conflitingName = serviceNames.find(_ => _asn.includes(_))
+        if (conflitingName) {
+            throw new Error('Service is already defined: ' + conflitingName)
+        }
+
+        Object.assign(compositionInstance, additionalServices)
+
         compositionInstance[$isService] = true
         compositionInstance[$onInitialize] = initialize
         return compositionInstance
