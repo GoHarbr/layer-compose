@@ -27,7 +27,7 @@ export function createConstructor(composedLayers) {
     }
 
     function constructor (data) {
-        setData(data)
+        if (data !== undefined) setData(data)
         initialize()
         if (IS_DEV_MODE) {
             // fixme. use own proxy to prevent sets / throw on gets
@@ -48,12 +48,13 @@ export function createConstructor(composedLayers) {
         }
     }
 
-    const initializer = composedLayers[$onInitialize].reduce((a,b) => function (instance) {
+    const initializer = composedLayers[$onInitialize].length === 0 ? undefined :
+        composedLayers[$onInitialize].reduce((a,b) => function (instance) {
         // layers go in order from bottom (first executed) to top (last executed)
         a(instance); b(instance)
     })
     function initialize() {
-        initializer(compositionInstance)
+        initializer && initializer(compositionInstance)
         for (const name of serviceNames) {
             compositionInstance[name][$onInitialize]()
         }

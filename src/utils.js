@@ -2,9 +2,11 @@
 import {$dataPointer, $isService, LC_SYMBOL} from "./const"
 
 export function isServiceLayer(l) {
-    // todo change to
-    // return !Array.isArray(l) && Object.values(l).findIndex(_ => !isFunction(_) && !isLcConstructor(_)) === -1
     return !Array.isArray(l) && Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_)) === -1
+}
+
+export function isFragmentOfLayers(what) {
+    return Array.isArray(what) || isLcConstructor(what)
 }
 
 export function isLcConstructor(what) {

@@ -1,7 +1,7 @@
-import layerCompose                  from "./index"
-import {isServiceLayer, mustBeBuilt} from "./utils"
-import {$onInitialize, IS_DEV_MODE}  from "./const"
-import {generateDataAccessor}        from "./generateDataAccessor"
+import layerCompose                                                       from "./index"
+import {isFragmentOfLayers, isLcConstructor, isServiceLayer, mustBeBuilt} from "./utils"
+import {$onInitialize, $spec, IS_DEV_MODE}                                from "./const"
+import {generateDataAccessor}                                             from "./generateDataAccessor"
 import wrapWithProxy                 from "./wrapWithProxy"
 
 function generateSuperAccessor(composedUpTo) {
@@ -13,19 +13,19 @@ function generateSuperAccessor(composedUpTo) {
     }
 }
 
-export function compose(layer, composeInto, accessors) {
+export function compose(layerLike, composeInto, accessors) {
     if (!composeInto[$onInitialize]) throw new Error()
 
-    if (mustBeBuilt(layer)) {
+    if (mustBeBuilt(layerLike)) {
         const accessors = {
             d: generateDataAccessor(),
             $: generateSuperAccessor()
         }
-        const built = layer({$: accessors.$, d: accessors.d.constructor})
+        const built = layerLike({$: accessors.$, d: accessors.d.constructor})
         composeInto[$onInitialize].push(accessors.d.initializer)
         compose(built, composeInto)
-    } else if (isServiceLayer(layer)) {
-        const services = layer
+    } else if (isServiceLayer(layerLike)) {
+        const services = layerLike
         for (const name of Object.keys(services)) {
             if (Array.isArray(services[name])) {
                 services[name] = layerCompose(...services[name])
@@ -33,9 +33,21 @@ export function compose(layer, composeInto, accessors) {
             services[name] = services[name].asService() // transforms into a obj with methods
         }
         Object.assign(composeInto, services)
+
+    } else if (isFragmentOfLayers(layerLike)) {
+        if (isLcConstructor(layerLike)) {
+            layerLike = layerLike[$spec]
+        }
+        /*
+        * The style of spec definition is
+        * bottom layers (base mixins; called first) are defined after top layers (extending mixins; called last)
+        * */
+        for (const l of layerLike.reverse()) {
+            compose(l, composeInto)
+        }
     } else {
         const next = Object.fromEntries(
-            Object.entries(layer).map(([name, func]) => { // fixme. func could be a LC
+            Object.entries(layerLike).map(([name, func]) => { // fixme. func could be a LC
                 let composedFunction
 
                 const existing = composeInto[name]
