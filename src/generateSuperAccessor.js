@@ -36,18 +36,30 @@ function attachModifiers(composition) {
             if (!isFunction(v)) throw new Error('Programmer error: `v` should be a method')
 
             // todo. is setting composition[k] modifies it across several layerCompose instances? // bad wording
-            v.override = (fn) => composition[k] = (data, opts) => {
-                const superMethod = (superOpts) => {
-                    if (!superOpts) superOpts = opts
-                    return v(data, superOpts)
+            v.override = (fn) => {
+                if (!isFunction(fn)) {
+                    if (fn !== null) {
+                        throw new Error('Override must be a function or null (mute execution)')
+                    } else {
+                        composition[k] = undefined
+
+                        return /* remove method & exit */
+                    }
                 }
-                fn(superMethod, data, opts)
+
+                composition[k] = (data, opts) => {
+                    const superMethod = (superOpts) => {
+                        if (!superOpts) superOpts = opts
+                        return v(data, superOpts)
+                    }
+                    fn(superMethod, data, opts)
+                }
             }
 
-            v.prependOpts = (newOpts) => composition[k] = (data, opts) => {
+            v.defaultOpt = (newOpts) => composition[k] = (data, opts) => {
                 return v(data, {...newOpts, ...opts})
             }
-            v.appendOpts = (newOpts) => composition[k] = (data, opts) => {
+            v.overwriteOpt = (newOpts) => composition[k] = (data, opts) => {
                 return v(data, {...opts, ...newOpts})
             }
         }

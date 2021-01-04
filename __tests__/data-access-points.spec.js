@@ -1,6 +1,6 @@
 import layerCompose from '../src'
 
-describe('Data access', () => {
+describe('Data specific access points', () => {
     test('read access from outside', () => {
         const c = layerCompose({
             serviceKey: [{

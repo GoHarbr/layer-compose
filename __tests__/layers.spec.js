@@ -33,7 +33,7 @@ describe("Layering", () => {
                     top(d) {
                         top = 1
                     },
-                    middle() {
+                    middle(d) {
                         middle = 0
                     }
                     },
@@ -42,18 +42,18 @@ describe("Layering", () => {
 
             [
                 {
-                    middle() {
+                    middle(d) {
                         middle = 1
                     },
-                    top() {
+                    top(d) {
                         top = 2
                     },
                 },
                 {
-                    top() {
+                    top(d) {
                         top = 3
                     },
-                    bottom() {
+                    bottom(d) {
                         bottom = 0
                     }
                 }

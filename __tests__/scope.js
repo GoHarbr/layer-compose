@@ -7,7 +7,7 @@ describe("Scope", () => {
     })
 
     test("can have defaults set (deep)", () => {
-        const C = layerCompose(({d}) => {
+        const C = layerCompose(($, d) => {
             d({
                 defaultKey: 'defaultValue',
                 deepDefault: {
@@ -28,7 +28,7 @@ describe("Scope", () => {
     })
 
     test("borrowed values are accessible for writes", () => {
-        const C = layerCompose(({d}) => {
+        const C = layerCompose(($, d) => {
             d({
                 first: 'defaultValue',
                 second: {
@@ -60,7 +60,7 @@ describe("Scope", () => {
     })
 
     test("borrowed values are the only accessible ones", () => {
-        const C = layerCompose(({d}) => {
+        const C = layerCompose(($, d) => {
             d({
                 first: 'defaultValue',
                 second: {

@@ -3,7 +3,7 @@ import layerCompose from "../src"
 describe("Services", () => {
     test("should be callable", () => {
         const checkFn = jest.fn();
-        const C = layerCompose(({$}) => {
+        const C = layerCompose(($, d) => {
             const {service} = $
 
             // data.layer(defaults) -- layer
@@ -31,7 +31,7 @@ describe("Services", () => {
     test("should have access to data", () => {
         const checkFn = jest.fn();
 
-        const C = layerCompose(({$}) => {
+        const C = layerCompose(($, d) => {
             const {service} = $
 
             // data.layer(defaults) -- layer

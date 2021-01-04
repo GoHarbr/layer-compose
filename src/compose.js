@@ -14,11 +14,19 @@ export function compose(layerLike, composeInto) {
             $: generateSuperAccessor(composeInto)
         }
 
+        // todo, provide strictly necessary (amount) of args by reading from
+        // function.toString()
         const built = layerLike(accessors.$, accessors.d.constructor)
 
         composeInto[$onInitialize].push(accessors.d.initializer)
         if (typeof built === "object") {
             compose(built, composeInto)
+        } else {
+            /*
+            * Things possible in a constructor function
+            * - setting defaults, but not allowing write access to any layer
+            * - ...
+            * */
         }
     } else if (isServiceLayer(layerLike)) {
         const services = layerLike
