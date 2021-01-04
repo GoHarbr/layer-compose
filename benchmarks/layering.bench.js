@@ -55,19 +55,20 @@ const C = layerCompose({
     }
 })
 const c = C(data)
+c.method()
 
 // add tests
 suite
 //     .add('direct global', function () {
 //     twoLogs_global()
 // })
-    .add('direct this', function () {
-        twoLogs_this.call(data)
-    })
-    .add('two direct calls', function () {
-        log(data)
-        log(data)
-    })
+//     .add('direct this', function () {
+//         twoLogs_this.call(data)
+//     })
+//     .add('two direct calls', function () {
+//         log(data)
+//         log(data)
+//     })
     .add('layerCompose', function () {
         c.method()
     })

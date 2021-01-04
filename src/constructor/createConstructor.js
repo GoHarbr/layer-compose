@@ -25,6 +25,8 @@ export function createConstructor(composedLayers) {
         if (IS_DEV_MODE) {
             // fixme. use own proxy to prevent sets / throw on gets
             return _wrapDataWithProxy(compositionInstance, {/* empty borrow, thus no setting */}, {isGetOnly: false})
+        } else {
+            return compositionInstance
         }
     }
 
