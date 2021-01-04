@@ -11,13 +11,13 @@ describe("Services", () => {
             // or data({defaults_of_borrowed})
 
             return {
-                method() {
+                method(d) {
                     service.sm()
                 }
             }
         }, {
             service: [{
-                sm() {
+                sm(d) {
                     checkFn()
                 }
             }]
@@ -42,14 +42,14 @@ describe("Services", () => {
             // before this point, data is not accessible
 
             return {
-                method() {
+                method(d) {
                     service.sm()
                 }
             }
         }, {
             service: [{
-                sm(_) {
-                    checkFn(_)
+                sm(d) {
+                    checkFn(d)
                 }
             }]
         })
