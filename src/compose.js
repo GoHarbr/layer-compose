@@ -1,16 +1,9 @@
-import layerCompose           from "./index"
-import {
-    isConstructorLayer,
-    isFragmentOfLayers,
-    isLcConstructor,
-    isServiceLayer,
-    isLayerBuilder,
-    isService
-}                             from "./utils"
-import {$onInitialize, $spec} from "./const"
-import {generateDataAccessor}                                                                    from "./generateDataAccessor"
-import {generateSuperAccessor}                                                                   from "./generateSuperAccessor"
-import {layerMethodFormatCheck}                                                                  from "./dev-checks"
+import layerCompose                                                                                  from "./index"
+import {selectExistingServices, isFragmentOfLayers, isLayerBuilder, isLcConstructor, isServiceLayer} from "./utils"
+import {$onInitialize, $spec}                                                                        from "./const"
+import {generateDataAccessor}                                                                     from "./generateDataAccessor"
+import {generateSuperAccessor}                                                                    from "./generateSuperAccessor"
+import {layerMethodFormatCheck}                                                                   from "./dev-checks"
 
 export function compose(layerLike, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()
@@ -29,7 +22,8 @@ export function compose(layerLike, composeInto) {
         }
     } else if (isServiceLayer(layerLike)) {
         const services = layerLike
-        const existingServices = composeInto.filter(isService)
+        const existingServices = selectExistingServices(composeInto)
+
         for (const name of Object.keys(services)) {
             if (Array.isArray(services[name])) {
                 services[name] = layerCompose(...services[name])

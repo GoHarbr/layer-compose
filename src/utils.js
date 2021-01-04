@@ -36,3 +36,12 @@ export function isFunction(what) {
 export function getDataFromPointer(compositionInstance) {
     return compositionInstance[$dataPointer]
 }
+
+export function selectExistingServices(composition) {
+    /*
+    * Do not change implementation, create new function
+    * */
+    return Object.fromEntries(
+        Object.entries(composition).filter(_ => isService(_[1]))
+    )
+}

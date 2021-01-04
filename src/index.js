@@ -1,5 +1,5 @@
-import {createConstructor}                            from "./createConstructor"
-import {compose}                                      from "./compose"
+import {createConstructor} from "./constructor/createConstructor"
+import {compose}           from "./compose"
 import {$spec, $onInitialize, LC_SYMBOL, IS_DEV_MODE} from "./const"
 
 export default function layerCompose(...layers) {
