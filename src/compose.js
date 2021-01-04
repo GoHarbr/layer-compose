@@ -1,16 +1,18 @@
-import layerCompose           from "./index"
+import layerCompose, {IS_DEV_MODE}      from "./index"
 import {
     selectExistingServices,
     isFragmentOfLayers,
     isLayerBuilder,
     isLcConstructor,
     isServiceLayer,
-    getLayerId
+    getLayerId,
+    isFunction
 }                                       from "./utils"
 import {$layerId, $onInitialize, $spec} from "./const"
 import {generateDataAccessor}           from "./generateDataAccessor"
-import {generateSuperAccessor}                                                                    from "./generateSuperAccessor"
-import {layerMethodFormatCheck}                                                                   from "./dev-checks"
+import {generateSuperAccessor}          from "./generateSuperAccessor"
+import {layerMethodFormatCheck}         from "./dev-checks"
+import {wrapDataWithProxy}              from "./proxies"
 
 export function compose(layerLike, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()
@@ -18,25 +20,32 @@ export function compose(layerLike, composeInto) {
     if (isLayerBuilder(layerLike)) {
         const layerId = getLayerId(layerLike)
         const accessors = {
-            d: generateDataAccessor(),
+            d: generateDataAccessor(layerId),
             $: generateSuperAccessor(composeInto)
         }
 
         // todo, provide strictly necessary (amount) of args by reading from
         // function.toString()
         const built = layerLike(accessors.$, accessors.d.constructor)
-        built[$layerId] = layerId // for controlling access
 
         composeInto[$onInitialize].push(accessors.d.initializer)
-        if (typeof built === "object") {
-            compose(built, composeInto)
-        } else {
+
+
+        if (isFunction(built) && built.length === 0) {
+            // initializer
+
             /*
             * Things possible in a constructor function
+            * - running service methods
             * - setting defaults, but not allowing write access to any layer
-            * - ...
             * */
+
+            compose[$onInitialize].push(built)
+        } else if (typeof built === "object") {
+            built[$layerId] = layerId // for controlling access
+            compose(built, composeInto)
         }
+
     } else if (isServiceLayer(layerLike)) {
         const services = layerLike
         const existingServices = selectExistingServices(composeInto)
@@ -61,6 +70,8 @@ export function compose(layerLike, composeInto) {
             compose(l, composeInto)
         }
     } else {
+        const layerId = getLayerId(layerLike)
+
         const next = Object.fromEntries(
             Object.entries(layerLike).map(([name, func]) => {
                 // fixme. check that func is not layerCompose constructor
@@ -71,30 +82,43 @@ export function compose(layerLike, composeInto) {
                 if (existing) {
                     composedFunction = function (data, opt) {
                         let re = existing(data, opt)
-                        const rt = func(data, opt)
+
+                        if (IS_DEV_MODE) {
+                            // fixme. remove check for write access IF private data
+                            data = wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
+                        }
+                        const thisLayerResult = func(data, opt)
 
                         // todo find out how much of a performance drawdown for combining results
-                        if (re && rt) {
-                            return {...re, ...rt}
+                        if (re && thisLayerResult) {
+                            return {...re, ...thisLayerResult}
                         } else if (re) {
                             return re
                         } else {
-                            return rt
+                            return thisLayerResult
                         }
 
-                        if (!re && rt) {
-                           re = {}
-                        } else if (typeof rt !== 'object') { // re has been already checked
+                        if (!re && thisLayerResult) {
+                            re = {}
+                        } else if (typeof thisLayerResult !== 'object') { // re has been already checked
                             throw new Error('returned value must be undefined or an object')
                         }
 
-                        if (rt) {
-                            Object.assign(re, rt)
+                        if (thisLayerResult) {
+                            Object.assign(re, thisLayerResult)
                         }
                         return re
                     }
                 } else {
                     composedFunction = func
+
+                    if (IS_DEV_MODE) {
+                        // fixme. remove check for write access IF private data
+                        composedFunction = function (data, opt) {
+                            data = wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
+                            return func(data, opt)
+                        }
+                    }
                 }
 
                 return [name, composedFunction]

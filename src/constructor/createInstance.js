@@ -6,7 +6,7 @@ export function createInstance(composedLayers) {
     const compositionInstance = {
         [$dataPointer]: undefined, // this is filled with actual data during instantiation
         [$setData]: function setData(d, {isOriginalCall = true} = {}) {
-            if (d === undefined) {
+            if (d == null) {
                 d = {}
             }
             if (typeof d !== 'object') {

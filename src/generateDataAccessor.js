@@ -1,17 +1,13 @@
-import {IS_DEV_MODE} from "./const"
-import {getDataFromPointer}     from "./utils"
+import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "./const"
+import {getDataFromPointer}                         from "./utils"
 import {$setData}               from './const'
 import {wrapDataWithProxy}      from "./proxies"
 
-export function generateDataAccessor() {
+export function generateDataAccessor(layerId) {
     let defaults
     let isDataPrivate = false
 
     return {
-        // fixme. constructor should be a proxy with
-        // get so that ({services}, {key1, key2})
-        // generates a defaults for key1, key2 (sets to undefined)
-
         constructor: function (borrowedWithDefaults, usePrivateDataLayer) {
             if (typeof borrowedWithDefaults !== 'object') {
                 throw new Error('Default data must be an object, not a primitive')
@@ -19,15 +15,12 @@ export function generateDataAccessor() {
             defaults = borrowedWithDefaults
             isDataPrivate = usePrivateDataLayer
         },
-        initializer: layerId => (compositionInstance) => {
+        initializer: compositionInstance => {
             let data = getDataFromPointer(compositionInstance)
 
             if (isDataPrivate) {
                 data = Object.create(data)
-                if (IS_DEV_MODE) {
-                    // no check for write access on private data
-                    data = proxies(data, {}, {isGetOnly: true})
-                }
+                data[$isPrivateData] = true // to be exempt from borrow checks
                 compositionInstance[$setData](data)
             }
 
@@ -37,11 +30,35 @@ export function generateDataAccessor() {
 
             if (IS_DEV_MODE) {
                 if (!isDataPrivate) {
-                    /* defaults also act as the borrow definition */
-                    data = wrapDataWithProxy(layerId, data, defaults, {isGetOnly: false})
-                    compositionInstance[$setData](data)
+                    addBorrowKeys(layerId, data, defaults)
+                    /*
+                    * borrow check happens on each function call in compose.js
+                    * */
                 }
             }
+        }
+    }
+}
+
+function addBorrowKeys(layerId, data, borrowDefaults) {
+    if (typeof borrowDefaults == "object" && typeof data == 'object') {
+        const _bk = data[$borrowedKeys]
+        if (!_bk) {
+            data[$borrowedKeys] = {}
+        }
+
+        const addKeys = Object.keys(borrowDefaults)
+        const existingKeys = Object.values(data[$borrowedKeys]).flat()
+        const conflictKey = existingKeys.find(_ => addKeys.some(b => b === _))
+
+        if (conflictKey) {
+            throw new Error('Cannot borrow the same key: ' + conflictKey)
+        }
+
+        data[$borrowedKeys][layerId] = addKeys
+
+        for (const k in data) {
+            addBorrowKeys(layerId, data[k], borrowDefaults[k])
         }
     }
 }
@@ -49,6 +66,9 @@ export function generateDataAccessor() {
 /** Deep defaults injection */
 function injectDefaults(into, defaults) {
     if (typeof into === 'object') {
+        // const _bk = into[$borrowedKeys]
+        // const existingBorrowKeys = Object.values(_bk || {}).flat()
+
         const presentKeys = Object.entries(into)
             .filter(_ => _[1] !== undefined)
             .map(_ => _[0])
@@ -60,6 +80,11 @@ function injectDefaults(into, defaults) {
         }
 
         for (const k of presentKeys) {
+            // const conflictKey = existingBorrowKeys.find(_ => k === _)
+            // if (conflictKey) {
+            //     throw new Error('Cannot borrow the same key: ' + conflictKey)
+            // }
+
             if (typeof defaults[k] === 'object') injectDefaults(into[k], defaults[k])
         }
     }

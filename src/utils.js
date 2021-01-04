@@ -46,6 +46,8 @@ export function selectExistingServices(composition) {
     )
 }
 
+let _globalLayerId = 0
 export function getLayerId(layer) {
-    return layer[$layerId] || (layer[$layerId] = Symbol())
+    _globalLayerId++
+    return layer[$layerId] || (layer[$layerId] = _globalLayerId)
 }

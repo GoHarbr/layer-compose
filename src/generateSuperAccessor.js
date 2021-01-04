@@ -1,13 +1,13 @@
 import {IS_DEV_MODE}           from "./const"
-import {isService, isFunction} from "./utils"
-import {wrapDataWithProxy}     from "./proxies"
+import {isService, isFunction}                 from "./utils"
+import {_wrapDataWithProxy, wrapDataWithProxy} from "./proxies"
 
 export function generateSuperAccessor(composedUpTo) {
     attachModifiers(composedUpTo)
 
     if (IS_DEV_MODE) {
         // fixme. create wrap$WithProxy
-        return wrapDataWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
+        return _wrapDataWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
     } else {
         return composedUpTo
     }

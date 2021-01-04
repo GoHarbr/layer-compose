@@ -1,33 +1,48 @@
 import {$isService, $onInitialize, $setData, IS_DEV_MODE} from "../const"
 import {createInstance}                                   from "./createInstance"
-import {wrapDataWithProxy}                                from "../proxies"
+import {_wrapDataWithProxy, wrapDataWithProxy}            from "../proxies"
 
 
 export function createConstructor(composedLayers) {
     const {compositionInstance, serviceNames} = createInstance(composedLayers)
+    let setData = compositionInstance[$setData]
+    if (!setData) {
+        throw new Error()
+    }
 
+    const initialize = buildInitializer(compositionInstance)
     function constructor(data) {
-        if (data !== undefined) compositionInstance[$setData](data)
+        if (typeof data !== "object" && data != null) throw new Error('Data must be an object (not a primitive) or null')
+
+        setData = compositionInstance[$setData]
+        if (!setData) {
+            throw new Error()
+        }
+
+        setData(data)
         initialize()
 
         if (IS_DEV_MODE) {
             // fixme. use own proxy to prevent sets / throw on gets
-            return wrapDataWithProxy(compositionInstance, {/* empty borrow, thus no setting */}, {isGetOnly: false})
+            return _wrapDataWithProxy(compositionInstance, {/* empty borrow, thus no setting */}, {isGetOnly: false})
         }
     }
 
 
-    const initializer = composedLayers[$onInitialize].length === 0 ? undefined :
-        composedLayers[$onInitialize].reduce((a, b) => function (instance) {
-            // layers go in order from bottom (first executed) to top (last executed)
-            a(instance)
-            b(instance)
-        })
+    function buildInitializer(instance) {
+        const initFunctions = composedLayers[$onInitialize]
+        const initializer = initFunctions.length === 0 ? undefined :
+            initFunctions.reduce((a, b) => function (instance) {
+                // layers go in order from bottom (first executed) to top (last executed)
+                a(instance)
+                b(instance)
+            })
 
-    function initialize() {
-        initializer && initializer(compositionInstance)
-        for (const name of serviceNames) {
-            compositionInstance[name][$onInitialize]()
+        return function initialize() {
+            initializer && initializer(instance)
+            for (const name of serviceNames) {
+                compositionInstance[name][$onInitialize]()
+            }
         }
     }
 
@@ -45,7 +60,7 @@ export function createConstructor(composedLayers) {
         Object.assign(compositionInstance, additionalServices)
 
         compositionInstance[$isService] = true
-        compositionInstance[$onInitialize] = initialize
+        compositionInstance[$onInitialize] = buildInitializer(compositionInstance)
         return compositionInstance
     }
 

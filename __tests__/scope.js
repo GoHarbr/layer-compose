@@ -2,10 +2,6 @@ import layerCompose         from "../src"
 import {getDataFromPointer} from "../src/utils"
 
 describe("Scope", () => {
-    test.skip("can be narrowed", () => {
-        // layerCompose(DataManager.pickData(d => d.must_be_an_object))
-    })
-
     test("can have defaults set (deep)", () => {
         const C = layerCompose(($, d) => {
             d({
@@ -56,9 +52,11 @@ describe("Scope", () => {
 
         c.writeShallow()
         expect(getDataFromPointer(c).first).toEqual('')
+        expect(c.first).toEqual('')
 
         c.writeDeep()
         expect(getDataFromPointer(c).second.subsecond).toEqual(2)
+        expect(c.second.subsecond).toEqual(2)
     })
 
     test("borrowed values are the only accessible ones", () => {
@@ -131,13 +129,14 @@ describe("Scope", () => {
         const C = layerCompose(($, d) => {
             return {
                 writeShallow(d) {
-                    d.third = 3
+                    d.third = 4
                 },
                 writeDeep(d) {
                     d.second.key = 3
                 },
-                data(d) {
-                    return d
+                check(d) {
+                    expect(d.third).toEqual(3)
+                    expect(d.second.key).toEqual(2)
                 }
             }
         })
@@ -152,7 +151,11 @@ describe("Scope", () => {
 
         expect(c.writeShallow).toThrow()
         expect(c.writeDeep).toThrow()
-        expect(c.data()).toEqual(d)
+
+        c.check()
+
+        expect(c.third).toEqual(3)
+        expect(c.second.key).toEqual(2)
     })
 
     test("cannot borrow the same key twice (layers)", () => {
@@ -173,17 +176,21 @@ describe("Scope", () => {
 
     test("cannot borrow the same key twice (service)", () => {
         expect(() => {
-            layerCompose(($, d) => {
+            const C = layerCompose(($, d) => {
                 d({
                     key: {
                         subkey: 1
                     }
                 })
-            }, {service: [($, d) => d({
-                key: {
-                    subkey: 2
-                }
-            })]})
+            }, {service: [($, d) => {
+                d({
+                        key: {
+                            subkey: 2
+                        }
+                    })
+                }]})
+
+            C()
         }).toThrow("Cannot borrow the same key")
     })
 })
