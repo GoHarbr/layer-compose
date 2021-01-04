@@ -16,7 +16,7 @@ export function layerMethodFormatCheck(method) {
     if (IS_DEV_MODE) {
         if (method.length > 2) throw new Error("Layer method must have at most 2 arguments: `d` and `opt`")
 
-        if (!reBuilder.test(method.toString().replaceAll(' ', ''))) {
+        if (method.length !== 0 && !reMethod.test(method.toString().replaceAll(' ', ''))) {
             throw new Error("A layer method must use `d` for data access and `opt` for options access or use destructuring")
         }
     }
