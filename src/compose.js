@@ -1,4 +1,4 @@
-import layerCompose, {IS_DEV_MODE}      from "./index"
+import layerCompose      from "./index"
 import {
     selectExistingServices,
     isFragmentOfLayers,
@@ -8,7 +8,7 @@ import {
     getLayerId,
     isFunction, isService
 } from "./utils"
-import {$layerId, $onInitialize, $spec} from "./const"
+import {IS_DEV_MODE, $layerId, $onInitialize, $spec} from "./const"
 import {generateDataAccessor}           from "./generateDataAccessor"
 import {generateSuperAccessor}          from "./generateSuperAccessor"
 import {layerMethodFormatCheck}         from "./dev-checks"
@@ -94,34 +94,15 @@ export function compose(layerLike, composeInto) {
 
                 const existing = composeInto[name]
                 if (existing) {
-                    composedFunction = function (data, opt) {
-                        let re = existing(data, opt)
 
-                        if (IS_DEV_MODE) {
+                    composedFunction = functionComposer(existing, func)
+                    if (IS_DEV_MODE) {
+                        const wrap = (data) => {
                             // fixme. remove check for write access IF private data
-                            data = wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
+                            return wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
                         }
-                        const thisLayerResult = func(data, opt)
-
-                        // todo find out how much of a performance drawdown for combining results
-                        if (re && thisLayerResult) {
-                            return {...re, ...thisLayerResult}
-                        } else if (re) {
-                            return re
-                        } else {
-                            return thisLayerResult
-                        }
-
-                        if (!re && thisLayerResult) {
-                            re = {}
-                        } else if (typeof thisLayerResult !== 'object') { // re has been already checked
-                            throw new Error('returned value must be undefined or an object')
-                        }
-
-                        if (thisLayerResult) {
-                            Object.assign(re, thisLayerResult)
-                        }
-                        return re
+                        const _f = composedFunction
+                        composedFunction = (data, opt) => _f(wrap(data), opt)
                     }
                 } else {
                     composedFunction = func
@@ -140,5 +121,33 @@ export function compose(layerLike, composeInto) {
         )
 
         Object.assign(composeInto, next)
+    }
+}
+
+function functionComposer(existing, func) {
+    return function (data, opt) {
+        let re = existing(data, opt)
+
+        const thisLayerResult = func(data, opt)
+
+        // todo find out how much of a performance drawdown for combining results
+        if (re && thisLayerResult) {
+            return {...re, ...thisLayerResult}
+        } else if (re) {
+            return re
+        } else {
+            return thisLayerResult
+        }
+
+        if (!re && thisLayerResult) {
+            re = {}
+        } else if (typeof thisLayerResult !== 'object') { // re has been already checked
+            throw new Error('returned value must be undefined or an object')
+        }
+
+        if (thisLayerResult) {
+            Object.assign(re, thisLayerResult)
+        }
+        return re
     }
 }
