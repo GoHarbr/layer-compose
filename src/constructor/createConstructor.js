@@ -47,17 +47,8 @@ export function createConstructor(composedLayers) {
     }
 
 
-    constructor.asService = (additionalServices) => {
+    constructor.asService = () => {
         const {compositionInstance, serviceNames} = createInstance(composedLayers)
-
-        // fixme, no access through $
-        const _asn = Object.keys(additionalServices)
-        const conflictingName = serviceNames.find(_ => _asn.includes(_))
-        if (conflictingName) {
-            throw new Error('Service is already defined: ' + conflictingName)
-        }
-
-        Object.assign(compositionInstance, additionalServices)
 
         compositionInstance[$isService] = true
         compositionInstance[$onInitialize] = buildInitializer(compositionInstance)

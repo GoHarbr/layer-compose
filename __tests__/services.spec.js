@@ -6,10 +6,6 @@ describe("Services", () => {
         const C = layerCompose(($, d) => {
             const {service} = $
 
-            // data.layer(defaults) -- layer
-            // data.borrow(defaults) -- only one layer can set defaults, only one has write access after all
-            // or data({defaults_of_borrowed})
-
             return {
                 method(d) {
                     service.sm()
@@ -34,10 +30,6 @@ describe("Services", () => {
         const C = layerCompose(($, d) => {
             const {service} = $
 
-            // data.layer(defaults) -- layer
-            // data.borrow(defaults) -- only one layer can set defaults, only one has write access after all
-            // or data({defaults_of_borrowed})
-
             // after this point $ is non readable
             // before this point, data is not accessible
 
@@ -49,7 +41,8 @@ describe("Services", () => {
         }, {
             service: [{
                 sm(d) {
-                    checkFn(d)
+                    checkFn()
+                    expect(d.key).toBe('data')
                 }
             }]
         })
@@ -58,6 +51,38 @@ describe("Services", () => {
         const c = C(d)
         c.method()
 
-        expect(checkFn).toHaveBeenCalledWith(d)
+        expect(checkFn).toHaveBeenCalled()
+    })
+
+    test("should have access to instantiated services", () => {
+        const checkFn = jest.fn();
+
+        const C = layerCompose(($, d) => {
+            const {service} = $
+
+            expect(service).toBeTruthy()
+            return {
+                method(d) {}
+            }
+        },
+            {
+                anotherService: [$ => () => {
+                    $.service.sm()
+                }]
+            },
+            {
+            service: [{
+                sm(d) {
+                    checkFn()
+                    expect(d.key).toBe('data')
+                }
+            }]
+        })
+
+        const d = {key: 'data'}
+        const c = C(d)
+        c.method()
+
+        expect(checkFn).toHaveBeenCalled()
     })
 })

@@ -6,8 +6,8 @@ import {
     isLcConstructor,
     isServiceLayer,
     getLayerId,
-    isFunction
-}                                       from "./utils"
+    isFunction, isService
+} from "./utils"
 import {$layerId, $onInitialize, $spec} from "./const"
 import {generateDataAccessor}           from "./generateDataAccessor"
 import {generateSuperAccessor}          from "./generateSuperAccessor"
@@ -40,7 +40,7 @@ export function compose(layerLike, composeInto) {
             * - setting defaults, but not allowing write access to any layer
             * */
 
-            compose[$onInitialize].push(built)
+            composeInto[$onInitialize].push(built)
         } else if (typeof built === "object") {
             built[$layerId] = layerId // for controlling access
             compose(built, composeInto)
@@ -50,12 +50,26 @@ export function compose(layerLike, composeInto) {
         const services = layerLike
         const existingServices = selectExistingServices(composeInto)
 
-        for (const name of Object.keys(services)) {
+        const serviceNames = Object.keys(services)
+        for (const name of serviceNames) {
             if (Array.isArray(services[name])) {
-                services[name] = layerCompose(...services[name])
+                services[name] = layerCompose.withServices(services[name])(existingServices)
+                /*
+                * This means that only fragments can receive instantiated services
+                * anything that ran through `layerCompose` would already fail because the services would not be found
+                * */
             }
-            services[name] = services[name].asService(existingServices) // transforms into a obj with methods
+            if (!isService(services[name])) {
+                services[name] = services[name].asService() // transforms into a obj with methods
+            }
         }
+
+        const existingServiceNames = Object.keys(existingServices)
+        const conflictingName = serviceNames.find(_ => existingServiceNames.includes(_))
+        if (conflictingName) {
+            throw new Error('Service is already defined: ' + conflictingName)
+        }
+
         Object.assign(composeInto, services)
 
     } else if (isFragmentOfLayers(layerLike)) {

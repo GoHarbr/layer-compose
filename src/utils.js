@@ -3,7 +3,7 @@ import {$dataPointer, $isService, $layerId, LC_SYMBOL} from "./const"
 import {layerBuilderFormatCheck}                       from "./dev-checks"
 
 export function isServiceLayer(l) {
-    return !Array.isArray(l) && Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_)) === -1
+    return !Array.isArray(l) && Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_) && !isService(_)) === -1
 }
 
 export function isFragmentOfLayers(what) {
@@ -15,7 +15,7 @@ export function isLcConstructor(what) {
 }
 
 export function isService(what) {
-    return !!what[$isService]
+    return (typeof what == "object") && !!what[$isService]
 }
 
 export function isLayerBuilder(l) {
