@@ -1,25 +1,13 @@
-import {IS_DEV_MODE} from "./const"
-import wrapWithProxy from "./wrapWithProxy"
-import {isService, isFunction}   from "./utils"
+import {IS_DEV_MODE}           from "./const"
+import {isService, isFunction} from "./utils"
+import {wrapDataWithProxy}     from "./proxies"
 
 export function generateSuperAccessor(composedUpTo) {
     attachModifiers(composedUpTo)
 
-    /*
-    * Spawn!
-    * spawns a new service that has access all existing services,
-    * but has it's own data context
-    *
-    * const newService = $(spec)
-    * */
-
     if (IS_DEV_MODE) {
-        // fixme. use own proxy to prevent sets / throw on gets
-        /*
-        * todo.
-        *
-        * */
-        return wrapWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
+        // fixme. create wrap$WithProxy
+        return wrapDataWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
     } else {
         return composedUpTo
     }

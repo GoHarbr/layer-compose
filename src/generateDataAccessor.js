@@ -1,7 +1,7 @@
-import wrapWithProxy        from "./wrapWithProxy"
-import {IS_DEV_MODE}        from "./const"
-import {getDataFromPointer} from "./utils"
-import {$setData}           from './const'
+import {IS_DEV_MODE} from "./const"
+import {getDataFromPointer}     from "./utils"
+import {$setData}               from './const'
+import {wrapDataWithProxy}      from "./proxies"
 
 export function generateDataAccessor() {
     let defaults
@@ -19,14 +19,14 @@ export function generateDataAccessor() {
             defaults = borrowedWithDefaults
             isDataPrivate = usePrivateDataLayer
         },
-        initializer: (compositionInstance) => {
+        initializer: layerId => (compositionInstance) => {
             let data = getDataFromPointer(compositionInstance)
 
             if (isDataPrivate) {
                 data = Object.create(data)
                 if (IS_DEV_MODE) {
                     // no check for write access on private data
-                    data = wrapWithProxy(data, {}, {isGetOnly: true})
+                    data = proxies(data, {}, {isGetOnly: true})
                 }
                 compositionInstance[$setData](data)
             }
@@ -37,8 +37,8 @@ export function generateDataAccessor() {
 
             if (IS_DEV_MODE) {
                 if (!isDataPrivate) {
-                    //* defaults also act as the borrow definition */
-                    data = wrapWithProxy(data, defaults, {isGetOnly: false})
+                    /* defaults also act as the borrow definition */
+                    data = wrapDataWithProxy(layerId, data, defaults, {isGetOnly: false})
                     compositionInstance[$setData](data)
                 }
             }

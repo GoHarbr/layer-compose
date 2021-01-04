@@ -1,5 +1,5 @@
-import {$dataPointer, $setData, IS_DEV_MODE} from "../const"
-import {attachDataUnderneath}                from "./attachDataUnderneath"
+import {$objectId, $dataPointer, $setData, IS_DEV_MODE} from "../const"
+import {attachDataUnderneath}                           from "./attachDataUnderneath"
 import {isService}                           from "../utils"
 
 export function createInstance(composedLayers) {
@@ -12,6 +12,7 @@ export function createInstance(composedLayers) {
             if (typeof d !== 'object') {
                 throw new Error('Data must be an object')
             }
+            // if (!d[$objectId]) d[$objectId] = Symbol()
             compositionInstance[$dataPointer] = d
 
             /*

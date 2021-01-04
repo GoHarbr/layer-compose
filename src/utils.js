@@ -1,6 +1,6 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$dataPointer, $isService, LC_SYMBOL} from "./const"
-import {layerBuilderFormatCheck}             from "./dev-checks"
+import {$dataPointer, $isService, $layerId, LC_SYMBOL} from "./const"
+import {layerBuilderFormatCheck}                       from "./dev-checks"
 
 export function isServiceLayer(l) {
     return !Array.isArray(l) && Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_)) === -1
@@ -44,4 +44,8 @@ export function selectExistingServices(composition) {
     return Object.fromEntries(
         Object.entries(composition).filter(_ => isService(_[1]))
     )
+}
+
+export function getLayerId(layer) {
+    return layer[$layerId] || (layer[$layerId] = Symbol())
 }

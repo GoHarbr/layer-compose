@@ -6,3 +6,8 @@ export const $dataPointer = Symbol()
 export const $onInitialize = Symbol()
 export const $setData = Symbol()
 export const $spec = Symbol()
+
+export const $dataProxy = Symbol()
+export const $borrowedKeys = Symbol()
+
+export const $layerId = Symbol()

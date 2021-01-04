@@ -1,7 +1,14 @@
-import layerCompose                                                                                  from "./index"
-import {selectExistingServices, isFragmentOfLayers, isLayerBuilder, isLcConstructor, isServiceLayer} from "./utils"
-import {$onInitialize, $spec}                                                                        from "./const"
-import {generateDataAccessor}                                                                     from "./generateDataAccessor"
+import layerCompose           from "./index"
+import {
+    selectExistingServices,
+    isFragmentOfLayers,
+    isLayerBuilder,
+    isLcConstructor,
+    isServiceLayer,
+    getLayerId
+}                                       from "./utils"
+import {$layerId, $onInitialize, $spec} from "./const"
+import {generateDataAccessor}           from "./generateDataAccessor"
 import {generateSuperAccessor}                                                                    from "./generateSuperAccessor"
 import {layerMethodFormatCheck}                                                                   from "./dev-checks"
 
@@ -9,6 +16,7 @@ export function compose(layerLike, composeInto) {
     if (!composeInto[$onInitialize]) throw new Error()
 
     if (isLayerBuilder(layerLike)) {
+        const layerId = getLayerId(layerLike)
         const accessors = {
             d: generateDataAccessor(),
             $: generateSuperAccessor(composeInto)
@@ -17,6 +25,7 @@ export function compose(layerLike, composeInto) {
         // todo, provide strictly necessary (amount) of args by reading from
         // function.toString()
         const built = layerLike(accessors.$, accessors.d.constructor)
+        built[$layerId] = layerId // for controlling access
 
         composeInto[$onInitialize].push(accessors.d.initializer)
         if (typeof built === "object") {
@@ -53,7 +62,8 @@ export function compose(layerLike, composeInto) {
         }
     } else {
         const next = Object.fromEntries(
-            Object.entries(layerLike).map(([name, func]) => { // fixme. func could be a LC
+            Object.entries(layerLike).map(([name, func]) => {
+                // fixme. check that func is not layerCompose constructor
                 layerMethodFormatCheck(func)
                 let composedFunction
 
@@ -63,7 +73,7 @@ export function compose(layerLike, composeInto) {
                         let re = existing(data, opt)
                         const rt = func(data, opt)
 
-                        // todo find out how much of a performance draw for combining results
+                        // todo find out how much of a performance drawdown for combining results
                         if (re && rt) {
                             return {...re, ...rt}
                         } else if (re) {
