@@ -160,7 +160,7 @@ describe("Scope", () => {
 
     test("cannot borrow the same key twice (layers)", () => {
         expect(() => {
-            layerCompose(($, d) => {
+            const C = layerCompose(($, d) => {
                 d({
                     key: {
                         subkey: 1
@@ -171,6 +171,8 @@ describe("Scope", () => {
                     subkey: 2
                 }
             }))
+
+            C()
         }).toThrow()
     })
 
