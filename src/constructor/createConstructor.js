@@ -1,6 +1,6 @@
 import {$initializer, $isInitialized, $isService, $runOnInitialize, $setData, IS_DEV_MODE} from "../const"
 import {createInstance}                                                                    from "./createInstance"
-import {_wrapDataWithProxy, wrapDataWithProxy}            from "../proxies"
+import {_wrapDataWithProxy}            from "../proxies"
 import {isFunction} from '../utils'
 
 
@@ -51,7 +51,6 @@ export function createConstructor(composedLayers) {
                 return
             }
 
-            console.log(initFunctions)
             initializer && initializer(instance)
             instance[$isInitialized] = true
             for (const name of serviceNames) {

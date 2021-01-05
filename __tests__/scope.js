@@ -26,7 +26,13 @@ describe("Scope", () => {
     })
 
     test("borrowed values are accessible for writes", () => {
-        const C = layerCompose(($, d) => {
+        const C = layerCompose(
+            {
+                writeDeep(d) {
+                   expect(d.second.subsecond).toEqual(2)
+                }
+            },
+            ($, d) => {
             d({
                 first: 'defaultValue',
                 second: {
@@ -41,6 +47,9 @@ describe("Scope", () => {
                 writeDeep(d) {
                     d.second.subsecond = 2
                 },
+                checkShallow(d) {
+                    expect(d.first).toEqual('')
+                }
             }
         })
 
@@ -51,12 +60,11 @@ describe("Scope", () => {
         })
 
         c.writeShallow()
+        c.checkShallow()
         expect(getDataFromPointer(c).first).toEqual('')
-        expect(c.first).toEqual('')
 
         c.writeDeep()
         expect(getDataFromPointer(c).second.subsecond).toEqual(2)
-        expect(c.second.subsecond).toEqual(2)
     })
 
     test("borrowed values are the only accessible ones", () => {
@@ -154,8 +162,9 @@ describe("Scope", () => {
 
         c.check()
 
-        expect(c.third).toEqual(3)
-        expect(c.second.key).toEqual(2)
+        const pd = getDataFromPointer(c)
+        expect(pd.third).toEqual(3)
+        expect(pd.second.key).toEqual(2)
     })
 
     test("cannot borrow the same key twice (layers)", () => {

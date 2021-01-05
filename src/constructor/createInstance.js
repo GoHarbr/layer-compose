@@ -1,5 +1,4 @@
 import {$dataPointer, $setData, IS_DEV_MODE} from "../const"
-import {attachDataUnderneath}                from "./attachDataUnderneath"
 import {isService}                           from "../utils"
 
 export function createInstance(composedLayers) {
