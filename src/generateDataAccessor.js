@@ -5,36 +5,26 @@ import {wrapDataWithProxy}      from "./proxies"
 
 export function generateDataAccessor(layerId) {
     let defaults
-    let isDataPrivate = false
 
     return {
-        constructor: function (borrowedWithDefaults, usePrivateDataLayer) {
+        constructor: function (borrowedWithDefaults) {
             if (typeof borrowedWithDefaults !== 'object') {
                 throw new Error('Default data must be an object, not a primitive')
             }
             defaults = borrowedWithDefaults
-            isDataPrivate = usePrivateDataLayer
         },
         initializer: compositionInstance => {
             let data = getDataFromPointer(compositionInstance)
-
-            if (isDataPrivate) {
-                data = Object.create(data)
-                data[$isPrivateData] = true // to be exempt from borrow checks
-                compositionInstance[$setData](data)
-            }
 
             if (defaults) {
                 injectDefaults(data, defaults)
             }
 
             if (IS_DEV_MODE) {
-                if (!isDataPrivate) {
                     addBorrowKeys(layerId, data, defaults)
                     /*
                     * borrow check happens on each function call in compose.js
                     * */
-                }
             }
         }
     }

@@ -26,6 +26,7 @@ const borrowProxy = (layerId) => ({
             // if no borrowed keys set, throw (prevents from runtime generated keys from being settable individually)
             // exception is private data
             && (!target[$borrowedKeys] && !target[$isPrivateData])
+            || !target[$borrowedKeys][layerId]
             || !target[$borrowedKeys][layerId].includes(prop)) {
             throw new Error('Must borrow to be able to set a prop\'s value on: ' + prop)
         }

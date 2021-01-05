@@ -7,15 +7,15 @@ import {
     isServiceLayer,
     getLayerId,
     isFunction, isService
-} from "./utils"
-import {IS_DEV_MODE, $layerId, $onInitialize, $spec} from "./const"
-import {generateDataAccessor}           from "./generateDataAccessor"
+}                                                       from "./utils"
+import {IS_DEV_MODE, $layerId, $runOnInitialize, $spec} from "./const"
+import {generateDataAccessor}                           from "./generateDataAccessor"
 import {generateSuperAccessor}          from "./generateSuperAccessor"
 import {layerMethodFormatCheck}         from "./dev-checks"
 import {wrapDataWithProxy}              from "./proxies"
 
 export function compose(layerLike, composeInto) {
-    if (!composeInto[$onInitialize]) throw new Error()
+    if (!composeInto[$runOnInitialize]) throw new Error()
 
     if (isLayerBuilder(layerLike)) {
         const layerId = getLayerId(layerLike)
@@ -28,7 +28,7 @@ export function compose(layerLike, composeInto) {
         // function.toString()
         const built = layerLike(accessors.$, accessors.d.constructor)
 
-        composeInto[$onInitialize].push(accessors.d.initializer)
+        composeInto[$runOnInitialize].push(accessors.d.initializer)
 
 
         if (isFunction(built) && built.length === 0) {
@@ -40,7 +40,7 @@ export function compose(layerLike, composeInto) {
             * - setting defaults, but not allowing write access to any layer
             * */
 
-            composeInto[$onInitialize].push(built)
+            composeInto[$runOnInitialize].push(built)
         } else if (typeof built === "object") {
             built[$layerId] = layerId // for controlling access
             compose(built, composeInto)
@@ -95,20 +95,20 @@ export function compose(layerLike, composeInto) {
                 const existing = composeInto[name]
                 if (existing) {
 
-                    composedFunction = functionComposer(existing, func)
                     if (IS_DEV_MODE) {
-                        const wrap = (data) => {
-                            // fixme. remove check for write access IF private data
-                            return wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
+                        const _f = function (data, opt) {
+                            data = wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
+                            return func(data, opt)
                         }
-                        const _f = composedFunction
-                        composedFunction = (data, opt) => _f(wrap(data), opt)
+
+                        composedFunction = functionComposer(existing, _f)
+                    } else {
+                        composedFunction = functionComposer(existing, func)
                     }
                 } else {
                     composedFunction = func
 
                     if (IS_DEV_MODE) {
-                        // fixme. remove check for write access IF private data
                         composedFunction = function (data, opt) {
                             data = wrapDataWithProxy(layerId, data, {}, {isGetOnly: false})
                             return func(data, opt)

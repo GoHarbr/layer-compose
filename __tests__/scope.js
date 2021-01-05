@@ -184,15 +184,86 @@ describe("Scope", () => {
                         subkey: 1
                     }
                 })
-            }, {service: [($, d) => {
-                d({
+            }, {
+                service: [($, d) => {
+                    d({
                         key: {
                             subkey: 2
                         }
                     })
-                }]})
+                }]
+            })
 
             C()
         }).toThrow("Cannot borrow the same key")
+    })
+
+    test("Services carry their own scope", () => {
+        const checkMethod = jest.fn()
+        const checkBottomService = jest.fn()
+        const checkTopService = jest.fn()
+
+        const bottomServices = {
+            bottomService: [
+                {
+                    method(d) {
+                        checkBottomService(d.public, d.private)
+                    }
+                },
+
+                ($, d) => {
+                    d({
+                        private: 'bottom-default'
+                    })
+                    return {
+                        method(d) {
+                            d.private = 'bottom'
+                        }
+                    }
+                }
+            ]
+        }
+
+        const topServices = {
+            topService: [
+                {
+                    method(d) {
+                        checkTopService(d.public, d.private)
+                    }
+                },
+
+                ($, d) => {
+                    d({
+                        private: 'top-default'
+                    })
+                    return {
+                        method(d) {
+                            d.private = 'top'
+                        }
+                    }
+                }
+            ]
+        }
+
+        const C = layerCompose(
+            topServices,
+            ($, d) => {
+                return {
+                    method(d) {
+                        checkMethod(d.public, d.private)
+                        $.bottomService.method()
+                    }
+                }
+            },
+            bottomServices
+        )
+
+        const c = C({public: 'public', private: 'original'})
+        c.method()
+        c.topService.method()
+
+        expect(checkMethod).toHaveBeenCalledWith('public', 'original')
+        expect(checkBottomService).toHaveBeenCalledWith('public', 'bottom')
+        expect(checkTopService).toHaveBeenCalledWith('public', 'top')
     })
 })

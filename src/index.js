@@ -1,7 +1,7 @@
 import {createConstructor}                            from "./constructor/createConstructor"
-import {compose}                                      from "./compose"
-import {$onInitialize, $spec, IS_DEV_MODE, LC_SYMBOL} from "./const"
-import {isService}                                    from "./utils"
+import {compose}                                         from "./compose"
+import {$runOnInitialize, $spec, IS_DEV_MODE, LC_SYMBOL} from "./const"
+import {isService}                                       from "./utils"
 
 
 const withServices = spec => additionalServices => {
@@ -11,7 +11,7 @@ const withServices = spec => additionalServices => {
 layerCompose.withServices = withServices
 
 export default function layerCompose(...layers) {
-    let composed = {[$onInitialize]: []}
+    let composed = {[$runOnInitialize]: []}
 
     compose(layers, composed)
 

@@ -85,4 +85,8 @@ describe("Services", () => {
 
         expect(checkFn).toHaveBeenCalled()
     })
+
+    test("services should be chainable", () => {
+
+    })
 })

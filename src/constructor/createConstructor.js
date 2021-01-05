@@ -1,6 +1,7 @@
-import {$isService, $onInitialize, $setData, IS_DEV_MODE} from "../const"
-import {createInstance}                                   from "./createInstance"
+import {$initializer, $isInitialized, $isService, $runOnInitialize, $setData, IS_DEV_MODE} from "../const"
+import {createInstance}                                                                    from "./createInstance"
 import {_wrapDataWithProxy, wrapDataWithProxy}            from "../proxies"
+import {isFunction} from '../utils'
 
 
 export function createConstructor(composedLayers) {
@@ -32,7 +33,9 @@ export function createConstructor(composedLayers) {
 
 
     function buildInitializer(instance) {
-        const initFunctions = composedLayers[$onInitialize]
+        const initFunctions = composedLayers[$runOnInitialize]
+        if (isFunction(initFunctions)) throw new Error()
+
         const initializer = initFunctions.length === 0 ? undefined :
             initFunctions.reduce((a, b) => function (instance) {
                 // layers go in order from bottom (first executed) to top (last executed)
@@ -41,9 +44,16 @@ export function createConstructor(composedLayers) {
             })
 
         return function initialize() {
+            if (instance[$isInitialized]) {
+                console.log('already initialized', instance)
+                return
+            }
+
+            console.log(initFunctions)
             initializer && initializer(instance)
+            instance[$isInitialized] = true
             for (const name of serviceNames) {
-                compositionInstance[name][$onInitialize]()
+                compositionInstance[name][$initializer]()
             }
         }
     }
@@ -53,7 +63,7 @@ export function createConstructor(composedLayers) {
         const {compositionInstance, serviceNames} = createInstance(composedLayers)
 
         compositionInstance[$isService] = true
-        compositionInstance[$onInitialize] = buildInitializer(compositionInstance)
+        compositionInstance[$initializer] = buildInitializer(compositionInstance)
         return compositionInstance
     }
 
