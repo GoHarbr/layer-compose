@@ -1,5 +1,5 @@
-import {$objectId, $dataPointer, $setData, IS_DEV_MODE} from "../const"
-import {attachDataUnderneath}                           from "./attachDataUnderneath"
+import {$dataPointer, $setData, IS_DEV_MODE} from "../const"
+import {attachDataUnderneath}                from "./attachDataUnderneath"
 import {isService}                           from "../utils"
 
 export function createInstance(composedLayers) {
@@ -8,10 +8,15 @@ export function createInstance(composedLayers) {
 
     const compositionInstance = {
         [$dataPointer]: undefined, // this is filled with actual data during instantiation
-        [$setData]: function setData(d, {isOriginalCall = true, selfOnly = false,
-            createOwnScope = false, executionId = Symbol()} = {}) {
+        [$setData]: function setData(d, {
+            isOriginalCall = true, selfOnly = false,
+            createOwnScope = false,
+            executionId = Symbol()
+        } = {}) {
 
-            if (lastSetDataExecutionId === executionId) return // eg. service calls a service from parent
+            if (lastSetDataExecutionId === executionId) return
+            // eg. service calls a service from parent
+            // preventing circular references
 
             if (d == null) {
                 d = {}
@@ -30,17 +35,13 @@ export function createInstance(composedLayers) {
 
             compositionInstance[$dataPointer] = ownScope || d
 
-            /*
-            * Layering the actual data underneath
-            * */
-            if (isOriginalCall) {
-                // fixme this will not layer properly with own scope
-                attachDataUnderneath(ownScope || d, compositionInstance)
-            }
-
             if (!selfOnly) {
                 for (const name of serviceNames) {
-                    compositionInstance[name][$setData](ownScope || d, {isOriginalCall: false, createOwnScope: true, executionId})
+                    compositionInstance[name][$setData](ownScope || d, {
+                        isOriginalCall: false,
+                        createOwnScope: true,
+                        executionId
+                    })
                 }
             }
 

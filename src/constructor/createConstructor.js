@@ -45,7 +45,9 @@ export function createConstructor(composedLayers) {
 
         return function initialize() {
             if (instance[$isInitialized]) {
-                console.log('already initialized', instance)
+                /*
+                * This happens with circular access to services (by other services)
+                * */
                 return
             }
 
