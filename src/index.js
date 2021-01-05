@@ -19,6 +19,7 @@ export default function layerCompose(...layers) {
     constructor.lcId = LC_SYMBOL // fixme give symbol accessor
     constructor[$spec] = layers
     constructor.withServices = withServices(layers)
+    constructor.partial = (presetValues) => (data = {}) => constructor({...data, ...presetValues})
 
     return constructor
 }
