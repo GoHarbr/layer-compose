@@ -4,7 +4,7 @@
   "main": "./lib/index.js",
   "scripts": {
     "test": "jest",
-    "build": "babel src -d lib"
+    "build": "babel src -d lib && if ! [ -x \"command -v yalc\" ]; then yalc publish; fi "
   },
   "devDependencies": {
     "@babel/cli": "^7.12.10",
