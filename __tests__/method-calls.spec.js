@@ -1,4 +1,4 @@
-import layerCompose from "../src"
+import layerCompose, {unbox} from "../src"
 
 describe('Calling methods', () => {
     test('should have access to `opt`', () => {
@@ -83,5 +83,20 @@ describe('Calling methods', () => {
         const opt = {key: 'v', otherKey: 'v'}
         c.method(opt)
         expect(checkFn).toHaveBeenCalledWith({otherKey: 'v', key: 'default', default: 'default'})
+    })
+
+    test('should have access to data when called internally', () => {
+        const c = layerCompose(($,d) => {
+            d({key: ''})
+            return {
+                method(d, opt) {
+                    d.key = 'v'
+                }
+            }
+        })()
+
+        c.method()
+        const d = unbox(c)
+        expect(d.key).toEqual('v')
     })
 })

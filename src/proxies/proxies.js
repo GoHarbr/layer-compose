@@ -1,7 +1,7 @@
 // todo. make sure types do not change during execution
 
 import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "../const"
-import {isFunction}                                 from "../utils"
+import {getDataFromPointer, isFunction}             from "../utils"
 
 const definedProxyExceptions = ['toJSON']
 
@@ -41,11 +41,11 @@ const borrowProxy = (layerId) => ({
     }
 })
 
-const superFunctionProxy = (dataPointer, {getProxy}) => ({
+const superFunctionProxy = (selfInstancePointer, {getProxy}) => ({
     get(target, prop) {
         const v = target[prop]
         if (isFunction(v)) {
-            return opt => v(dataPointer.data, opt)
+            return opt => v(getDataFromPointer(selfInstancePointer), opt)
         } else {
             return getProxy ? getProxy(v, prop) : v
         }
@@ -70,9 +70,9 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
     }
 }
 
-export function wrapSuperWithProxy(composition, dataPointer) {
+export function wrapSuperWithProxy(composition, selfInstancePointer) {
     const getProxy = IS_DEV_MODE ? definedGetProxy._mustBeDefined : undefined
-    return new Proxy(composition, superFunctionProxy(dataPointer, {getProxy}))
+    return new Proxy(composition, superFunctionProxy(selfInstancePointer, {getProxy}))
 }
 
 /*

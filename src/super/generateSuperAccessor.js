@@ -3,21 +3,21 @@ import {isService, isFunction, getDataFromPointer}                 from "../util
 import {_wrapDataWithProxy, wrapDataWithProxy, wrapSuperWithProxy} from "../proxies/proxies"
 
 export function generateSuperAccessor(composedUpTo) {
-    const dataPointer = {
-        data: undefined
+    const selfInstancePointer = {
+        pointer: undefined
     }
 
     return {
         initializer: compositionInstance => {
-            dataPointer.data = getDataFromPointer(compositionInstance)
+            selfInstancePointer.pointer = getDataFromPointer(compositionInstance)
         },
-        constructor: generateConstructor(composedUpTo, dataPointer)
+        constructor: generateConstructor(composedUpTo, selfInstancePointer)
     }
 }
 
-function generateConstructor(composedUpTo, dataPointer) {
+function generateConstructor(composedUpTo, selfInstancePointer) {
     attachModifiers(composedUpTo)
-    composedUpTo = wrapSuperWithProxy(composedUpTo, dataPointer) // in DEV mode checks for defined gets
+    composedUpTo = wrapSuperWithProxy(composedUpTo, selfInstancePointer) // in DEV mode checks for defined gets
 
     return composedUpTo
 }
