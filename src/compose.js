@@ -12,7 +12,7 @@ import {IS_DEV_MODE, $layerId, $runOnInitialize, $spec} from "./const"
 import {generateDataAccessor}   from "./generateDataAccessor"
 import {generateSuperAccessor}  from "./super/generateSuperAccessor"
 import {layerMethodFormatCheck} from "./dev-checks"
-import {wrapDataWithProxy}              from "./proxies"
+import {wrapDataWithProxy}      from "./proxies/proxies"
 
 export function compose(layerLike, composeInto) {
     if (!composeInto[$runOnInitialize]) throw new Error()

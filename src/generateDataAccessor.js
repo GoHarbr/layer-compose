@@ -1,7 +1,7 @@
 import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "./const"
 import {getDataFromPointer}                         from "./utils"
-import {$setData}               from './const'
-import {wrapDataWithProxy}      from "./proxies"
+import {$setData}          from './const'
+import {wrapDataWithProxy} from "./proxies/proxies"
 
 export function generateDataAccessor(layerId) {
     let defaults

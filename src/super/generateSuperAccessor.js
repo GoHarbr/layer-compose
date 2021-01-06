@@ -1,6 +1,6 @@
 import {IS_DEV_MODE}                                               from "../const"
 import {isService, isFunction, getDataFromPointer}                 from "../utils"
-import {_wrapDataWithProxy, wrapDataWithProxy, wrapSuperWithProxy} from "../proxies"
+import {_wrapDataWithProxy, wrapDataWithProxy, wrapSuperWithProxy} from "../proxies/proxies"
 
 export function generateSuperAccessor(composedUpTo) {
     const dataPointer = {

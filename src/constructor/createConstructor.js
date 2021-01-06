@@ -1,7 +1,7 @@
 import {$initializer, $isInitialized, $isService, $runOnInitialize, $setData, IS_DEV_MODE} from "../const"
-import {createInstance}                                                                    from "./createInstance"
-import {_wrapDataWithProxy}            from "../proxies"
-import {isFunction} from '../utils'
+import {createInstance}     from "./createInstance"
+import {_wrapDataWithProxy} from "../proxies/proxies"
+import {isFunction}         from '../utils'
 
 
 export function createConstructor(composedLayers) {

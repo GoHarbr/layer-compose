@@ -1,18 +1,20 @@
 // todo. make sure types do not change during execution
 
-import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "./const"
-import {isFunction}                                 from "./utils"
+import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "../const"
+import {isFunction}                                 from "../utils"
+
+const definedProxyExceptions = ['toJSON']
 
 const definedGetProxy = {
     get(target, prop) {
         const v = target[prop]
         // null is a valid optional value
-        return definedGetProxy._mustBeDefined(v)
+        return definedGetProxy._mustBeDefined(v, prop)
     },
 
-    _mustBeDefined(v) {
-        return v !== undefined || typeof prop === 'symbol'
-            ? (typeof v === 'object' ? new Proxy(v, definedGetProxy) : v)
+    _mustBeDefined(v, prop, {innerProxyDefinition}) {
+        return v !== undefined || typeof prop === 'symbol' || definedProxyExceptions.includes(prop)
+            ? (typeof v === 'object' ? new Proxy(v, innerProxyDefinition || definedGetProxy) : v)
             : throw new Error('Property does not exist: ' + prop)
     }
 }
@@ -21,9 +23,7 @@ const borrowProxy = (layerId) => ({
     get(target, prop) {
         const v = target[prop]
         // null is a valid optional value
-        return v !== undefined || typeof prop === 'symbol'
-            ? (typeof v === 'object' ? new Proxy(v, borrowProxy(layerId)) : v)
-            : throw new Error('Property does not exist: ' + prop)
+        return definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition: borrowProxy(layerId)})
     },
 
     set(target, prop, value) {
@@ -47,7 +47,7 @@ const superFunctionProxy = (dataPointer, {getProxy}) => ({
         if (isFunction(v)) {
             return opt => v(dataPointer.data, opt)
         } else {
-            return getProxy ? getProxy(v) : v
+            return getProxy ? getProxy(v, prop) : v
         }
     }
 })
