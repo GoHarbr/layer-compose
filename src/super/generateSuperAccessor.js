@@ -1,18 +1,28 @@
-import {IS_DEV_MODE}           from "./const"
-import {isService, isFunction}                 from "./utils"
-import {_wrapDataWithProxy, wrapDataWithProxy} from "./proxies"
+import {IS_DEV_MODE}                                               from "../const"
+import {isService, isFunction, getDataFromPointer}                 from "../utils"
+import {_wrapDataWithProxy, wrapDataWithProxy, wrapSuperWithProxy} from "../proxies"
 
 export function generateSuperAccessor(composedUpTo) {
-    attachModifiers(composedUpTo)
+    const dataPointer = {
+        data: undefined
+    }
 
-    if (IS_DEV_MODE) {
-        // fixme. create wrap$WithProxy
-        return _wrapDataWithProxy(composedUpTo, {/* empty borrow, thus no setting */}, {isGetOnly: false})
-    } else {
-        return composedUpTo
+    return {
+        initializer: compositionInstance => {
+            dataPointer.data = getDataFromPointer(compositionInstance)
+        },
+        constructor: generateConstructor(composedUpTo, dataPointer)
     }
 }
 
+function generateConstructor(composedUpTo, dataPointer) {
+    attachModifiers(composedUpTo)
+    composedUpTo = wrapSuperWithProxy(composedUpTo, dataPointer) // in DEV mode checks for defined gets
+
+    return composedUpTo
+}
+
+/* todo. move into the get proxy */
 function attachModifiers(composition) {
     for (const k of Object.keys(composition)) {
         const v = composition[k]

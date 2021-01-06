@@ -32,6 +32,27 @@ describe('Calling methods', () => {
         expect(checkFn).toHaveBeenCalledWith(opt)
     })
 
+    test('should have access to `opt` when called by dependant layer (multilayer)', () => {
+        const checkFn = jest.fn();
+
+        const opt = {key: 'v'}
+        const c = layerCompose(({method}) => ({
+            call(d) {
+                method(d.key)
+            }
+        }),{
+            method(d, opt) {
+            }
+        }, {
+            method(d, opt) {
+                checkFn(opt)
+            }
+        })(opt)
+
+        c.call()
+        expect(checkFn).toHaveBeenCalledWith(opt.key)
+    })
+
     test('should have access to `opt` (defaults; prepend)', () => {
         const checkFn = jest.fn();
 

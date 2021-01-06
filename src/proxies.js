@@ -1,11 +1,16 @@
-// make sure type does not change during execution
+// todo. make sure types do not change during execution
 
-import {$borrowedKeys, $dataProxy, $isPrivateData, $objectId} from "./const"
+import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "./const"
+import {isFunction}                                 from "./utils"
 
 const definedGetProxy = {
     get(target, prop) {
         const v = target[prop]
         // null is a valid optional value
+        return definedGetProxy._mustBeDefined(v)
+    },
+
+    _mustBeDefined(v) {
         return v !== undefined || typeof prop === 'symbol'
             ? (typeof v === 'object' ? new Proxy(v, definedGetProxy) : v)
             : throw new Error('Property does not exist: ' + prop)
@@ -36,6 +41,17 @@ const borrowProxy = (layerId) => ({
     }
 })
 
+const superFunctionProxy = (dataPointer, {getProxy}) => ({
+    get(target, prop) {
+        const v = target[prop]
+        if (isFunction(v)) {
+            return opt => v(dataPointer.data, opt)
+        } else {
+            return getProxy ? getProxy(v) : v
+        }
+    }
+})
+
 export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
     if (typeof layerId !== "number") throw new Error()
     if (typeof isGetOnly !== 'boolean') throw new Error('Must specify if getOnly on proxy')
@@ -52,6 +68,11 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
         return the passed in value; useful for recursion */
         return data
     }
+}
+
+export function wrapSuperWithProxy(composition, dataPointer) {
+    const getProxy = IS_DEV_MODE ? definedGetProxy._mustBeDefined : undefined
+    return new Proxy(composition, superFunctionProxy(dataPointer, {getProxy}))
 }
 
 /*

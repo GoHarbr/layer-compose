@@ -9,9 +9,9 @@ import {
     isFunction, isService
 }                                                       from "./utils"
 import {IS_DEV_MODE, $layerId, $runOnInitialize, $spec} from "./const"
-import {generateDataAccessor}                           from "./generateDataAccessor"
-import {generateSuperAccessor}          from "./generateSuperAccessor"
-import {layerMethodFormatCheck}         from "./dev-checks"
+import {generateDataAccessor}   from "./generateDataAccessor"
+import {generateSuperAccessor}  from "./super/generateSuperAccessor"
+import {layerMethodFormatCheck} from "./dev-checks"
 import {wrapDataWithProxy}              from "./proxies"
 
 export function compose(layerLike, composeInto) {
@@ -26,9 +26,10 @@ export function compose(layerLike, composeInto) {
 
         // todo, provide strictly necessary (amount) of args by reading from
         // function.toString()
-        const built = layerLike(accessors.$, accessors.d.constructor)
+        const built = layerLike(accessors.$.constructor, accessors.d.constructor)
 
         composeInto[$runOnInitialize].push(accessors.d.initializer)
+        composeInto[$runOnInitialize].push(accessors.$.initializer)
 
 
         if (isFunction(built) && built.length === 0) {
