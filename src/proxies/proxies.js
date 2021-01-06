@@ -12,7 +12,7 @@ const definedGetProxy = {
         return definedGetProxy._mustBeDefined(v, prop)
     },
 
-    _mustBeDefined(v, prop, {innerProxyDefinition}) {
+    _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
         return v !== undefined || typeof prop === 'symbol' || definedProxyExceptions.includes(prop)
             ? (typeof v === 'object' ? new Proxy(v, innerProxyDefinition || definedGetProxy) : v)
             : throw new Error('Property does not exist: ' + prop)
@@ -41,11 +41,13 @@ const borrowProxy = (layerId) => ({
     }
 })
 
-const superFunctionProxy = (selfInstancePointer, {getProxy}) => ({
+const superFunctionProxy = (selfInstancePointer, {getProxy} = {}) => ({
     get(target, prop) {
         const v = target[prop]
         if (isFunction(v)) {
-            return opt => v(getDataFromPointer(selfInstancePointer), opt)
+            return opt => {
+                return v(getDataFromPointer(selfInstancePointer.pointer), opt)
+            }
         } else {
             return getProxy ? getProxy(v, prop) : v
         }

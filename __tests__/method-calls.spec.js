@@ -86,17 +86,26 @@ describe('Calling methods', () => {
     })
 
     test('should have access to data when called internally', () => {
-        const c = layerCompose(($,d) => {
+        const c = layerCompose(({method},d) => {
             d({key: ''})
             return {
-                method(d, opt) {
+                call(d, opt) {
                     d.key = 'v'
+                    method()
+                }
+            }
+        }, ($,d) => {
+            d({otherkey: ''})
+            return {
+                method(d, opt) {
+                    d.otherkey = d.key
                 }
             }
         })()
 
-        c.method()
+        c.call()
         const d = unbox(c)
         expect(d.key).toEqual('v')
+        expect(d.otherkey).toEqual('v')
     })
 })

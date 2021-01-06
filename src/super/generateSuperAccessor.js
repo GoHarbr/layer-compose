@@ -9,7 +9,7 @@ export function generateSuperAccessor(composedUpTo) {
 
     return {
         initializer: compositionInstance => {
-            selfInstancePointer.pointer = getDataFromPointer(compositionInstance)
+            selfInstancePointer.pointer = compositionInstance
         },
         constructor: generateConstructor(composedUpTo, selfInstancePointer)
     }
