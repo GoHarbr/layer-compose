@@ -145,6 +145,8 @@ function functionComposer(existing, func) {
             throw new Error('returned value must be undefined or an object')
         }
 
+        /* todo. add a dev check that properties aren't overwriting each other */
+
         if (thisLayerResult) {
             Object.assign(re, thisLayerResult)
         }

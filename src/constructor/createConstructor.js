@@ -36,6 +36,7 @@ export function createConstructor(composedLayers) {
         const initFunctions = composedLayers[$runOnInitialize]
         if (isFunction(initFunctions)) throw new Error()
 
+        /* fixme make awaitable if any return a promise */
         const initializer = initFunctions.length === 0 ? undefined :
             initFunctions.reduce((a, b) => function (instance) {
                 // layers go in order from bottom (first executed) to top (last executed)

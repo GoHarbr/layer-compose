@@ -62,7 +62,7 @@ export function createInstance(composedLayers) {
                 if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
                 }
-                methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
+                return methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
             }
         }
     }
