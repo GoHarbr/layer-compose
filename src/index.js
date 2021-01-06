@@ -1,7 +1,7 @@
 import {createConstructor}                            from "./constructor/createConstructor"
 import {compose}                                         from "./compose"
 import {$runOnInitialize, $spec, IS_DEV_MODE, LC_SYMBOL} from "./const"
-import {isService}                                       from "./utils"
+import {getDataFromPointer, isService}                   from "./utils"
 
 
 const withServices = spec => additionalServices => {
@@ -24,6 +24,9 @@ export default function layerCompose(...layers) {
     return constructor
 }
 
+
+const unbox = getDataFromPointer
 export {
-    IS_DEV_MODE
+    IS_DEV_MODE,
+    unbox,
 }
