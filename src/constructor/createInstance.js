@@ -1,5 +1,5 @@
 import {$dataPointer, $setData, IS_DEV_MODE} from "../const"
-import {isService}                           from "../utils"
+import {isService, renameIntoGetter}         from "../utils"
 
 export function createInstance(composedLayers) {
     let ownScope
@@ -58,11 +58,21 @@ export function createInstance(composedLayers) {
             serviceNames.push(name)
         } else {
             const defaultOpt = {} // todo. check if defaults injected into here during initialization (if yes probably fix?)
+
+            const getterName = renameIntoGetter(name)
+            const isGetter = !!getterName
+
             compositionInstance[name] = (opt) => {
                 if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
                 }
                 return methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
+            }
+
+            /* todo make sure getters can't have `opt`*/
+
+            if (isGetter) {
+                Object.defineProperty(compositionInstance, getterName, {get: compositionInstance[name]})
             }
         }
     }

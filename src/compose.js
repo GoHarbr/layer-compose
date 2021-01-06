@@ -1,18 +1,19 @@
-import layerCompose      from "./index"
+import layerCompose                                     from "./index"
 import {
-    selectExistingServices,
+    getLayerId,
     isFragmentOfLayers,
+    isFunction,
     isLayerBuilder,
     isLcConstructor,
-    isServiceLayer,
-    getLayerId,
-    isFunction, isService
-}                                                       from "./utils"
-import {IS_DEV_MODE, $layerId, $runOnInitialize, $spec} from "./const"
-import {generateDataAccessor}   from "./generateDataAccessor"
-import {generateSuperAccessor}  from "./super/generateSuperAccessor"
-import {layerMethodFormatCheck} from "./dev-checks"
-import {wrapDataWithProxy}      from "./proxies/proxies"
+    isService,
+    isServiceLayer, renameIntoGetter,
+    selectExistingServices
+} from "./utils"
+import {$layerId, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
+import {generateDataAccessor}                           from "./generateDataAccessor"
+import {generateSuperAccessor}                          from "./super/generateSuperAccessor"
+import {layerMethodFormatCheck}                         from "./dev-checks"
+import {wrapDataWithProxy}                              from "./proxies/proxies"
 
 export function compose(layerLike, composeInto) {
     if (!composeInto[$runOnInitialize]) throw new Error()
@@ -93,8 +94,14 @@ export function compose(layerLike, composeInto) {
                 layerMethodFormatCheck(func)
                 let composedFunction
 
+                /*
+                * Functions with names starting with get are copied, renamed and become actual getters
+                * Getters are overriden by each other, unlike regular layer methods that are composed
+                **/
+
+                const isGetter = !!renameIntoGetter(name)
                 const existing = composeInto[name]
-                if (existing) {
+                if (existing && !isGetter) {
 
                     if (IS_DEV_MODE) {
                         const _f = function (data, opt) {

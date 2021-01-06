@@ -91,4 +91,18 @@ describe("Layering", () => {
         expect(pass).toBe(true)
         expect(fail).toBe(false)
     })
+
+    test("methods could be getters", () => {
+        const C = layerCompose(
+            {
+                getMyKey(d) {
+                    return d.key
+                }
+            }
+        )
+
+        const c = C({key:'v'})
+
+        expect(c.myKey).toBe('v')
+    })
 })

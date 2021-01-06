@@ -3,7 +3,14 @@ import {$dataPointer, $isService, $layerId, LC_SYMBOL} from "./const"
 import {layerBuilderFormatCheck}                       from "./dev-checks"
 
 export function isServiceLayer(l) {
-    return !Array.isArray(l) && Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_) && !isService(_)) === -1
+    if (!Array.isArray(l)) {
+        const propDescriptors = Object.getOwnPropertyDescriptors(l)
+        if (Object.keys(propDescriptors).length > 0) {
+            return false
+        }
+        return Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_) && !isService(_)) === -1
+    }
+    return false
 }
 
 export function isFragmentOfLayers(what) {
@@ -50,4 +57,12 @@ let _globalLayerId = 0
 export function getLayerId(layer) {
     _globalLayerId++
     return layer[$layerId] || (layer[$layerId] = _globalLayerId)
+}
+
+export function renameIntoGetter(functionName) {
+    if (functionName.startsWith('get')) {
+        let propName = functionName.replace('get', '')
+        return propName
+            && propName[0].toLowerCase() + propName.slice(1)
+    }
 }
