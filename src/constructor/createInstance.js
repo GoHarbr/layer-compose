@@ -69,7 +69,9 @@ export function createInstance(composedLayers) {
                 return methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
             }
 
-            /* todo make sure getters can't have `opt`*/
+            /* todo make sure getters can't have `opt`
+            * although it would be kind of cool to have both a default getter and a function with opt
+            * */
 
             if (isGetter) {
                 Object.defineProperty(compositionInstance, getterName, {get: compositionInstance[name]})
