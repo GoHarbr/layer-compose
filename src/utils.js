@@ -5,7 +5,8 @@ import {layerBuilderFormatCheck}                       from "./dev-checks"
 export function isServiceLayer(l) {
     if (!Array.isArray(l)) {
         const propDescriptors = Object.getOwnPropertyDescriptors(l)
-        if (Object.keys(propDescriptors).length > 0) {
+        const getters = Object.values(propDescriptors).filter(_ => !!_.get)
+        if (getters.length > 0) {
             return false
         }
         return Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_) && !isService(_)) === -1

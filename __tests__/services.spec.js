@@ -83,10 +83,36 @@ describe("Services", () => {
         const c = C(d)
         c.method()
 
+        expect(c.anotherService).toBeTruthy()
         expect(checkFn).toHaveBeenCalled()
     })
 
     test("services should be chainable", () => {
+        const checkFn = jest.fn();
 
+        const C = layerCompose(($, d) => {
+                const {service} = $
+
+                expect(service).toBeTruthy()
+                return {
+                    method(d) {}
+                }
+            },
+            {
+                service: [{
+                    sm(d) {
+                        checkFn()
+                        expect(d.key).toBe('data')
+                    }
+                }]
+            })
+
+        const d = {key: 'data'}
+        const c = C(d)
+        c.service.sm()
+
+        expect(checkFn).toHaveBeenCalled()
     })
+
+    test.todo("Service data should be unboxable")
 })
