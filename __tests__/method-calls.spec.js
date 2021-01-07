@@ -108,4 +108,23 @@ describe('Calling methods', () => {
         expect(d.key).toEqual('v')
         expect(d.otherkey).toEqual('v')
     })
+
+
+    test("getter methods are not called during construction", () => {
+        const checkFn = jest.fn()
+        const C = layerCompose(
+            {
+                getMyKey(d) {
+                    checkFn()
+                    return d.key
+                }
+            }
+        )
+
+        const c = C({key:'v'})
+
+        expect(checkFn).not.toHaveBeenCalled()
+
+        expect(c.myKey).toBe('v')
+    })
 })

@@ -15,6 +15,11 @@ import {generateSuperAccessor}                          from "./super/generateSu
 import {layerMethodFormatCheck}                         from "./dev-checks"
 import {wrapDataWithProxy}                              from "./proxies/proxies"
 
+/*
+* todo.
+*  add import() ability from strings
+* */
+
 export function compose(layerLike, composeInto) {
     if (!composeInto[$runOnInitialize]) throw new Error()
 

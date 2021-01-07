@@ -1,2 +1,2 @@
-- curry named parameters, with passthru
-- context creation (using prototypes)
+- babel
+    - read function call and convert (arg1, arg2) into {arg1, arg2}

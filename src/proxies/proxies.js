@@ -43,6 +43,8 @@ const borrowProxy = (layerId) => ({
 
 const superFunctionProxy = (selfInstancePointer, {getProxy} = {}) => ({
     get(target, prop) {
+        /* todo
+        *   check that the prop is a getter and return a corresponding function */
         const v = target[prop]
         if (isFunction(v)) {
             return opt => {
