@@ -114,5 +114,53 @@ describe("Services", () => {
         expect(checkFn).toHaveBeenCalled()
     })
 
+    test("services (with getters) should be chainable", () => {
+        const C = layerCompose(($, d) => {
+                const {service} = $
+
+                expect(service).toBeTruthy()
+                return {
+                    method(d) {}
+                }
+            },
+            {
+                service: [{
+                    getKey(d) {
+                        return d.key
+                    }
+                }]
+            })
+
+        const d = {key: 'data'}
+        const c = C(d)
+        expect(c.service.key).toEqual('data')
+        expect(c.service.getKey()).toEqual('data')
+    })
+
+    test("precomposed services (with getters) should be chainable", () => {
+        const service = layerCompose({
+            getKey(d) {
+                return d.key
+            }
+        })
+
+        const C = layerCompose(($, d) => {
+                const {service} = $
+
+                expect(service).toBeTruthy()
+                return {
+                    method(d) {}
+                }
+            },
+            {
+                service
+            })
+
+        const d = {key: 'data'}
+        const c = C(d)
+        expect(c.service.key).toEqual('data')
+        expect(c.service.getKey()).toEqual('data')
+    })
+
     test.todo("Service data should be unboxable")
 })
