@@ -14,4 +14,24 @@ describe("Protective mechanisms", () => {
         c.method()
         expect(JSON.stringify(c)).toEqual('{}')
     })
+
+    test("Data constructor (accessor) should be protected against writes", () => {
+        expect(() => {
+            layerCompose(($, d) => {
+                d.key = ''
+            })
+        }).toThrow()
+
+        const C = layerCompose(($, d) => {
+            return {
+                method() {
+                    d.key = 1
+                }
+            }
+        })
+
+        expect(() => {
+            C().method()
+        }).toThrow()
+    })
 })

@@ -41,6 +41,12 @@ const borrowProxy = (layerId) => ({
     }
 })
 
+const noSetAccessProxy = {
+    set() {
+        throw new Error('There is no set access on this object')
+    }
+}
+
 const superFunctionProxy = (selfInstancePointer, {getProxy} = {}) => ({
     get(target, prop) {
         /* todo
@@ -77,6 +83,10 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
 export function wrapSuperWithProxy(composition, selfInstancePointer) {
     const getProxy = IS_DEV_MODE ? definedGetProxy._mustBeDefined : undefined
     return new Proxy(composition, superFunctionProxy(selfInstancePointer, {getProxy}))
+}
+
+export function wrapDataConstructorWithProxy(d) {
+    return new Proxy(d, noSetAccessProxy)
 }
 
 /*
