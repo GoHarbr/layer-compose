@@ -15,12 +15,23 @@ const definedGetProxy = {
         /* todo. do a better job of detecting edge cases as with Set where `add()` can't be called on the proxy
         *  for inspiration https://stackoverflow.com/questions/43927933/why-is-set-incompatible-with-proxy*/
 
-        if (isIncompatibleWithProxy(target) && isFunction(v)) {
-            v = v.bind(target)
-        }
-
+        v = definedGetProxy._wrapFunction(target, v, {innerProxyDefinition})
         // null is a valid optional value
         return definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition})
+    },
+
+    _wrapFunction(target, v, {innerProxyDefinition} = {}) {
+        if (isFunction(v)) {
+            if (isIncompatibleWithProxy(target)) {
+                v = v.bind(target)
+            }
+            /* wrap result with defined proxy as well */
+            const _v = v
+            v = (...args) => {
+                return new Proxy(_v(...args), innerProxyDefinition)
+            }
+        }
+        return v
     },
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
@@ -56,20 +67,35 @@ const noSetAccessProxy = {
     }
 }
 
-const superFunctionProxy = (selfInstancePointer, {getProxy} = {}) => ({
+const superFunctionProxy = (selfInstancePointer, {getTrap}) => ({
     get(target, prop) {
         /* todo
         *   check that the prop is a getter and return a corresponding function */
-        const v = target[prop]
+        let v = target[prop]
         if (isFunction(v)) {
-            return opt => {
-                return v(getDataFromPointer(selfInstancePointer.pointer), opt)
+            const _v = v
+            v = opt => {
+                return _v(getDataFromPointer(selfInstancePointer.pointer), opt)
             }
-        } else {
-            return getProxy ? getProxy(v, prop) : v
         }
-    }
+
+        return getTrap ? getTrap(v, prop) : v
+    },
+    ...noSetAccessProxy
 })
+
+const functionReturnProxy = {
+    _superGetTrap(v, functionName) {
+        v = definedGetProxy._wrapFunction(null, v, {innerProxyDefinition: functionReturnProxy})
+        // null is a valid optional value
+        return definedGetProxy._mustBeDefined(v, functionName, {innerProxyDefinition: functionReturnProxy})
+    },
+
+    get(t, p) {
+        return definedGetProxy._get(t, p, functionReturnProxy)
+    },
+    set: noSetAccessProxy.set
+}
 
 export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
     if (typeof layerId !== "number") throw new Error()
@@ -90,8 +116,8 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
 }
 
 export function wrapSuperWithProxy(composition, selfInstancePointer) {
-    const getProxy = IS_DEV_MODE ? definedGetProxy._mustBeDefined : undefined
-    return new Proxy(composition, superFunctionProxy(selfInstancePointer, {getProxy}))
+    const getTrap = IS_DEV_MODE ? functionReturnProxy._superGetTrap : undefined
+    return new Proxy(composition, superFunctionProxy(selfInstancePointer, {getTrap}))
 }
 
 export function wrapDataConstructorWithProxy(d) {

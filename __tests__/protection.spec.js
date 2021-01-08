@@ -34,4 +34,7 @@ describe("Protective mechanisms", () => {
             C().method()
         }).toThrow()
     })
+
+    test.todo("Function return values should be protected against writes", () => {
+    })
 })
