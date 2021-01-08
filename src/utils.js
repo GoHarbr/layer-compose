@@ -67,3 +67,13 @@ export function renameIntoGetter(functionName) {
             && propName[0].toLowerCase() + propName.slice(1)
     }
 }
+
+export function isIncompatibleWithProxy(what) {
+    /* todo. improve this check, not fully reliable as is */
+    return (
+         what instanceof Set
+         || what instanceof WeakSet
+         || what instanceof Map
+         || what instanceof WeakMap
+    )
+}

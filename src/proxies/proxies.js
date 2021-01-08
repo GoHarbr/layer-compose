@@ -1,15 +1,26 @@
 // todo. make sure types do not change during execution
 
-import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "../const"
-import {getDataFromPointer, isFunction}             from "../utils"
+import {$borrowedKeys, $isPrivateData, IS_DEV_MODE}              from "../const"
+import {getDataFromPointer, isFunction, isIncompatibleWithProxy} from "../utils"
 
 const definedProxyExceptions = ['toJSON']
 
 const definedGetProxy = {
     get(target, prop) {
-        const v = target[prop]
+        return definedGetProxy._get(target, prop, definedGetProxy._get)
+    },
+
+    _get(target, prop, innerProxyDefinition) {
+        let v = target[prop]
+        /* todo. do a better job of detecting edge cases as with Set where `add()` can't be called on the proxy
+        *  for inspiration https://stackoverflow.com/questions/43927933/why-is-set-incompatible-with-proxy*/
+
+        if (isIncompatibleWithProxy(target) && isFunction(v)) {
+            v = v.bind(target)
+        }
+
         // null is a valid optional value
-        return definedGetProxy._mustBeDefined(v, prop)
+        return definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition})
     },
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
@@ -21,9 +32,7 @@ const definedGetProxy = {
 
 const borrowProxy = (layerId) => ({
     get(target, prop) {
-        const v = target[prop]
-        // null is a valid optional value
-        return definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition: borrowProxy(layerId)})
+        return definedGetProxy._get(target, prop, borrowProxy(layerId))
     },
 
     set(target, prop, value) {
