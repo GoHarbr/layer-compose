@@ -35,6 +35,5 @@ describe("Protective mechanisms", () => {
         }).toThrow()
     })
 
-    test.todo("Function return values should be protected against writes", () => {
-    })
+    test.todo("Function return values should be protected against writes")
 })

@@ -75,5 +75,6 @@ export function isIncompatibleWithProxy(what) {
          || what instanceof WeakSet
          || what instanceof Map
          || what instanceof WeakMap
+         || what instanceof Promise
     )
 }

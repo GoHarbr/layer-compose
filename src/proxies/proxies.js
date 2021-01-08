@@ -28,7 +28,8 @@ const definedGetProxy = {
             /* wrap result with defined proxy as well */
             const _v = v
             v = (...args) => {
-                return new Proxy(_v(...args), innerProxyDefinition)
+                const r = _v(...args)
+                return typeof r == "object" ? new Proxy(r, innerProxyDefinition) : r
             }
         }
         return v
