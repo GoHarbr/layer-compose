@@ -9,6 +9,11 @@ const withServices = spec => additionalServices => {
 }
 layerCompose.withServices = withServices
 
+/*
+* todo:
+*  add ability to replace services. could be useful for testing, or could be a bad idea.
+* */
+
 export default function layerCompose(...layers) {
     let composed = {[$runOnInitialize]: []}
 
