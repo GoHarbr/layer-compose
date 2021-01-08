@@ -7,6 +7,11 @@ export function generateSuperAccessor(composedUpTo) {
         pointer: undefined
     }
 
+    /*todo
+    *  add ability to curry a function and then use it in another
+    *   override a method if the same one is present in this layer
+    * */
+
     return {
         initializer: compositionInstance => {
             selfInstancePointer.pointer = compositionInstance
