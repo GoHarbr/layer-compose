@@ -87,7 +87,8 @@ export function compose(layerLike, composeInto) {
         * The style of spec definition is
         * bottom layers (base mixins; called first) are defined after top layers (extending mixins; called last)
         * */
-        for (const l of layerLike.reverse()) {
+        for (let i = layerLike.length; i--; i >= 0) {
+            const l = layerLike[i]
             compose(l, composeInto)
         }
     } else {

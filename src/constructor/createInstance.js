@@ -63,6 +63,8 @@ export function createInstance(composedLayers) {
             const isGetter = !!getterName
 
             compositionInstance[name] = (opt) => {
+                // todo. this does not provide protection for calling methods internally
+                //        maybe allow to pass in primitives if the `_` is used instead of opt
                 if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
                 }

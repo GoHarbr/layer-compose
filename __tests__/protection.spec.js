@@ -36,4 +36,6 @@ describe("Protective mechanisms", () => {
     })
 
     test.todo("Function return values should be protected against writes")
+
+    test.todo("Constructors allow for destructuring")
 })

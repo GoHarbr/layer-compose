@@ -71,7 +71,8 @@ export function renameIntoGetter(functionName) {
 export function isIncompatibleWithProxy(what) {
     /* todo. improve this check, not fully reliable as is */
     return (
-         what instanceof Set
+        Array.isArray(what)
+         || what instanceof Set
          || what instanceof WeakSet
          || what instanceof Map
          || what instanceof WeakMap

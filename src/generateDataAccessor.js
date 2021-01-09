@@ -37,7 +37,7 @@ export function generateDataAccessor(layerId) {
 
 function addBorrowKeys(layerId, data, borrowDefaults) {
     if (typeof borrowDefaults == "object" && typeof data == 'object') {
-        const _bk = data[$borrowedKeys]
+        const _bk = data.hasOwnProperty($borrowedKeys) && data[$borrowedKeys]
         if (!_bk) {
             data[$borrowedKeys] = {}
         }

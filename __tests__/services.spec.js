@@ -1,4 +1,5 @@
 import layerCompose from "../src"
+import {List}       from "./compositions/List.layers"
 
 describe("Services", () => {
     test("should be callable", () => {
@@ -160,6 +161,26 @@ describe("Services", () => {
         const c = C(d)
         expect(c.service.key).toEqual('data')
         expect(c.service.getKey()).toEqual('data')
+    })
+
+    test("fragments should be reusable", () => {
+        const C = layerCompose(
+            {
+                method() {}
+            },
+            {
+                service: List
+            },
+            List
+        )
+
+        const c = C()
+
+        c.push({item: 1})
+        c.service.push({item: 2})
+        expect(c.all.includes(1)).toBe(true)
+        expect(c.service.all.includes(2)).toBe(true)
+        expect(c.service.all.includes(1)).toBe(false)
     })
 
     test.todo("Service data should be unboxable")
