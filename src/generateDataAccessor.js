@@ -5,12 +5,17 @@ import {wrapDataConstructorWithProxy, wrapDataWithProxy} from "./proxies/proxies
 
 export function generateDataAccessor(layerId) {
     let defaults
+    let locatorError
 
     let constructor = function (borrowedWithDefaults) {
         if (typeof borrowedWithDefaults !== 'object') {
             throw new Error('Default data must be an object, not a primitive')
         }
         defaults = borrowedWithDefaults
+
+        if (IS_DEV_MODE) {
+            locatorError = new Error
+        }
     }
     if (IS_DEV_MODE) {
         constructor = wrapDataConstructorWithProxy(constructor)
@@ -26,7 +31,7 @@ export function generateDataAccessor(layerId) {
             }
 
             if (IS_DEV_MODE) {
-                    addBorrowKeys(layerId, data, defaults)
+                    addBorrowKeys(layerId, data, defaults, locatorError)
                     /*
                     * borrow check happens on each function call in compose.js
                     * */
@@ -35,7 +40,7 @@ export function generateDataAccessor(layerId) {
     }
 }
 
-function addBorrowKeys(layerId, data, borrowDefaults) {
+function addBorrowKeys(layerId, data, borrowDefaults, locatorError) {
     if (typeof borrowDefaults == "object" && typeof data == 'object') {
         const _bk = data.hasOwnProperty($borrowedKeys) && data[$borrowedKeys]
         if (!_bk) {
@@ -47,7 +52,8 @@ function addBorrowKeys(layerId, data, borrowDefaults) {
         const conflictKey = existingKeys.find(_ => addKeys.some(b => b === _))
 
         if (conflictKey) {
-            throw new Error('Cannot borrow the same key: ' + conflictKey)
+            locatorError.message = 'Cannot borrow the same key: `' + conflictKey + '`\n'
+            throw locatorError
         }
 
         data[$borrowedKeys][layerId] = addKeys
