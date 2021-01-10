@@ -79,6 +79,8 @@ export function createInstance(composedLayers) {
             if (isGetter) {
                 Object.defineProperty(compositionInstance, getterName, {get: compositionInstance[name]})
             }
+
+            /* todo. idea: if the final return value only has one key, extract it */
         }
     }
 

@@ -105,4 +105,28 @@ describe("Layering", () => {
 
         expect(c.myKey).toBe('v')
     })
+
+    test("watcher methods should be called", () => {
+        /* watcher methods are methods defined above the call site */
+
+        const checkWatch = jest.fn()
+        const checkNormal = jest.fn()
+        const C = layerCompose({
+            watch() {
+                checkWatch()
+            }
+        }, ({watch}) => ({
+            method() {
+                watch()
+            }
+        }), {
+            watch() {
+                checkNormal()
+            }
+        })
+
+        C().method()
+        expect(checkNormal).toHaveBeenCalled()
+        expect(checkWatch).toHaveBeenCalled()
+    })
 })

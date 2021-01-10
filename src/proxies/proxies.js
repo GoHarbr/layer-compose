@@ -76,7 +76,8 @@ const superFunctionProxy = (selfInstancePointer, {getTrap}) => ({
         if (isFunction(v)) {
             const _v = v
             v = opt => {
-                return _v(getDataFromPointer(selfInstancePointer.pointer), opt)
+                return selfInstancePointer.pointer[prop](opt)
+                // return _v(getDataFromPointer(selfInstancePointer.pointer), opt)
             }
         }
 

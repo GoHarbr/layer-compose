@@ -38,14 +38,14 @@ describe('Calling methods', () => {
         const opt = {key: 'v'}
         const c = layerCompose(({method}) => ({
             call(d) {
-                method(d.key)
+                method({key: d.key})
             }
         }),{
             method(d, opt) {
             }
         }, {
             method(d, opt) {
-                checkFn(opt)
+                checkFn(opt.key)
             }
         })(opt)
 

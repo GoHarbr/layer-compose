@@ -18,8 +18,8 @@ describe("Proxies", () => {
         const $ = wrapSuperWithProxy(
             {fn}, {
                 pointer: {
-                    [$dataPointer]:
-                        {}
+                    [$dataPointer]: {},
+                    fn
                 }
             }
         )
