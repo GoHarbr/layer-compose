@@ -1,12 +1,15 @@
-import {$dataPointer, $setData, IS_DEV_MODE} from "../const"
-import {isService, renameIntoGetter}         from "../utils"
+import {$dataPointer, $initializer, $runOnInitialize, $setData, IS_DEV_MODE} from "../const"
+import {isService, renameIntoGetter}                                         from "../utils"
+import buildInitializer                                    from "./buildInitializer"
 
 export function createInstance(composedLayers) {
     let ownScope
     let lastSetDataExecutionId
+    const serviceNames = []
 
     const compositionInstance = {
         [$dataPointer]: undefined, // this is filled with actual data during instantiation
+        [$runOnInitialize]: composedLayers[$runOnInitialize],
         [$setData]: function setData(d, {
             isOriginalCall = true, selfOnly = false,
             createOwnScope = false,
@@ -48,8 +51,6 @@ export function createInstance(composedLayers) {
         }
     }
 
-    const serviceNames = []
-
     for (const name of Object.keys(composedLayers)) {
         let methodOrService = composedLayers[name]
 
@@ -80,6 +81,8 @@ export function createInstance(composedLayers) {
             }
         }
     }
+
+    compositionInstance[$initializer] = buildInitializer(compositionInstance, serviceNames)
 
     return {compositionInstance, serviceNames}
 }

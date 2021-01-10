@@ -275,4 +275,22 @@ describe("Scope", () => {
         expect(checkBottomService).toHaveBeenCalledWith('public', 'bottom')
         expect(checkTopService).toHaveBeenCalledWith('public', 'top')
     })
+
+    test("Two instances of the same composition should not share data", () => {
+        const keys = []
+        const C = layerCompose({
+            method(d) {
+                keys.push(d.key)
+            }
+        })
+
+        const c1 = C({key:1})
+        const c2 = C({key:2})
+
+            c1.method()
+            c2.method()
+            c1.method()
+
+        expect(keys).toEqual([1,2,1])
+    })
 })
