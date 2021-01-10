@@ -72,7 +72,7 @@ describe("Layering", () => {
         expect(middle).toEqual(0)
     })
 
-    test("methods could be overridden", () => {
+    test.skip("methods could be overridden", () => {
         let pass, fail
         const C = layerCompose(($) => {
             $.method.override(m => {

@@ -53,7 +53,7 @@ describe('Calling methods', () => {
         expect(checkFn).toHaveBeenCalledWith(opt.key)
     })
 
-    test('should have access to `opt` (defaults; prepend)', () => {
+    test.skip('should have access to `opt` (defaults; prepend)', () => {
         const checkFn = jest.fn();
 
         const c = layerCompose($ => {
@@ -69,7 +69,7 @@ describe('Calling methods', () => {
         expect(checkFn).toHaveBeenCalledWith({key: 'v', default: 'default'})
     })
 
-    test('should have access to `opt` (overwrites; append)', () => {
+    test.skip('should have access to `opt` (overwrites; append)', () => {
         const checkFn = jest.fn();
 
         const c = layerCompose($ => {

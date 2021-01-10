@@ -1,5 +1,5 @@
-import layerCompose         from "../src"
-import {getDataFromPointer} from "../src/utils"
+import layerCompose, {unbox} from "../src"
+import {getDataFromPointer}  from "../src/utils"
 
 describe("Scope", () => {
     test("can have defaults set (deep)", () => {
@@ -185,8 +185,8 @@ describe("Scope", () => {
         }).toThrow()
     })
 
-    test("cannot borrow the same key twice (service)", () => {
-        expect(() => {
+    test("a service can borrow the same key twice", () => {
+        /* since services have their own private scope to write into */
             const C = layerCompose(($, d) => {
                 d({
                     key: {
@@ -203,8 +203,9 @@ describe("Scope", () => {
                 }]
             })
 
-            C()
-        }).toThrow("Cannot borrow the same key")
+            const c = C()
+            expect(unbox(c).key.subkey).toBe(1)
+            expect(unbox(c.service).key.subkey).toBe(2)
     })
 
     test("Services carry their own scope", () => {
@@ -274,23 +275,5 @@ describe("Scope", () => {
         expect(checkMethod).toHaveBeenCalledWith('public', 'original')
         expect(checkBottomService).toHaveBeenCalledWith('public', 'bottom')
         expect(checkTopService).toHaveBeenCalledWith('public', 'top')
-    })
-
-    test("Two instances of the same composition should not share data", () => {
-        const keys = []
-        const C = layerCompose({
-            method(d) {
-                keys.push(d.key)
-            }
-        })
-
-        const c1 = C({key:1})
-        const c2 = C({key:2})
-
-            c1.method()
-            c2.method()
-            c1.method()
-
-        expect(keys).toEqual([1,2,1])
     })
 })
