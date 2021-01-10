@@ -70,8 +70,10 @@ export function renameIntoGetter(functionName) {
 
 export function isIncompatibleWithProxy(what) {
     /* todo. improve this check, not fully reliable as is */
-    return (
+    return !!what && typeof what == "object" && (
         Array.isArray(what)
+         || (Symbol.iterator in what)
+         || (Symbol.asyncIterator in what)
          || what instanceof Set
          || what instanceof WeakSet
          || what instanceof Map
