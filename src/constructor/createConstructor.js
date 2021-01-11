@@ -1,14 +1,12 @@
-import {$initializer, $isInitialized, $isService, $runOnInitialize, $setData, IS_DEV_MODE} from "../const"
-import {createInstance}                                                                    from "./createInstance"
-import {_wrapDataWithProxy}                                                                from "../proxies/proxies"
-import {isFunction}                                                                        from '../utils'
-import buildInitializer                                                                    from "./buildInitializer"
+import {$initializer, $isService, $setData, IS_DEV_MODE} from "../const"
+import {createInstance}                                  from "./createInstance"
+import {_wrapDataWithProxy}                              from "../proxies/proxies"
 
 
 export function createConstructor(composedLayers) {
 
     function constructor(data) {
-        const {compositionInstance, serviceNames} = createInstance(composedLayers)
+        const {compositionInstance} = createInstance(composedLayers)
 
         if (typeof data !== "object" && data != null) throw new Error('Data must be an object (not a primitive) or null')
 
