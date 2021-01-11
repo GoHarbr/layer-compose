@@ -140,11 +140,12 @@ export function compose(layerLike, composeInto) {
 
 function functionComposer(existing, func) {
     return function (data, opt) {
-        const acc = existing(data, opt) || {} // in case returns nothing
+        const acc = existing(data, opt) // in case returns nothing
         const next = func(data, opt)
 
         // modifies acc, but could wrap a Promise around it
-        return combineResult(acc, next)
+        const r = combineResult(acc, next)
+        return r
     }
 }
 

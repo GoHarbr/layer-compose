@@ -1,6 +1,6 @@
 import {$dataPointer, $initializer, $runOnInitialize, $setData, IS_DEV_MODE} from "../const"
-import {isService, renameIntoGetter}                                         from "../utils"
-import buildInitializer                                    from "./buildInitializer"
+import {isPromise, isService, renameIntoGetter}                              from "../utils"
+import buildInitializer                                                      from "./buildInitializer"
 
 export function createInstance(composedLayers) {
     let ownScope
@@ -69,7 +69,15 @@ export function createInstance(composedLayers) {
                 if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
                 }
-                return methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
+                const r = methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
+                if (IS_DEV_MODE && isPromise(r)) {
+                    return r.catch(e => {
+                        console.error('Promise rejected:', e)
+                        throw e
+                    })
+                } else {
+                    return r
+                }
             }
 
             /* todo make sure getters can't have `opt`

@@ -42,7 +42,7 @@ export function isFunction(what) {
 }
 
 export function isPromise(what) {
-    return isFunction(what?.then)
+    return what && typeof what == "object" && ("then" in what) && isFunction(what.then)
 }
 
 export function getDataFromPointer(compositionInstance) {
