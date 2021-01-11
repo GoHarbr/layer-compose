@@ -4,7 +4,7 @@ import {
     isFragmentOfLayers,
     isFunction,
     isLayerBuilder,
-    isLcConstructor,
+    isLcConstructor, isPromise,
     isService,
     isServiceLayer, renameIntoGetter,
     selectExistingServices
@@ -140,30 +140,38 @@ export function compose(layerLike, composeInto) {
 
 function functionComposer(existing, func) {
     return function (data, opt) {
-        let re = existing(data, opt)
+        const acc = existing(data, opt) || {} // in case returns nothing
+        const next = func(data, opt)
 
-        const thisLayerResult = func(data, opt)
-
-        // todo find out how much of a performance drawdown for combining results
-        if (re && thisLayerResult) {
-            return {...re, ...thisLayerResult}
-        } else if (re) {
-            return re
-        } else {
-            return thisLayerResult
-        }
-
-        if (!re && thisLayerResult) {
-            re = {}
-        } else if (typeof thisLayerResult !== 'object') { // re has been already checked
-            throw new Error('returned value must be undefined or an object')
-        }
-
-        /* todo. add a dev check that properties aren't overwriting each other */
-
-        if (thisLayerResult) {
-            Object.assign(re, thisLayerResult)
-        }
-        return re
+        // modifies acc, but could wrap a Promise around it
+        return combineResult(acc, next)
     }
+}
+
+function combineResult(acc, next) {
+    // todo find out how much performance drop these checks cause
+
+
+    // todo find out how much of a performance drawdown for combining results
+    if (acc && next) {
+        if (isPromise(acc)) {
+            if (isPromise(next)) {
+                return acc.then(a => next.then(n => combineResult(a,n)))
+            } else {
+                return acc.then(a => combineResult(a,next))
+            }
+        } else {
+            /* todo. (maybe) add a dev check that properties aren't overwriting each other */
+            Object.assign(acc, next)
+            return acc
+        }
+    } else if (acc) {
+        return acc
+    } else {
+        return next
+    }
+
+    // if (typeof next !== 'object') { // acc has been already checked
+    //     throw new Error('returned value must be undefined or an object')
+    // }
 }

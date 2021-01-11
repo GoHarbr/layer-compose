@@ -41,6 +41,10 @@ export function isFunction(what) {
     return (typeof what === 'function') // fixme, this will not always be correct
 }
 
+export function isPromise(what) {
+    return isFunction(what?.then)
+}
+
 export function getDataFromPointer(compositionInstance) {
     return compositionInstance[$dataPointer]
 }
