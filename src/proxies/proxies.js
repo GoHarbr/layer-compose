@@ -1,7 +1,8 @@
 // todo. make sure types do not change during execution
 
-import {$borrowedKeys, $isPrivateData}       from "../const"
-import {isFunction, isIncompatibleWithProxy} from "../utils"
+import {$borrowedKeys, $isPrivateData} from "../const"
+import {isFunction}                                        from "../utils"
+import {isIncompatibleWithProxy, TaggedProxy, unwrapProxy} from "./utils"
 
 const definedProxyExceptions = ['toJSON']
 
@@ -11,7 +12,7 @@ export const definedGetProxy = {
     },
 
     _get(target, prop, innerProxyDefinition) {
-        let v = target[prop]
+        let v = unwrapProxy(target[prop])
         /* todo. do a better job of detecting edge cases as with Set where `add()` can't be called on the proxy
         *  for inspiration https://stackoverflow.com/questions/43927933/why-is-set-incompatible-with-proxy*/
 
@@ -29,16 +30,21 @@ export const definedGetProxy = {
             const _v = v
             v = (...args) => {
                 const r = _v(...args)
-                return typeof r == "object" ? new Proxy(r, innerProxyDefinition) : r
+                return typeof r == "object" ? TaggedProxy(r, innerProxyDefinition) : r
             }
         }
         return v
     },
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
-        return v !== undefined || typeof prop === 'symbol' || definedProxyExceptions.includes(prop)
-            ? (typeof v === 'object' && !!v /* if null */ ? new Proxy(v, innerProxyDefinition || definedGetProxy) : v)
-            : throw new Error('Property does not exist: ' + prop)
+        if (v !== undefined || typeof prop === 'symbol' || definedProxyExceptions.includes(prop)) {
+                if (typeof v === 'object' && !!v /* if null */) {
+                    return TaggedProxy(v, innerProxyDefinition || definedGetProxy)
+                } else {
+                    return v
+                }
+        }
+        throw new Error('Property does not exist: ' + prop)
     }
 }
 
@@ -78,9 +84,9 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
 
     if (typeof data === 'object') {
         if (isGetOnly === true) {
-            return new Proxy(data, definedGetProxy)
+            return TaggedProxy(data, definedGetProxy)
         } else {
-            return new Proxy(data, borrowProxy(layerId))
+            return TaggedProxy(data, borrowProxy(layerId))
         }
     } else {
         /*
@@ -92,7 +98,7 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
 
 export function wrapDataConstructorWithProxy(d) {
     /* todo. allow setting values as an alternative to call (`d(defaults)`) syntax*/
-    return new Proxy(d, noSetAccessProxy)
+    return TaggedProxy(d, noSetAccessProxy)
 }
 
 /*
@@ -103,9 +109,9 @@ export function _wrapDataWithProxy(data, borrow, {isGetOnly}) {
 
     if (typeof data === 'object') {
         if (isGetOnly === true) {
-            return new Proxy(data, definedGetProxy)
+            return TaggedProxy(data, definedGetProxy)
         } else {
-            return new Proxy(data, borrowProxy(Symbol()))
+            return TaggedProxy(data, borrowProxy(Symbol()))
         }
     } else {
         /*

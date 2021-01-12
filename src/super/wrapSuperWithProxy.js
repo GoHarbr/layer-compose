@@ -2,6 +2,7 @@ import {isFunction, isService}             from "../utils"
 import {IS_DEV_MODE}                       from "../const"
 import {definedGetProxy, noSetAccessProxy} from "../proxies/proxies"
 import functionReturnDefinition            from "../proxies/functionReturnDefinition"
+import {TaggedProxy}                       from "../proxies/utils"
 
 const superFunctionProxy = (composition, selfInstancePointer) => ({
     get(target, prop) {
@@ -34,7 +35,7 @@ const superFunctionProxy = (composition, selfInstancePointer) => ({
 })
 
 export function wrapSuperWithProxy(composition, selfInstancePointer) {
-    return new Proxy(composition, superFunctionProxy(composition, selfInstancePointer))
+    return TaggedProxy(composition, superFunctionProxy(composition, selfInstancePointer))
 }
 
 

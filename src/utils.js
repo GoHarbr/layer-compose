@@ -2,6 +2,8 @@
 import {$dataPointer, $isService, $layerId, LC_SYMBOL} from "./const"
 import {layerBuilderFormatCheck}                       from "./dev-checks"
 
+/* isType checks // todo move */
+
 export function isServiceLayer(l) {
     if (!Array.isArray(l)) {
         const propDescriptors = Object.getOwnPropertyDescriptors(l)
@@ -45,6 +47,8 @@ export function isPromise(what) {
     return what && typeof what == "object" && ("then" in what) && isFunction(what.then)
 }
 
+/* Instance related // todo move */
+
 export function getDataFromPointer(compositionInstance) {
     return compositionInstance[$dataPointer]
 }
@@ -70,18 +74,4 @@ export function renameIntoGetter(functionName) {
         return propName
             && propName[0].toLowerCase() + propName.slice(1)
     }
-}
-
-export function isIncompatibleWithProxy(what) {
-    /* todo. improve this check, not fully reliable as is */
-    return !!what && typeof what == "object" && (
-        Array.isArray(what)
-         || (Symbol.iterator in what)
-         || (Symbol.asyncIterator in what)
-         || what instanceof Set
-         || what instanceof WeakSet
-         || what instanceof Map
-         || what instanceof WeakMap
-         || what instanceof Promise
-    )
 }
