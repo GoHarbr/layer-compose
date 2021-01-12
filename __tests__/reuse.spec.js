@@ -23,4 +23,20 @@ describe("Reusing compositonis across instances", () => {
 
         expect(keys).toEqual([1,2,1])
     })
+
+    test("Extend composition", () => {
+        const checkFn = jest.fn()
+        const C1 = layerCompose({
+            m() {
+                checkFn()
+            }
+        })
+
+        expect(() => {
+            const C2 = layerCompose(C1)
+            const c2 = C2()
+            c2.m()
+        }).not.toThrow()
+        expect(checkFn).toHaveBeenCalled()
+    })
 })

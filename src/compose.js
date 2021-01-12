@@ -8,9 +8,9 @@ import {
     isService,
     isServiceLayer, renameIntoGetter,
     selectExistingServices
-} from "./utils"
-import {$layerId, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
-import {generateDataAccessor}                           from "./generateDataAccessor"
+}                                                                     from "./utils"
+import {$composition, $layerId, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
+import {generateDataAccessor}                                         from "./generateDataAccessor"
 import {generateSuperAccessor}                          from "./super/generateSuperAccessor"
 import {layerMethodFormatCheck}                         from "./dev-checks"
 import {wrapDataWithProxy}                              from "./proxies/proxies"
@@ -23,7 +23,11 @@ import {wrapDataWithProxy}                              from "./proxies/proxies"
 export function compose(layerLike, composeInto) {
     if (!composeInto[$runOnInitialize]) throw new Error()
 
-    if (isLayerBuilder(layerLike)) {
+    if (isLcConstructor(layerLike)) {
+
+        Object.assign(composeInto, layerLike[$composition])
+
+    } else if (isLayerBuilder(layerLike)) {
         const layerId = getLayerId(layerLike)
         const accessors = {
             d: generateDataAccessor(layerId),
@@ -80,7 +84,7 @@ export function compose(layerLike, composeInto) {
         Object.assign(composeInto, services)
 
     } else if (isFragmentOfLayers(layerLike)) {
-        if (isLcConstructor(layerLike)) {
+        if (isLcConstructor(layerLike)) {  // todo move into upper definition and remove
             layerLike = layerLike[$spec]
         }
         /*

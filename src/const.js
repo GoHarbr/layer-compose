@@ -8,6 +8,7 @@ export const $initializer = Symbol()
 export const $isInitialized = Symbol()
 export const $setData = Symbol()
 export const $spec = Symbol()
+export const $composition = Symbol()
 
 export const $isPrivateData = Symbol()
 export const $dataProxy = Symbol()

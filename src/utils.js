@@ -15,7 +15,7 @@ export function isServiceLayer(l) {
 }
 
 export function isFragmentOfLayers(what) {
-    return Array.isArray(what) || isLcConstructor(what)
+    return Array.isArray(what) || isLcConstructor(what) // todo. probably remove the constructor clause
 }
 
 export function isLcConstructor(what) {
@@ -27,7 +27,7 @@ export function isService(what) {
 }
 
 export function isLayerBuilder(l) {
-    const res = isFunction(l)
+    const res = isFunction(l) && !isLcConstructor(l)
     // runs only in dev mode
     res && layerBuilderFormatCheck(l)
     return res
