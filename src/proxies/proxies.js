@@ -37,7 +37,7 @@ export const definedGetProxy = {
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
         return v !== undefined || typeof prop === 'symbol' || definedProxyExceptions.includes(prop)
-            ? (typeof v === 'object' ? new Proxy(v, innerProxyDefinition || definedGetProxy) : v)
+            ? (typeof v === 'object' && !!v /* if null */ ? new Proxy(v, innerProxyDefinition || definedGetProxy) : v)
             : throw new Error('Property does not exist: ' + prop)
     }
 }
@@ -63,8 +63,12 @@ const borrowProxy = (layerId) => ({
 })
 
 export const noSetAccessProxy = {
-    set() {
-        throw new Error('There is no set access on this object')
+    set(target, prop) {
+        if (typeof prop !== "symbol") {
+            throw new Error('There is no set access on this object')
+        } else {
+            console.warn("No properties should be set on this object ")
+        }
     }
 }
 
