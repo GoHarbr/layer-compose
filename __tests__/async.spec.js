@@ -36,7 +36,7 @@ describe('Async', () => {
     })
 
 
-    test('can await a multi-layer function (that does not returns)', async () => {
+    test('can await a multi-layer function (that does not return)', async () => {
         const fn = jest.fn()
         const c = layerCompose({
             async func() {fn()}
@@ -44,8 +44,8 @@ describe('Async', () => {
             async func() {}
         })()
 
-        expect(fn).toHaveBeenCalled()
         expect(async () => await c.func()).not.toThrow()
+        expect(fn).toHaveBeenCalled()
     })
 
     test('can await a multi-layer function (that throws)', async () => {
@@ -72,8 +72,12 @@ describe('Async', () => {
         expect(checkThrow).toHaveBeenCalled()
 
         const at = async () => {
-            await c.func()
-            checkAwaitThrow()
+            try {
+                await c.func()
+                checkAwaitThrow()
+            } catch {
+
+            }
         }
         at()
         expect(checkAwaitThrow).not.toHaveBeenCalled()

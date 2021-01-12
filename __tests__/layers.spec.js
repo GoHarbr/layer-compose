@@ -8,7 +8,7 @@ describe("Layering", () => {
             method(d) {
                 check("A", d.key)
             }
-        },{
+        }, {
             method(d) {
                 check("B", d.key)
             }
@@ -36,7 +36,7 @@ describe("Layering", () => {
                     middle(d) {
                         middle = 0
                     }
-                    },
+                },
 
             ],
 
@@ -92,6 +92,68 @@ describe("Layering", () => {
         expect(fail).toBe(false)
     })
 
+    test('should be able to set default `opt`', () => {
+        const checkFn = jest.fn()
+
+        const c = layerCompose($ => {
+            $.method.defaultOpt({default: 'default', key: 'default'})
+        }, {
+            method(d, opt) {
+                checkFn(opt)
+            }
+        })()
+
+        const opt = {key: 'v'}
+        c.method(opt)
+        expect(checkFn).toHaveBeenCalledWith({key: 'v', default: 'default'})
+    })
+
+    test('should be able to set lock in `opt`', () => {
+        const checkFn = jest.fn()
+
+        const c = layerCompose($ => {
+            $.method.lockOpt({default: 'default', key: 'default'})
+        }, {
+            method(d, opt) {
+                checkFn(opt)
+            }
+        })()
+
+        const opt = {key: 'v', otherKey: 'v'}
+        c.method(opt)
+        expect(checkFn).toHaveBeenCalledWith({otherKey: 'v', key: 'default', default: 'default'})
+    })
+
+    test('locking `opt` only affects the layers below', () => {
+        const checkTop = jest.fn()
+        const checkMiddle = jest.fn()
+        const checkBottom = jest.fn()
+
+        const c = layerCompose(
+            {
+                method(d, opt) {
+                    checkTop(opt)
+                }
+            },
+            $ => {
+                $.method.lockOpt({default: 'default', key: 'default'})
+            }, {
+                method(d, opt) {
+                    checkMiddle(opt)
+                }
+            }, {
+                method(d, opt) {
+                    checkBottom(opt)
+                }
+            })()
+
+        const opt = {key: 'v', otherKey: 'v'}
+        c.method(opt)
+        expect(checkTop).toHaveBeenCalledWith({otherKey: 'v', key: 'v'})
+        expect(checkMiddle).toHaveBeenCalledWith({otherKey: 'v', key: 'default', default: 'default'})
+        expect(checkBottom).toHaveBeenCalledWith({otherKey: 'v', key: 'default', default: 'default'})
+    })
+
     test("methods could be getters", () => {
         const C = layerCompose(
             {
@@ -101,7 +163,7 @@ describe("Layering", () => {
             }
         )
 
-        const c = C({key:'v'})
+        const c = C({key: 'v'})
 
         expect(c.myKey).toBe('v')
     })

@@ -11,7 +11,7 @@ export function createInstance(composedLayers) {
         [$dataPointer]: undefined, // this is filled with actual data during instantiation
         [$runOnInitialize]: composedLayers[$runOnInitialize],
         [$setData]: function setData(d, {
-            isOriginalCall = true, selfOnly = false,
+            selfOnly = false,
             createOwnScope = false,
             executionId = Symbol()
         } = {}) {
@@ -80,7 +80,7 @@ export function createInstance(composedLayers) {
                 }
             }
 
-            /* todo make sure getters can't have `opt`
+            /* todo make sure that getter function that have `opt` are not turned into getters below
             * although it would be kind of cool to have both a default getter and a function with opt
             * */
 

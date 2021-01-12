@@ -1,5 +1,6 @@
-import {wrapDataWithProxy, wrapSuperWithProxy} from "../src/proxies/proxies"
-import {$dataPointer}                          from "../src/const"
+import {wrapDataWithProxy}  from "../src/proxies/proxies"
+import {$dataPointer}       from "../src/const"
+import {wrapSuperWithProxy} from "../src/super/wrapSuperWithProxy"
 
 describe("Proxies", () => {
     test("should allow Set & Map to be used normally", () => {

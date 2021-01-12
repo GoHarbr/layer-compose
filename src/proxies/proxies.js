@@ -1,11 +1,11 @@
 // todo. make sure types do not change during execution
 
-import {$borrowedKeys, $isPrivateData, IS_DEV_MODE}              from "../const"
-import {getDataFromPointer, isFunction, isIncompatibleWithProxy} from "../utils"
+import {$borrowedKeys, $isPrivateData}       from "../const"
+import {isFunction, isIncompatibleWithProxy} from "../utils"
 
 const definedProxyExceptions = ['toJSON']
 
-const definedGetProxy = {
+export const definedGetProxy = {
     get(target, prop) {
         return definedGetProxy._get(target, prop, definedGetProxy._get)
     },
@@ -62,41 +62,10 @@ const borrowProxy = (layerId) => ({
     }
 })
 
-const noSetAccessProxy = {
+export const noSetAccessProxy = {
     set() {
         throw new Error('There is no set access on this object')
     }
-}
-
-const superFunctionProxy = (selfInstancePointer, {getTrap}) => ({
-    get(target, prop) {
-        /* todo
-        *   check that the prop is a getter and return a corresponding function */
-        let v = target[prop]
-        if (isFunction(v)) {
-            const _v = v
-            v = opt => {
-                return selfInstancePointer.pointer[prop](opt)
-                // return _v(getDataFromPointer(selfInstancePointer.pointer), opt)
-            }
-        }
-
-        return getTrap ? getTrap(v, prop) : v
-    },
-    ...noSetAccessProxy
-})
-
-const functionReturnProxy = {
-    _superGetTrap(v, functionName) {
-        v = definedGetProxy._wrapFunction(null, v, {innerProxyDefinition: functionReturnProxy})
-        // null is a valid optional value
-        return definedGetProxy._mustBeDefined(v, functionName, {innerProxyDefinition: functionReturnProxy})
-    },
-
-    get(t, p) {
-        return definedGetProxy._get(t, p, functionReturnProxy)
-    },
-    set: noSetAccessProxy.set
 }
 
 export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
@@ -117,12 +86,8 @@ export function wrapDataWithProxy(layerId, data, borrow, {isGetOnly}) {
     }
 }
 
-export function wrapSuperWithProxy(composition, selfInstancePointer) {
-    const getTrap = IS_DEV_MODE ? functionReturnProxy._superGetTrap : undefined
-    return new Proxy(composition, superFunctionProxy(selfInstancePointer, {getTrap}))
-}
-
 export function wrapDataConstructorWithProxy(d) {
+    /* todo. allow setting values as an alternative to call (`d(defaults)`) syntax*/
     return new Proxy(d, noSetAccessProxy)
 }
 
@@ -144,8 +109,4 @@ export function _wrapDataWithProxy(data, borrow, {isGetOnly}) {
         return the passed in value; useful for recursion */
         return data
     }
-}
-
-export function wrap$WithProxy($) {
-
 }
