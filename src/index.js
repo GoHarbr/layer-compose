@@ -3,6 +3,9 @@ import {compose}                                                       from "./c
 import {$composition, $runOnInitialize, $spec, IS_DEV_MODE, LC_SYMBOL} from "./const"
 import {isService}                                                     from "./utils"
 
+import cleanData from './external-utils/cleanData'
+
+
 const withServices = spec => additionalServices => {
     if (Object.values(additionalServices).some(s => !isService(s))) throw new Error("Services must be instantiated")
     return layerCompose(...spec, additionalServices)  // fixme remove additionalServices if empty
@@ -29,8 +32,13 @@ export default function layerCompose(...layers) {
     return constructor
 }
 
+/*
+ * Utils
+ * */
+
 export {getDataFromPointer as unbox} from './utils'
-export cleanData from './external-utils/cleanData'
 export {
     IS_DEV_MODE,
+
+    cleanData
 }
