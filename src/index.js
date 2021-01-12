@@ -30,6 +30,7 @@ export default function layerCompose(...layers) {
 }
 
 export {getDataFromPointer as unbox} from './utils'
+export cleanData from './external-utils/cleanData'
 export {
     IS_DEV_MODE,
 }
