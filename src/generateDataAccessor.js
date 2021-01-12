@@ -66,7 +66,7 @@ function addBorrowKeys(layerId, data, borrowDefaults, locatorError) {
 
 /** Deep defaults injection */
 function injectDefaults(into, defaults) {
-    if (typeof into === 'object') {
+    if (typeof into === 'object' && !!into) {
         // const _bk = into[$borrowedKeys]
         // const existingBorrowKeys = Object.values(_bk || {}).flat()
 
@@ -86,7 +86,8 @@ function injectDefaults(into, defaults) {
             //     throw new Error('Cannot borrow the same key: ' + conflictKey)
             // }
 
-            if (typeof defaults[k] === 'object') injectDefaults(into[k], defaults[k])
+            const nextDefault = defaults[k]
+            if (typeof nextDefault === 'object' && !!nextDefault) injectDefaults(into[k], nextDefault)
         }
     }
 }
