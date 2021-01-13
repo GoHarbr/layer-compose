@@ -1,6 +1,6 @@
 // todo. make sure types do not change during execution
 
-import {$borrowedKeys, $isPrivateData} from "../const"
+import {$borrowedKeys, $isPrivateData}                     from "../const"
 import {isFunction}                                        from "../utils"
 import {isIncompatibleWithProxy, TaggedProxy, unwrapProxy} from "./utils"
 
@@ -43,11 +43,11 @@ export const definedGetProxy = {
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
         if (v !== undefined || typeof prop === 'symbol' || definedProxyExceptions.includes(prop)) {
-                if (typeof v === 'object' && !!v /* if null */) {
-                    return TaggedProxy(v, innerProxyDefinition || definedGetProxy)
-                } else {
-                    return v
-                }
+            if (typeof v === 'object' && !!v /* if null */) {
+                return TaggedProxy(v, innerProxyDefinition || definedGetProxy)
+            } else {
+                return v
+            }
         }
         throw new Error('Property does not exist: ' + prop)
     }
@@ -59,13 +59,17 @@ const borrowProxy = (layerId) => ({
     },
 
     set(target, prop, value) {
-        if (typeof prop !== 'symbol'
-            // if no borrowed keys set, throw (prevents from runtime generated keys from being settable individually)
-            // exception is private data
-            && (!target[$borrowedKeys] && !target[$isPrivateData])
-            || !target[$borrowedKeys][layerId]
-            || !target[$borrowedKeys][layerId].includes(prop)) {
-            throw new Error('Must borrow to be able to set a prop\'s value on: ' + prop)
+        if (typeof prop !== 'symbol') {
+            if (
+                // if no borrowed keys set, throw (prevents from runtime generated keys from being settable
+                // individually) exception is private data
+
+                (!target[$borrowedKeys] && !target[$isPrivateData])
+                || !target[$borrowedKeys][layerId]
+                || !target[$borrowedKeys][layerId].includes(prop)
+            ) {
+                throw new Error('Must borrow to be able to set a prop\'s value on: ' + prop)
+            }
         }
 
         target[prop] = value

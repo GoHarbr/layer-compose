@@ -1,6 +1,7 @@
 /* Object that who's keys are not all arrays or composed functions */
 import {$dataPointer, $isService, $layerId, LC_SYMBOL} from "./const"
 import {layerBuilderFormatCheck}                       from "./dev-checks"
+import {unwrapProxy}                                   from "./proxies/utils"
 
 /* isType checks // todo move */
 
@@ -50,7 +51,7 @@ export function isPromise(what) {
 /* Instance related // todo move */
 
 export function getDataFromPointer(compositionInstance) {
-    return compositionInstance[$dataPointer]
+    return unwrapProxy(compositionInstance[$dataPointer])
 }
 
 export function selectExistingServices(composition) {
