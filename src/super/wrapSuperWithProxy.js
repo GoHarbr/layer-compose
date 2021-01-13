@@ -20,11 +20,15 @@ const superFunctionProxy = (composition, selfInstancePointer) => ({
                 v = definedGetProxy._wrapFunctionReturn(v, {innerProxyDefinition: functionReturnDefinition})
             }
 
-            v.defaultOpt = (newOpts) => composition[prop] = (data, opts) => {
-                return originalFn(data, {...newOpts, ...opts})
+            v.defaultOpt = (newOpts) => {
+                composition[prop] = (data, opts) => {
+                    return originalFn(data, {...newOpts, ...opts})
+                }
             }
-            v.lockOpt = (newOpts) => composition[prop] = (data, opts) => {
-                return originalFn(data, {...opts, ...newOpts})
+            v.lockOpt = (newOpts) => {
+                composition[prop] = (data, opts) => {
+                    return originalFn(data, {...opts, ...newOpts})
+                }
             }
 
         }
