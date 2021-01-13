@@ -33,9 +33,10 @@ describe("Reusing compositonis across instances", () => {
         })
 
         expect(() => {
-            const C2 = layerCompose(C1)
+            const C2 = layerCompose({tm() {}}, C1)
             const c2 = C2()
             c2.m()
+            c2.tm()
         }).not.toThrow()
         expect(checkFn).toHaveBeenCalled()
     })
@@ -56,5 +57,32 @@ describe("Reusing compositonis across instances", () => {
         c2.m()
 
         expect(checkFn).toHaveBeenCalledWith(true)
+    })
+
+    test("Extend composition and use a dependency", () => {
+        const checkFn = jest.fn()
+        const C1 = layerCompose({
+            m(d, opt) {
+                return d.key
+            }
+        })
+
+        const C2 = layerCompose(
+            ({m}) => ({
+                check(d) {
+                    checkFn(d.key, m())
+                }
+            }),
+            C1
+        )
+
+        const i1 = C2({key: 1})
+        const i2 = C2({key: 2})
+
+        i1.check()
+        expect(checkFn).toHaveBeenCalledWith(1, 1)
+
+        i2.check()
+        expect(checkFn).toHaveBeenCalledWith(2, 2)
     })
 })

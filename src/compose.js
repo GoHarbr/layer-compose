@@ -24,8 +24,10 @@ export function compose(layerLike, composeInto) {
     if (!composeInto[$runOnInitialize]) throw new Error()
 
     if (isLcConstructor(layerLike)) {
+        // todo. see if performance can be optimized by not re-building
+        // Object.assign(composeInto, layerLike[$composition]) // this leads to data
 
-        Object.assign(composeInto, layerLike[$composition])
+        compose(layerLike[$spec], composeInto)
 
     } else if (isLayerBuilder(layerLike)) {
         const layerId = getLayerId(layerLike)
@@ -84,9 +86,9 @@ export function compose(layerLike, composeInto) {
         Object.assign(composeInto, services)
 
     } else if (isFragmentOfLayers(layerLike)) {
-        if (isLcConstructor(layerLike)) {  // todo move into upper definition and remove
-            layerLike = layerLike[$spec]
-        }
+        // if (isLcConstructor(layerLike)) {  // todo move into upper definition and remove
+        //     layerLike = layerLike[$spec]
+        // }
         /*
         * The style of spec definition is
         * bottom layers (base mixins; called first) are defined after top layers (extending mixins; called last)

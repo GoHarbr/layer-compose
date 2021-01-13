@@ -12,7 +12,7 @@ const superFunctionProxy = (composition, selfInstancePointer) => ({
         if (isFunction(v)) {
             const originalFn = v
 
-            v = opt => {
+            v = function(opt) {
                 return selfInstancePointer.pointer[prop](opt)
             }
 

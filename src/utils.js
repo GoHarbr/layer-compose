@@ -18,7 +18,8 @@ export function isServiceLayer(l) {
 }
 
 export function isFragmentOfLayers(what) {
-    return Array.isArray(what) || isLcConstructor(what) // todo. probably remove the constructor clause
+    // return Array.isArray(what) || isLcConstructor(what) // todo. probably remove the constructor clause
+    return Array.isArray(what)
 }
 
 export function isLcConstructor(what) {

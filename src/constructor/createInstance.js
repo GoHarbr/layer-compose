@@ -69,7 +69,8 @@ export function createInstance(composedLayers) {
                 if (IS_DEV_MODE && !!opt && typeof opt != 'object') {
                     throw new Error("Layer methods can take only named parameters")
                 }
-                const r = methodOrService(compositionInstance[$dataPointer], opt || defaultOpt)
+                const d = compositionInstance[$dataPointer]
+                const r = methodOrService(d, opt || defaultOpt)
                 if (IS_DEV_MODE && isPromise(r)) {
                     return r.catch(e => {
                         console.error('Promise rejected:', e)

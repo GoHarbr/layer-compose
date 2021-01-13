@@ -12,6 +12,9 @@ export function generateSuperAccessor(composedUpTo) {
 
     return {
         initializer: compositionInstance => {
+            // if (!!selfInstancePointer.pointer) {
+            //     throw new Error('Programmer error: this initializer has already been used')
+            // }
             selfInstancePointer.pointer = compositionInstance
         },
         constructor: generateConstructor(composedUpTo, selfInstancePointer)
