@@ -39,4 +39,22 @@ describe("Reusing compositonis across instances", () => {
         }).not.toThrow()
         expect(checkFn).toHaveBeenCalled()
     })
+
+    test("Extend composition and lock `opt`", () => {
+        const checkFn = jest.fn()
+        const C1 = layerCompose({
+            m(d, opt) {
+                checkFn(opt.key)
+            }
+        })
+
+        const C2 = layerCompose(
+            $ => $.m.lockOpt({key: true}),
+            C1
+        )
+        const c2 = C2()
+        c2.m()
+
+        expect(checkFn).toHaveBeenCalledWith(true)
+    })
 })
