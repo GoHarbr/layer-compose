@@ -40,9 +40,23 @@ export function generateDataAccessor(layerId) {
     }
 }
 
+// function assignDefaults(existing, next) {
+//     if (!existing || typeof existing != "object") return next
+//     if (!next || typeof existing != "object") return existing
+//
+//     const existingKeys = Object.keys(existing)
+//     for (const nk of Object.keys(next)) {
+//         if (existingKeys.includes(nk)) {
+//             throw new Error('Cannot borrow the same key: `' + nk)
+//         }
+//
+//         existing[nk] = next[nk]
+//     }
+// }
+
 function addBorrowKeys(layerId, data, borrowDefaults, locatorError) {
     if (!!data && typeof borrowDefaults == "object" && typeof data == 'object') {
-        const _bk = data.hasOwnProperty($borrowedKeys) && data[$borrowedKeys]
+        const _bk = (data).hasOwnProperty($borrowedKeys) && data[$borrowedKeys]
         if (!_bk) {
             data[$borrowedKeys] = {}
         }

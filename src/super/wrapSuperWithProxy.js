@@ -17,7 +17,7 @@ const superFunctionProxy = (composition, selfInstancePointer) => ({
             }
 
             if (IS_DEV_MODE) {
-                v = definedGetProxy._wrapFunction(null, v, {innerProxyDefinition: functionReturnDefinition})
+                v = definedGetProxy._wrapFunctionReturn(v, {innerProxyDefinition: functionReturnDefinition})
             }
 
             v.defaultOpt = (newOpts) => composition[prop] = (data, opts) => {

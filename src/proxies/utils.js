@@ -1,14 +1,18 @@
-export function isIncompatibleWithProxy(what) {
+
+export function isIncompatibleWithProxy(target, prop) {
     /* todo. improve this check, not fully reliable as is */
-    return !!what && typeof what == "object" && (
-        Array.isArray(what)
-        || (Symbol.iterator in what)
-        || (Symbol.asyncIterator in what)
-        || what instanceof Set
-        || what instanceof WeakSet
-        || what instanceof Map
-        || what instanceof WeakMap
-        || what instanceof Promise
+    return !!target && typeof target == "object" && (
+        Array.isArray(target)
+        || prop === "hasOwnProperty"
+        || (Symbol.iterator in target)
+        || (Symbol.asyncIterator in target)
+        || (prop === Symbol.iterator)
+        || (prop === Symbol.asyncIterator)
+        || target instanceof Set
+        || target instanceof WeakSet
+        || target instanceof Map
+        || target instanceof WeakMap
+        || target instanceof Promise
     )
 }
 

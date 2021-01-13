@@ -16,24 +16,29 @@ export const definedGetProxy = {
         /* todo. do a better job of detecting edge cases as with Set where `add()` can't be called on the proxy
         *  for inspiration https://stackoverflow.com/questions/43927933/why-is-set-incompatible-with-proxy*/
 
-        v = definedGetProxy._wrapFunction(target, v, {innerProxyDefinition})
+        v = definedGetProxy._wrapFunction(target, prop, {innerProxyDefinition})
         // null is a valid optional value
         return definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition})
     },
 
-    _wrapFunction(target, v, {innerProxyDefinition} = {}) {
+    _wrapFunction(target, prop, {innerProxyDefinition} = {}) {
+        let v = unwrapProxy(target[prop])
+
         if (isFunction(v)) {
-            if (isIncompatibleWithProxy(target)) {
+            if (isIncompatibleWithProxy(target, prop)) {
                 v = v.bind(target)
             }
             /* wrap result with defined proxy as well */
-            const _v = v
-            v = (...args) => {
-                const r = _v(...args)
-                return typeof r == "object" ? TaggedProxy(r, innerProxyDefinition) : r
-            }
+            v = definedGetProxy._wrapFunctionReturn(v, {innerProxyDefinition})
         }
         return v
+    },
+
+    _wrapFunctionReturn(f, {innerProxyDefinition} = {}) {
+        return (...args) => {
+            const r = f(...args)
+            return typeof r == "object" ? TaggedProxy(r, innerProxyDefinition) : r
+        }
     },
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
