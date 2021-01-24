@@ -1,4 +1,5 @@
-import {definedGetProxy, noSetAccessProxy} from "./proxies"
+import {definedGetProxy}  from "./proxies"
+import {noSetAccessProxy} from "./noSetAccessProxy"
 
 export default {
     ...definedGetProxy,

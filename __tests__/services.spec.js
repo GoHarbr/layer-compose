@@ -1,156 +1,152 @@
-import layerCompose from "../src"
-import {List}       from "./compositions/List.layers"
+import layerCompose, {unbox} from "../src"
+import {List}                from "./compositions/List.layers"
 
 describe("Services", () => {
     test("should be callable", () => {
-        const checkFn = jest.fn();
-        const C = layerCompose(($, d) => {
-            const {service} = $
-
-            return {
-                method(d) {
-                    service.sm()
+        const checkFn = jest.fn()
+        const C = layerCompose({
+                method($, _) {
+                    $.service.sm()
                 }
             }
-        }, {
-            service: [{
-                sm(d) {
-                    checkFn()
-                }
-            }]
-        })
+            , {
+                service: [{
+                    sm(_) {
+                        checkFn()
+                    }
+                }]
+            })
 
         const c = C({})
         c.method()
         expect(checkFn).toHaveBeenCalled()
-    }),
+    })
 
     test("should have access to data", () => {
-        const checkFn = jest.fn();
+        const checkFn = jest.fn()
 
-        const C = layerCompose(($, d) => {
-            const {service} = $
-
-            // after this point $ is non readable
-            // before this point, data is not accessible
-
-            return {
-                method(d) {
-                    service.sm()
-                }
-            }
-        }, {
-            service: [{
-                sm(d) {
-                    checkFn()
-                    expect(d.key).toBe('data')
-                }
-            }]
-        })
-
-        const d = {key: 'data'}
-        const c = C(d)
-        c.method()
-
-        expect(checkFn).toHaveBeenCalled()
-    })
-
-    test("should have access to instantiated services", () => {
-        const checkFn = jest.fn();
-
-        const C = layerCompose(($, d) => {
-            const {service} = $
-
-            expect(service).toBeTruthy()
-            return {
-                method(d) {}
-            }
-        },
-            {
-                anotherService: [$ => () => {
+        const C = layerCompose({
+                method($, _) {
                     $.service.sm()
-                }]
-            },
-            {
-            service: [{
-                sm(d) {
-                    checkFn()
-                    expect(d.key).toBe('data')
                 }
-            }]
-        })
-
-        const d = {key: 'data'}
-        const c = C(d)
-        c.method()
-
-        expect(c.anotherService).toBeTruthy()
-        expect(checkFn).toHaveBeenCalled()
-    })
-
-    test("services should be chainable", () => {
-        const checkFn = jest.fn();
-
-        const C = layerCompose(($, d) => {
-                const {service} = $
-
-                expect(service).toBeTruthy()
-                return {
-                    method(d) {}
-                }
-            },
-            {
+            }
+            , {
                 service: [{
-                    sm(d) {
+                    sm(_) {
                         checkFn()
-                        expect(d.key).toBe('data')
+                        expect(_.key).toBe('data')
                     }
                 }]
             })
 
         const d = {key: 'data'}
         const c = C(d)
-        c.service.sm()
+        c.method()
 
         expect(checkFn).toHaveBeenCalled()
     })
 
-    test("services (with getters) should be chainable", () => {
-        const C = layerCompose(($, d) => {
-                const {service} = $
+    test("sub-service should be accessible by parent service", () => {
+        const checkFn = jest.fn()
 
-                expect(service).toBeTruthy()
-                return {
-                    method(d) {}
+        const C = layerCompose(
+            {
+                method($, _) {
+                    $.service.sm()
                 }
             },
             {
                 service: [{
-                    getKey(d) {
+                    subService: {
+                        sm(_, {optKey}) {
+                            checkFn()
+                            expect(_.key).toBe('data')
+                            expect(optKey).toBe('value')
+                        }
+                    },
+                },
+                    {
+                        sm($) {
+                            $.subService.sm({optKey: 'value'})
+                        }
+                    }
+                ]
+            })
+
+        const d = {key: 'data'}
+        const c = C(d)
+        c.method()
+
+        expect(checkFn).toHaveBeenCalled()
+    })
+
+    test("services should be chainable", () => {
+        const checkFn = jest.fn()
+
+        const C = layerCompose(
+            {
+                method($, _) {}
+            },
+            {
+                service: [{
+                    subService: {
+                        sm(_, {optKey}) {
+                            checkFn()
+                            expect(_.key).toBe('data')
+                        }
+                    },
+                },
+                    {
+                        sm($) {}
+                    }
+                ]
+            })
+
+        const d = {key: 'data'}
+        const c = C(d)
+        c.service.subService.sm()
+
+        expect(checkFn).toHaveBeenCalled()
+    })
+
+    test.skip("services (with getters) should be chainable", () => {
+        const C = layerCompose(($, _) => {
+                const {service} = $
+
+                expect(service).toBeTruthy()
+                return {
+                    method(_) {
+                    }
+                }
+            },
+            {
+                service: [{
+                    getKey(_) {
                         return d.key
                     }
                 }]
             })
 
         const d = {key: 'data'}
-        const c = C(d)
+        const c = C(_)
         expect(c.service.key).toEqual('data')
         expect(c.service.getKey()).toEqual('data')
     })
 
-    test("precomposed services (with getters) should be chainable", () => {
+    test.skip("precomposed services (with getters) should be chainable", () => {
         const service = layerCompose({
-            getKey(d) {
+            getKey(_) {
                 return d.key
             }
         })
 
-        const C = layerCompose(($, d) => {
+        const C = layerCompose(($, _) => {
                 const {service} = $
 
                 expect(service).toBeTruthy()
                 return {
-                    method(d) {}
+                    method(_) {
+                    }
                 }
             },
             {
@@ -158,7 +154,7 @@ describe("Services", () => {
             })
 
         const d = {key: 'data'}
-        const c = C(d)
+        const c = C(_)
         expect(c.service.key).toEqual('data')
         expect(c.service.getKey()).toEqual('data')
     })
@@ -166,22 +162,60 @@ describe("Services", () => {
     test("fragments should be reusable", () => {
         const C = layerCompose(
             {
-                method() {}
+                method($) {
+                    $.push({item:3})
+                    $.service.push({item:4})
+                }
             },
             {
-                service: List
+                service: [$ => $.init(), List]
             },
             List
         )
 
-        const c = C()
+        const c = C({entities: []})
+
+        c.method()
+
+        expect(c.getAll().includes(3)).toBe(true)
+        expect(c.getAll().includes(4)).toBe(false)
+
+        expect(c.service.getAll().includes(3)).toBe(false)
+        expect(c.service.getAll().includes(4)).toBe(true)
+
 
         c.push({item: 1})
         c.service.push({item: 2})
-        expect(c.all.includes(1)).toBe(true)
-        expect(c.service.all.includes(2)).toBe(true)
-        expect(c.service.all.includes(1)).toBe(false)
+
+        expect(c.getAll().includes(1)).toBe(true)
+        expect(c.getAll().includes(2)).toBe(false)
+
+        expect(c.service.getAll().includes(1)).toBe(false)
+        expect(c.service.getAll().includes(2)).toBe(true)
     })
 
-    test.todo("Service data should be unboxable")
+    test("Service data should be unboxable", () => {
+        const C = layerCompose(
+            {
+                method($) {
+                    $.push({item:3})
+                    $.service.push({item:4})
+                }
+            },
+            {
+                service: [$ => $.init(), List]
+            },
+            List
+        )
+
+        const c = C({entities: []})
+
+        c.method()
+
+        expect(unbox(c).entities.includes(3)).toBe(true)
+        expect(unbox(c).entities.includes(4)).toBe(false)
+
+        expect(unbox(c.service).entities.includes(3)).toBe(false)
+        expect(unbox(c.service).entities.includes(4)).toBe(true)
+    })
 })

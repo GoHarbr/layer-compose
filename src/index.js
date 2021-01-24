@@ -1,35 +1,39 @@
-import {createConstructor}                            from "./constructor/createConstructor"
-import {compose}                                                       from "./compose"
-import {$composition, $runOnInitialize, $spec, IS_DEV_MODE, LC_SYMBOL} from "./const"
-import {isService}                                                     from "./utils"
+import {createConstructor}                                         from "./constructor/createConstructor"
+import compose                                                     from "./compose/compose"
+import {$composition, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
 
-import cleanData from './external-utils/cleanData'
-
-
-const withServices = spec => additionalServices => {
-    if (Object.values(additionalServices).some(s => !isService(s))) throw new Error("Services must be instantiated")
-    return layerCompose(...spec, additionalServices)  // fixme remove additionalServices if empty
-}
-layerCompose.withServices = withServices
-
+import cleanData               from './external-utils/cleanData'
+import transformGetters        from "./external-utils/transformGetters"
+import seal                    from "./constructor/seal"
+import transformToStandardArgs from "./compose/transformToStandardArgs"
 /*
 * todo:
 *  add ability to replace services. could be useful for testing, or could be a bad idea.
 * */
 
 export default function layerCompose(...layers) {
-    let composed = {[$runOnInitialize]: []}
+    let composed = {
+        [$runOnInitialize]: [],
+        then: transformToStandardArgs($ => $),
+        toJSON: transformToStandardArgs(_ => {
+            return _
+        })
+    }
 
-    compose(layers, composed)
+    composed = compose(layers, composed)
+    composed = seal(composed)
 
     const constructor = createConstructor(composed)
-    constructor.lcId = LC_SYMBOL // fixme give symbol accessor
+
+    constructor[$isLc] = true
     constructor[$spec] = layers
     constructor[$composition] = composed
-    constructor.withServices = withServices(layers)
-    constructor.partial = (presetValues) => (data = {}) => constructor({...data, ...presetValues}) // fixme this looses properties set on contructor
+
 
     return constructor
+}
+
+export async function test() {
 }
 
 /*
@@ -40,5 +44,6 @@ export {getDataFromPointer as unbox} from './utils'
 export {
     IS_DEV_MODE,
 
-    cleanData
+    cleanData,
+    transformGetters
 }

@@ -1,7 +1,6 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$dataPointer, $isService, $layerId, LC_SYMBOL} from "./const"
-import {layerBuilderFormatCheck}                       from "./dev-checks"
-import {unwrapProxy}                                   from "./proxies/utils"
+import {$dataPointer, $isLc, $isService, $layerId} from "./const"
+import {unwrapProxy}                               from "./proxies/utils"
 
 /* isType checks // todo move */
 
@@ -12,29 +11,33 @@ export function isServiceLayer(l) {
         if (getters.length > 0) {
             return false
         }
-        return Object.values(l).findIndex(_ => !Array.isArray(_) && !isLcConstructor(_) && !isService(_)) === -1
+
+        /* every single value should be either an array, a constructor, marked as a service and not a function */
+        return Object.values(l)
+            .findIndex(_ =>
+                !Array.isArray(_)
+                && !isLcConstructor(_)
+                && !isService(_)
+                && typeof _ === 'function'
+            ) === -1
     }
     return false
 }
 
 export function isFragmentOfLayers(what) {
-    // return Array.isArray(what) || isLcConstructor(what) // todo. probably remove the constructor clause
     return Array.isArray(what)
 }
 
 export function isLcConstructor(what) {
-    return what.lcId === LC_SYMBOL
+    return what[$isLc]
 }
 
 export function isService(what) {
-    return (typeof what == "object") && !!what[$isService]
+    return !!what[$isService]
 }
 
-export function isLayerBuilder(l) {
-    const res = isFunction(l) && !isLcConstructor(l)
-    // runs only in dev mode
-    res && layerBuilderFormatCheck(l)
-    return res
+export function isInitializer(l) {
+    return isFunction(l) && l.length === 1 // todo check that it only takes super (rather exactly 1 arg)
 }
 
 export function isConstructorLayer(what) {
@@ -64,10 +67,8 @@ export function selectExistingServices(composition) {
     )
 }
 
-let _globalLayerId = 0
 export function getLayerId(layer) {
-    _globalLayerId++
-    return layer[$layerId] || (layer[$layerId] = _globalLayerId)
+    return layer[$layerId] || (layer[$layerId] = Symbol())
 }
 
 export function renameIntoGetter(functionName) {
@@ -76,4 +77,8 @@ export function renameIntoGetter(functionName) {
         return propName
             && propName[0].toLowerCase() + propName.slice(1)
     }
+}
+
+export function functionAsString(what) {
+    return what.toString().replaceAll(/\s/g, '')
 }

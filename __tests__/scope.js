@@ -2,210 +2,123 @@ import layerCompose, {unbox} from "../src"
 import {getDataFromPointer}  from "../src/utils"
 
 describe("Scope", () => {
-    test("can have defaults set (deep)", () => {
-        const C = layerCompose(($, d) => {
-            d({
-                defaultKey: 'defaultValue',
-                deepDefault: {
-                    defaultKey: 1
-                }
-            })
-            return {}
-        })
+    test("layers can borrow values", () => {
+        expect.assertions(5)
 
-        const c = C({
-            deepDefault: {
-                originalKey: 2
-            }
-        })
-
-        const d = getDataFromPointer(c)
-        expect(d.deepDefault.originalKey).toEqual(2)
-        expect(getDataFromPointer(c).deepDefault.defaultKey).toEqual(1)
-        expect(getDataFromPointer(c).defaultKey).toEqual('defaultValue')
-    })
-
-    test("borrowed values are accessible for writes", () => {
         const C = layerCompose(
             {
-                writeDeep(d) {
-                   expect(d.second.subsecond).toEqual(2)
+                writeDeep(_) {
+                    expect(_.second.subsecond).toEqual(2)
                 }
-            },
-            ($, d) => {
-            d({
-                first: 'defaultValue',
-                second: {
-                    subsecond: 1
+            }, {
+                writeShallow(_) {
+                    _.first = ''
+                },
+                writeDeep(_) {
+                    _.second.subsecond = 2
+                },
+                checkShallow(_) {
+                    expect(_.first).toEqual('')
                 }
             })
-
-            return {
-                writeShallow(d) {
-                    d.first = ''
-                },
-                writeDeep(d) {
-                    d.second.subsecond = 2
-                },
-                checkShallow(d) {
-                    expect(d.first).toEqual('')
-                }
-            }
-        })
 
         const c = C({
             deepDefault: {
                 originalKey: 2
-            }
+            },
+            second: {}
         })
 
+        c.writeShallow()
         c.writeShallow()
         c.checkShallow()
         expect(getDataFromPointer(c).first).toEqual('')
 
         c.writeDeep()
-        expect(getDataFromPointer(c).second.subsecond).toEqual(2)
-    })
-
-    test("borrowed values are the only accessible ones", () => {
-        const C = layerCompose(($, d) => {
-            d({
-                first: 'defaultValue',
-                second: {
-                    subsecond: 1
-                }
-            })
-            return {
-                writeShallow(d) {
-                    d.third = 3
-                },
-                writeDeep(d) {
-                    d.second.key = 3
-                },
-                writeDeeper(d) {
-                    d.second.key.key = 3
-                },
-            }
-        })
-
-        const c = C({
-            deepDefault: {
-                originalKey: 2
-            }
-        })
-
-        expect(c.writeShallow).toThrow()
-        expect(c.writeDeep).toThrow()
-        expect(c.writeDeeper).toThrow()
-    })
-
-    test("sub-key of borrowed keys are accessible for writes", () => {
-        const C = layerCompose(($, d) => {
-            d({
-                first: 'defaultValue',
-                second: {
-                    subsecond: 1
-                }
-            })
-
-            return {
-                writeShallow(d) {
-                    d.first = ''
-                },
-                writeDeep(d) {
-                    d.second.subsecond = 2
-                },
-            }
-        })
-
-        const c = C({
-            deepDefault: {
-                originalKey: 2
-            }
-        })
-
-        c.writeShallow()
-        expect(getDataFromPointer(c).first).toEqual('')
-
         c.writeDeep()
         expect(getDataFromPointer(c).second.subsecond).toEqual(2)
     })
 
-    test.todo("sub-key of borrowed keys are accessible for writes only if those keys dont exist already")
+    test("auto-borrow prevents writes to the same key by different sealed compositions", () => {
+        expect.assertions(2)
 
-    test("no write access if nothing is borrowed", () => {
-        const C = layerCompose(($, d) => {
-            return {
-                writeShallow(d) {
-                    d.third = 4
-                },
-                writeDeep(d) {
-                    d.second.key = 3
-                },
-                check(d) {
-                    expect(d.third).toEqual(3)
-                    expect(d.second.key).toEqual(2)
+        const C = layerCompose(
+            {
+                writeDeep(_) {
+                    _.second.subsecond = 3
                 }
-            }
+            },
+
+            layerCompose({
+                writeShallow(_) {
+                    _.first = ''
+                },
+                writeDeep(_) {
+                    _.second.subsecond = 2
+                },
+                checkShallow(_) {
+                    expect(_.first).toEqual('')
+                }
+            })
+        )
+
+        const c = C({
+            deepDefault: {
+                originalKey: 2
+            },
+            second: {}
         })
 
-        const d = {
-            third: 3,
-            second: {
-                key: 2
-            }
-        }
-        const c = C(d)
-
-        expect(c.writeShallow).toThrow()
+        c.writeShallow()
+        expect(unbox(c).first).toEqual('')
         expect(c.writeDeep).toThrow()
-
-        c.check()
-
-        const pd = getDataFromPointer(c)
-        expect(pd.third).toEqual(3)
-        expect(pd.second.key).toEqual(2)
-    })
-
-    test("cannot borrow the same key twice (layers)", () => {
-        expect(() => {
-            const C = layerCompose(($, d) => {
-                d({
-                    key: {
-                        subkey: 1
-                    }
-                })
-            }, ($, d) => d({
-                key: {
-                    subkey: 2
-                }
-            }))
-
-            C()
-        }).toThrow()
     })
 
     test("a service can borrow the same key twice", () => {
         /* since services have their own private scope to write into */
-            const C = layerCompose(($, d) => {
-                d({
-                    key: {
-                        subkey: 1
-                    }
-                })
+        const C = layerCompose(
+            {
+                setKey(_) {
+                    _.key = 1
+                }
             }, {
-                service: [($, d) => {
-                    d({
-                        key: {
-                            subkey: 2
-                        }
-                    })
+                service: [{
+                    setKey(_) {
+                        _.key = 2
+                    }
                 }]
             })
 
-            const c = C()
-            expect(unbox(c).key.subkey).toBe(1)
-            expect(unbox(c.service).key.subkey).toBe(2)
+        const c = C()
+        c.setKey()
+        c.service.setKey()
+
+        expect(unbox(c).key).toBe(1)
+        expect(unbox(c.service).key).toBe(2)
+    })
+
+    test("a service cannot modify a key on an object managed by the parent", () => {
+        /* since services have their own private scope to write into */
+        const C = layerCompose(
+            {
+                setKey(_) {
+                    _.obj.key = 1
+                }
+            }, {
+                service: [{
+                    setKey(_) {
+                        _.obj.key = 2
+                    }
+                }]
+            })
+
+        const c = C({obj: {}})
+
+        c.setKey()
+        expect(unbox(c).obj.key).toBe(1)
+        expect(unbox(c.service).obj.key).toBe(1)
+
+        expect(c.service.setKey).toThrow('borrow')
     })
 
     test("Services carry their own scope", () => {
@@ -216,53 +129,42 @@ describe("Scope", () => {
         const bottomServices = {
             bottomService: [
                 {
-                    method(d) {
-                        checkBottomService(d.public, d.private)
+                    method(_) {
+                        checkBottomService(_.public, _.private)
                     }
                 },
 
-                ($, d) => {
-                    d({
-                        private: 'bottom-default'
-                    })
-                    return {
-                        method(d) {
-                            d.private = 'bottom'
-                        }
+                {
+                    method(_) {
+                        _.private = 'bottom'
                     }
                 }
+
             ]
         }
 
         const topServices = {
             topService: [
                 {
-                    method(d) {
-                        checkTopService(d.public, d.private)
+                    method(_) {
+                        checkTopService(_.public, _.private)
                     }
                 },
 
-                ($, d) => {
-                    d({
-                        private: 'top-default'
-                    })
-                    return {
-                        method(d) {
-                            d.private = 'top'
-                        }
+                {
+                    method(_) {
+                        _.private = 'top'
                     }
                 }
+
             ]
         }
 
         const C = layerCompose(
-            topServices,
-            ($, d) => {
-                return {
-                    method(d) {
-                        checkMethod(d.public, d.private)
-                        $.bottomService.method()
-                    }
+            topServices, {
+                method($, _) {
+                    checkMethod(_.public, _.private)
+                    $.bottomService.method()
                 }
             },
             bottomServices

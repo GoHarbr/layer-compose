@@ -1,16 +1,17 @@
-import layerCompose from "../src"
+import layerCompose  from "../src"
+import {unwrapProxy} from "../src/proxies/utils"
 
 describe("Layering", () => {
     test("should have access to data", () => {
         const check = jest.fn()
 
         const C = layerCompose({
-            method(d) {
-                check("A", d.key)
+            method($, _) {
+                check("A", _.key)
             }
         }, {
-            method(d) {
-                check("B", d.key)
+            method($, _) {
+                check("B", _.key)
             }
         })
 
@@ -25,15 +26,15 @@ describe("Layering", () => {
         let middle
         const C = layerCompose(
             [{
-                top(d) {
+                top($, _) {
                     top = 0
                 }
             },
                 {
-                    top(d) {
+                    top($, _) {
                         top = 1
                     },
-                    middle(d) {
+                    middle($, _) {
                         middle = 0
                     }
                 },
@@ -42,18 +43,18 @@ describe("Layering", () => {
 
             [
                 {
-                    middle(d) {
+                    middle($, _) {
                         middle = 1
                     },
-                    top(d) {
+                    top($, _) {
                         top = 2
                     },
                 },
                 {
-                    top(d) {
+                    top($, _) {
                         top = 3
                     },
-                    bottom(d) {
+                    bottom($, _) {
                         bottom = 0
                     }
                 }
@@ -72,33 +73,13 @@ describe("Layering", () => {
         expect(middle).toEqual(0)
     })
 
-    test.skip("methods could be overridden", () => {
-        let pass, fail
-        const C = layerCompose(($) => {
-            $.method.override(m => {
-                pass = true
-                m({isFail: false})
-            })
-        }, {
-            method(d, {isFail = true}) {
-                expect(pass).toBe(true)
-                fail = isFail
-            }
-        })
-
-        C().method()
-
-        expect(pass).toBe(true)
-        expect(fail).toBe(false)
-    })
-
     test('should be able to set default `opt`', () => {
         const checkFn = jest.fn()
 
         const c = layerCompose($ => {
             $.method.defaultOpt({default: 'default', key: 'default'})
         }, {
-            method(d, opt) {
+            method($, _, opt) {
                 checkFn(opt)
             }
         })()
@@ -114,7 +95,7 @@ describe("Layering", () => {
         const c = layerCompose($ => {
             $.method.lockOpt({default: 'default', key: 'default'})
         }, {
-            method(d, opt) {
+            method($, _, opt) {
                 checkFn(opt)
             }
         })()
@@ -131,18 +112,18 @@ describe("Layering", () => {
 
         const c = layerCompose(
             {
-                method(d, opt) {
+                method($, _, opt) {
                     checkTop(opt)
                 }
             },
             $ => {
                 $.method.lockOpt({default: 'default', key: 'default'})
             }, {
-                method(d, opt) {
+                method($, _, opt) {
                     checkMiddle(opt)
                 }
             }, {
-                method(d, opt) {
+                method($, _, opt) {
                     checkBottom(opt)
                 }
             })()
@@ -157,8 +138,8 @@ describe("Layering", () => {
     test("methods could be getters", () => {
         const C = layerCompose(
             {
-                getMyKey(d) {
-                    return d.key
+                getMyKey($, _) {
+                    return _.key
                 }
             }
         )
@@ -168,27 +149,143 @@ describe("Layering", () => {
         expect(c.myKey).toBe('v')
     })
 
-    test("watcher methods should be called", () => {
+    test("all methods of same name should be called within a composition", () => {
         /* watcher methods are methods defined above the call site */
 
         const checkWatch = jest.fn()
         const checkNormal = jest.fn()
         const C = layerCompose({
-            watch() {
+            watch(_) {
                 checkWatch()
             }
-        }, ({watch}) => ({
-            method() {
-                watch()
+        }, {
+            method($) {
+                $.watch()
             }
-        }), {
-            watch() {
+        }, {
+            watch(_) {
                 checkNormal()
             }
         })
 
-        C().method()
+        const c = C()
+        c.method()
         expect(checkNormal).toHaveBeenCalled()
         expect(checkWatch).toHaveBeenCalled()
+    })
+
+    test("methods accessed with $ should not be called on higher composition", () => {
+        /* watcher methods are methods defined above the call site */
+
+        const checkHigher = jest.fn()
+        const checkNormal = jest.fn()
+        const C1 = layerCompose({
+            method($) {
+                $.watch()
+            }
+        }, {
+            watch(_) {
+                checkNormal(_.key)
+            }
+        })
+
+        const C2 = layerCompose({
+            watch(_) {
+                checkHigher(_.key)
+            }
+        }, C1)
+
+        const c = C2({key: 'v'})
+        c.method()
+        expect(checkNormal).toHaveBeenCalledWith('v')
+        expect(checkHigher).not.toHaveBeenCalled()
+
+        c.watch()
+        expect(checkHigher).toHaveBeenCalledWith('v')
+    })
+
+    test("compression method for method return values can be changed", () => {
+        const expected = {k1:'v1', k2:'v2', k3:'v3'}
+
+        const C1 = layerCompose($ => {
+            $.method.compressWith((acc, next) => ({...acc, ...next}))
+        },{
+            check($) {
+                expect(unwrapProxy($.method())).toEqual(expected)
+            },
+            method(_) {
+                return {k2: 'v2'}
+            }
+        }, {
+            method(_) {
+                return {k1: 'v1'}
+            }
+        }, {
+            method(_) {
+                return {k3: 'v3'}
+            }
+        })
+
+        const c = C1({})
+        const r = c.method()
+        expect(unwrapProxy(r)).toEqual(expected)
+    })
+
+    test("when composing two sealed layers methods should be executed vertically", () => {
+        expect.assertions(2)
+
+        const L1 = layerCompose({
+            method(_) {
+                expect(_.key).toEqual('v')
+            }
+        })
+        const L2 = layerCompose({
+            method(_) {
+                expect(_.key).toEqual('v')
+            }
+        })
+
+        const C = layerCompose(L2, L1)
+        const c = C({key: 'v'})
+
+        c.method()
+    })
+
+    test("when composing two sealed layers methods the comprossion method can be changed", () => {
+        expect.assertions(3)
+
+        const expected = {k1:'v1', k2:'v2'}
+
+        const L1 = layerCompose({
+            method(_) {
+                return {k1: 'v1'}
+            }
+        })
+        const L2 = layerCompose({
+            method(_) {
+                return {k2: 'v2'}
+            }
+        })
+
+        const C1 = layerCompose($ => {
+            $.method.compressWith((acc, next) => ({...acc, ...next}))
+        }, L2, L1)
+        const c1 = C1()
+
+        const r1 = c1.method()
+        expect(unwrapProxy(r1)).toEqual(expected)
+
+        const C2 = layerCompose($ => {
+            $.method.compressWith((acc, next) => ({...acc, ...next}))
+        }, {
+            check($) {
+                expect(unwrapProxy($.method())).toEqual(expected)
+            }
+        },L2, L1)
+        const c2 = C2()
+
+        const r2 = c2.method()
+        expect(unwrapProxy(r2)).toEqual(expected)
+        c2.check()
     })
 })

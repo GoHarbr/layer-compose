@@ -1,17 +1,24 @@
-export const LC_SYMBOL = Symbol()
 export const IS_DEV_MODE = process.env.NODE_ENV !== 'production'
 
-export const $isService = Symbol()
+export const $isLc = Symbol('isLc')
+export const $lcId = Symbol()
+export const $isLcData = Symbol()
+
+export const $isService = Symbol('isService')
 export const $dataPointer = Symbol()
+export const $servicesPointer = Symbol()
 export const $runOnInitialize = Symbol()
+
 export const $initializer = Symbol()
 export const $isInitialized = Symbol()
 export const $setData = Symbol()
+export const $functionSymbolIds = Symbol('array-of-function-symbol-ids')
+
 export const $spec = Symbol()
 export const $composition = Symbol()
 
-export const $isPrivateData = Symbol()
-export const $dataProxy = Symbol()
-export const $borrowedKeys = Symbol()
+export const $dataProxyMap = Symbol('dataProxyMap')
+export const $borrowedKeys = Symbol('borrowedKeys')
 
 export const $layerId = Symbol()
+export const $$ = Symbol('$$')

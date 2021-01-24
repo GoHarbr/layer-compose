@@ -1,7 +1,8 @@
-import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "./const"
-import {getDataFromPointer}                         from "./utils"
-import {$setData}                                        from './const'
-import {wrapDataConstructorWithProxy, wrapDataWithProxy} from "./proxies/proxies"
+import {$borrowedKeys, $isPrivateData, IS_DEV_MODE} from "../const"
+import {getDataFromPointer}                         from "../utils"
+import {$setData}                                   from '../const'
+import {wrapDataConstructorWithProxy}               from "../proxies/proxies"
+import {wrapDataWithProxy}                          from "./wrapDataWithProxy"
 
 export function generateDataAccessor(layerId) {
     let defaults
@@ -39,20 +40,6 @@ export function generateDataAccessor(layerId) {
         }
     }
 }
-
-// function assignDefaults(existing, next) {
-//     if (!existing || typeof existing != "object") return next
-//     if (!next || typeof existing != "object") return existing
-//
-//     const existingKeys = Object.keys(existing)
-//     for (const nk of Object.keys(next)) {
-//         if (existingKeys.includes(nk)) {
-//             throw new Error('Cannot borrow the same key: `' + nk)
-//         }
-//
-//         existing[nk] = next[nk]
-//     }
-// }
 
 function addBorrowKeys(layerId, data, borrowDefaults, locatorError) {
     if (!!data && !!borrowDefaults && typeof borrowDefaults == "object" && typeof data == 'object') {

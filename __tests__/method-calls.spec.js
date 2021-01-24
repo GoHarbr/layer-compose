@@ -2,10 +2,10 @@ import layerCompose, {unbox} from "../src"
 
 describe('Calling methods', () => {
     test('should have access to `opt`', () => {
-        const checkFn = jest.fn();
+        const checkFn = jest.fn()
 
         const c = layerCompose({
-            method(d, opt) {
+            method(_, opt) {
                 checkFn(opt)
             }
         })()
@@ -16,35 +16,40 @@ describe('Calling methods', () => {
     })
 
     test('should have access to `opt` (multilayer)', () => {
-        const checkFn = jest.fn();
+        expect.assertions(2)
+
+        const opt = {key: 'v'}
+
+        const checkFn = jest.fn()
 
         const c = layerCompose({
-            method(d, opt) {
+            method(_, opt) {
+                expect(opt).toBe(opt)
             }
         }, {
-            method(d, opt) {
+            method(_, opt) {
                 checkFn(opt)
             }
         })()
 
-        const opt = {key: 'v'}
         c.method(opt)
         expect(checkFn).toHaveBeenCalledWith(opt)
     })
 
     test('should have access to `opt` when called by dependant layer (multilayer)', () => {
-        const checkFn = jest.fn();
+        const checkFn = jest.fn()
 
         const opt = {key: 'v'}
-        const c = layerCompose(({method}) => ({
-            call(d) {
-                method({key: d.key})
-            }
-        }),{
-            method(d, opt) {
+        const c = layerCompose({
+            call($, _) {
+                $.method({key: _.key})
             }
         }, {
-            method(d, opt) {
+            method(_, opt) {
+                expect(opt).toBe(opt)
+            }
+        }, {
+            method(_, opt) {
                 checkFn(opt.key)
             }
         })(opt)
@@ -54,22 +59,18 @@ describe('Calling methods', () => {
     })
 
     test('should have access to data when called internally', () => {
-        const c = layerCompose(({method},d) => {
-            d({key: ''})
-            return {
-                call(d, opt) {
-                    d.key = 'v'
-                    method()
+        const c = layerCompose({
+                call($, _, opt) {
+                    _.key = 'v'
+                    $.method()
+                }
+            }, {
+                method(_, opt) {
+                    expect(_.key).toEqual('v')
+                    _.otherkey = _.key
                 }
             }
-        }, ($,d) => {
-            d({otherkey: ''})
-            return {
-                method(d, opt) {
-                    d.otherkey = d.key
-                }
-            }
-        })()
+        )()
 
         c.call()
         const d = unbox(c)
@@ -82,17 +83,18 @@ describe('Calling methods', () => {
         const checkFn = jest.fn()
         const C = layerCompose(
             {
-                getMyKey(d) {
+                getMyKey(_) {
                     checkFn()
-                    return d.key
+                    return _.key
                 }
             }
         )
 
-        const c = C({key:'v'})
+        const c = C({key: 'v'})
 
         expect(checkFn).not.toHaveBeenCalled()
 
-        expect(c.myKey).toBe('v')
+        const k = c.myKey
+        expect(k).toBe('v')
     })
 })

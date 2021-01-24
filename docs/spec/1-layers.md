@@ -81,3 +81,6 @@ function _C (data) {
 ```
 
 @see initializers-aka-constructors.md for more on overrides
+
+Notes for future:
+https://lucasmreis.github.io/blog/pointfree-javascript
