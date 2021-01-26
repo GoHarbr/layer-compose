@@ -10,6 +10,7 @@
 
   "scripts": {
     "test": "jest",
+	"preinstall": "babel src -d lib",
     "build": "babel src -d lib && if ! [ -x \"command -v yalc\" ]; then yalc push; fi "
   },
   "devDependencies": {
