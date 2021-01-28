@@ -1,4 +1,4 @@
-import {isPromise, isService, renameIntoGetter}                                            from "../utils"
+import {isPromise, isService, renameIntoGetter, renameIntoSetter}                          from "../utils"
 import {$$, $dataPointer, $functionSymbolIds, $initializer, $runOnInitialize, IS_DEV_MODE} from "../const"
 import buildInitializer                                                                    from "./buildInitializer"
 
@@ -87,6 +87,12 @@ export default function (composed) {
             if (getterName) {
                 Object.defineProperty(composed, getterName, {get: composed[name]})
                 Object.defineProperty($, getterName, {get: $[name]})
+            }
+
+            const setterName = renameIntoSetter(name)
+            if (setterName) {
+                Object.defineProperty(composed, setterName, {set: composed[name]})
+                Object.defineProperty($, setterName, {set: $[name]})
             }
         }
     }

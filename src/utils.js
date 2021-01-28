@@ -79,6 +79,14 @@ export function renameIntoGetter(functionName) {
     }
 }
 
+export function renameIntoSetter(functionName) {
+    if (functionName.startsWith('set')) {
+        let propName = functionName.replace('set', '')
+        return propName
+            && propName[0].toLowerCase() + propName.slice(1)
+    }
+}
+
 export function functionAsString(what) {
     return what.toString().replaceAll(/\s/g, '')
 }

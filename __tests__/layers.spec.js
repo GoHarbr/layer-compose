@@ -1,5 +1,5 @@
-import layerCompose  from "../src"
-import {unwrapProxy} from "../src/proxies/utils"
+import layerCompose, {unbox} from "../src"
+import {unwrapProxy}         from "../src/proxies/utils"
 
 describe("Layering", () => {
     test("should have access to data", () => {
@@ -147,6 +147,28 @@ describe("Layering", () => {
         const c = C({key: 'v'})
 
         expect(c.myKey).toBe('v')
+    })
+
+    test("methods could be setters", () => {
+        const C = layerCompose(
+            {
+                setMyKey(_, opt) {
+                    _.key = opt
+                },
+                internalSet($, _) {
+                    $.setMyKey('internal')
+                    expect(_.key).toBe('internal')
+                }
+            }
+        )
+
+        const c = C({key: 'v'})
+
+        expect(() => c.myKey = 'set').toThrow()
+        expect(unbox(c).key).toBe('v')
+
+        c.internalSet()
+        expect(unbox(c).key).toBe('internal')
     })
 
     test("all methods of same name should be called within a composition", () => {
