@@ -1,10 +1,10 @@
 import {isPromise, isService, renameIntoGetter}                                            from "../utils"
 import {$$, $dataPointer, $functionSymbolIds, $initializer, $runOnInitialize, IS_DEV_MODE} from "../const"
 import buildInitializer                                                                    from "./buildInitializer"
-import {getDataProxy}                                                  from "../data/getDataProxy"
 
 let _compositionId = 0 // for debug purposes
 
+// noinspection FunctionTooLongJS
 export default function (composed) {
     _compositionId++
     const compositionId = Symbol(_compositionId + '::composition-id')
@@ -46,8 +46,7 @@ export default function (composed) {
                             throw new Error("Layer methods can take only named parameters/options or a single argument")
                         }
 
-                        const _ = getDataProxy(compositionId, this[$dataPointer])
-                        const r = methodOrService(this[compositionId], _, opt || {},
+                        const r = methodOrService(this[compositionId], this[$dataPointer], opt || {},
                             methodOrService.compressionMethod)
 
                         if (isPromise(r) && methodOrService.isAsync) {
@@ -81,6 +80,8 @@ export default function (composed) {
                 const _this = this[$$]
                 return _this[fnId].call(_this, opt)
             }
+
+            // todo. autobind ^
 
             const getterName = renameIntoGetter(name)
             if (getterName) {

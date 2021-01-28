@@ -5,7 +5,6 @@ import {
     isInitializer,
     isLcConstructor,
     isServiceLayer,
-    renameIntoGetter
 }                              from "../utils"
 import {
     $composition, $functionSymbolIds,
@@ -24,6 +23,7 @@ import {getDataProxy}          from "../data/getDataProxy"
 *  add import() ability from strings
 * */
 
+// noinspection FunctionWithMultipleLoopsJS,OverlyComplexFunctionJS,FunctionTooLongJS
 function compose(layerLike, composed) {
     /* making sure that composeInto was created properly*/
     if (!composed[$runOnInitialize] || !Array.isArray(composed[$runOnInitialize])) throw new Error()
@@ -88,7 +88,7 @@ function compose(layerLike, composed) {
         }
         return composed
     } else {
-        // const layerId = getLayerId(layerLike)
+        const layerId = getLayerId(layerLike)
 
         const next = Object.fromEntries(
             Object.entries(layerLike).map(([name, fn]) => {
@@ -106,19 +106,19 @@ function compose(layerLike, composed) {
                 // const isGetter = !!renameIntoGetter(name)
                 const existing = composed[name]
                 if (existing /*&& !isGetter*/) {
-                    // if (IS_DEV_MODE) {
+                    if (IS_DEV_MODE) {
                         // composedFunction = functionComposer(existing, fn)
-                        // composedFunction = functionComposer(existing, wrapForDev(layerId, fn))
-                    // } else {
+                        composedFunction = functionComposer(existing, wrapForDev(layerId, fn))
+                    } else {
                         composedFunction = functionComposer(existing, fn)
-                    // }
+                    }
                 } else {
                     composedFunction = fn
                     composedFunction.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
 
-                    // if (IS_DEV_MODE) {
-                    //     composedFunction = wrapForDev(layerId, composedFunction)
-                    // }
+                    if (IS_DEV_MODE) {
+                        composedFunction = wrapForDev(layerId, composedFunction)
+                    }
                 }
 
                 return [name, composedFunction]
@@ -129,13 +129,13 @@ function compose(layerLike, composed) {
     }
 }
 
-// function wrapForDev(layerId, fn) {
-//     const wrapped = function ($, _, opt) {
-//         const __ = getDataProxy(layerId, _)
-//         return fn($, __, opt)
-//     }
-//     wrapped.isAsync = fn.isAsync
-//     return wrapped
-// }
+function wrapForDev(layerId, fn) {
+    const wrapped = function ($, _, opt) {
+        const __ = getDataProxy(layerId, _)
+        return fn($, __, opt)
+    }
+    wrapped.isAsync = fn.isAsync
+    return wrapped
+}
 
 export default compose

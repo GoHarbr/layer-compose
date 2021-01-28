@@ -1,4 +1,4 @@
-import {$dataPointer, $dataProxyMap, $initializer, $isLc, $servicesPointer, IS_DEV_MODE} from "../const"
+import {$dataPointer, $initializer, $isLc, IS_DEV_MODE} from "../const"
 import {unwrapProxy}                                                                     from "../proxies/utils"
 import {wrapCompositionWithProxy}                          from "../proxies/wrapCompositionWithProxy"
 
@@ -8,7 +8,7 @@ function setData(instance, data) {
 
 function setDataDev(instance, data) {
     // allows for reuse of created data proxies
-    data[$dataProxyMap] = new Map()
+    // data[$dataProxyMap] = new Map()
 
     setData(instance, data)
 }

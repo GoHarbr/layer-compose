@@ -5,7 +5,7 @@ export const $lcId = Symbol()
 export const $isLcData = Symbol()
 
 export const $isService = Symbol('isService')
-export const $dataPointer = Symbol()
+export const $dataPointer = Symbol('dataPointer')
 export const $servicesPointer = Symbol()
 export const $runOnInitialize = Symbol()
 
