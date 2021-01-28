@@ -1,8 +1,19 @@
-import {isPromise, isService, renameIntoGetter, renameIntoSetter}                          from "../utils"
-import {$$, $dataPointer, $functionSymbolIds, $initializer, $runOnInitialize, IS_DEV_MODE} from "../const"
-import buildInitializer                                                                    from "./buildInitializer"
+import {isPromise, isService, renameIntoGetter, renameIntoSetter} from "../utils"
+import {
+    $$,
+    $dataPointer,
+    $extendSuper,
+    $functionSymbolIds,
+    $initializer, $isService,
+    $runOnInitialize,
+    IS_DEV_MODE
+} from "../const"
+import buildInitializer                                           from "./buildInitializer"
+import extendSuper                                              from "./extendSuper"
 
 let _compositionId = 0 // for debug purposes
+
+const lookup$ = {}
 
 // noinspection FunctionTooLongJS
 export default function (composed) {
@@ -10,11 +21,25 @@ export default function (composed) {
     const compositionId = Symbol(_compositionId + '::composition-id')
     const $ = {}
 
-    composed[$runOnInitialize].unshift(instance => {
+    // composed[$runOnInitialize].unshift(instance => {
+    //     const _$ = Object.create($)
+    //     // _$[$$] = instance
+    //     // instance[compositionId] = _$
+    // })
+
+    // composed[compositionId] = {}
+    composed[$runOnInitialize] = [function create$ (instance) {
         const _$ = Object.create($)
-        _$[$$] = instance
+
+        // _$[$$] = () => instance // much more performant that // _$[$$] = instance
+        _$[$$] = instance // much more performant that // _$[$$] = instance
         instance[compositionId] = _$
-    })
+
+    }, ...composed[$runOnInitialize]]
+
+    composed[$extendSuper] = function (extendWith) {
+        extendSuper(this[compositionId], extendWith)
+    }
 
     composed[$functionSymbolIds] = []
 
@@ -29,7 +54,7 @@ export default function (composed) {
 
             composed[$runOnInitialize].push(instance => {
                 const d = instance[$dataPointer]
-                const s = service(d)
+                const s = service(d, instance)
                 instance[name] = s
                 instance[compositionId][name] = s
             })

@@ -44,13 +44,20 @@ class B extends A {
 
 const L1 = {
     method() {
-        log("B", this.key)
+        log("crB", this.key)
     }
 }
 const L2 = Object.setPrototypeOf({
     method() {
         super.method()
-        log("A", this.key)
+        log("crA", this.key)
+    }
+}, L1)
+
+const L3 = Object.setPrototypeOf({
+    method() {
+        super.method()
+        log("crC", this.key)
     }
 }, L1)
 
@@ -61,32 +68,71 @@ function create(d) {
     return i
 }
 
+function create2(d) {
+    const i = Object.create(L2)
+    // i.key2 = d.key2
+    Object.assign(i, d)
+    return i
+}
+
 const C = layerCompose({
     method(_) {
-        log("B", _.key)
+        log("lcB", _.key)
     }
 }, {
     method(_) {
-        log("A", _.key)
+        log("lcA", _.key)
     }
 })
 
+const C2 = layerCompose({
+    partial_method(_) {
+        log("lpA", _.key)
+    }
+},
+    {
+    partial_method(_) {
+        log("lpB", _.key)
+    }
+}
+)
+
+
 const data = {key: 'v'}
-new B(data).method()
-// C(data).method()
+const data2 = {key2: 'v2'}
+
 create(data).method()
+create2(data).method()
+
+// new B(data).method()
+// C(data).method()
+// C2(data).partial_method()
 
 // add tests
 suite
-    // .add('class', function () {
+    // .add('class (1)', function () {
     //     new B(data)
     // })
-    .add('create', function () {
-        create(data)
-    })
-    .add('layerCompose', function () {
+    // .add('class (1)', function () {
+    //     new B(data2)
+    // })
+    // .add('create (1; d1)', function () {
+    //     create(data)
+    // })
+    // .add('create (2; d2)', function () {
+    //     create2(data2)
+    // })
+    .add('layerCompose (1)', function () {
         C(data)
     })
+    .add('layerCompose (2)', function () {
+        // C_partial(data, C_L2)
+        C2(data2)
+    })
+    .add('layerCompose (1)', function () {
+        C(data2)
+    })
+
     // add listeners
     .on('cycle', function (event) {
         console.log(String(event.target))

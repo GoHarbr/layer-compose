@@ -1,5 +1,5 @@
-import {$dataPointer, $initializer, $isLc, IS_DEV_MODE} from "../const"
-import {unwrapProxy}                                                                     from "../proxies/utils"
+import {$dataPointer, $extendSuper, $initializer, $isLc, $lcId, IS_DEV_MODE} from "../const"
+import {unwrapProxy}                                                         from "../proxies/utils"
 import {wrapCompositionWithProxy}                          from "../proxies/wrapCompositionWithProxy"
 
 function setData(instance, data) {
@@ -17,7 +17,7 @@ const $setData$ = IS_DEV_MODE ? setDataDev : setData
 
 export function createConstructor(composed) {
 
-    function constructor(data = {}) {
+    function constructor(data = {}, $) {
         const compositionInstance = Object.create(composed)
 
         if (typeof data !== "object") {
@@ -25,8 +25,12 @@ export function createConstructor(composed) {
         }
 
         $setData$(compositionInstance, data)
-        // compositionInstance[$servicesPointer] = {}
-        compositionInstance[$initializer](compositionInstance)
+        composed[$initializer](compositionInstance)
+
+        if ($) {
+            compositionInstance[$extendSuper]($)
+        }
+
         return compositionInstance
     }
 
@@ -34,9 +38,9 @@ export function createConstructor(composed) {
 
 
     if (IS_DEV_MODE) {
-        _constructor = data => {
+        _constructor = (data, $) => {
             data = unwrapProxy(data)
-            const i = constructor(data)
+            const i = constructor(data, $)
             return wrapCompositionWithProxy(i)
         }
     }

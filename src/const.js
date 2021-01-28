@@ -1,13 +1,13 @@
 export const IS_DEV_MODE = process.env.NODE_ENV !== 'production'
 
 export const $isLc = Symbol('isLc')
-export const $lcId = Symbol()
+export const $lcId = Symbol('lcId')
 export const $isLcData = Symbol()
 
 export const $isService = Symbol('isService')
 export const $dataPointer = Symbol('dataPointer')
-export const $servicesPointer = Symbol()
-export const $runOnInitialize = Symbol()
+export const $extendSuper = Symbol('extendSuper')
+export const $runOnInitialize = Symbol('runOnInitialize')
 
 export const $initializer = Symbol()
 export const $isInitialized = Symbol()
