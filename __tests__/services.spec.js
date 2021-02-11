@@ -80,7 +80,7 @@ describe("Services", () => {
         expect(checkFn).toHaveBeenCalled()
     })
 
-    test("service should have access to direct parent (only)", () => {
+    test("service should have access to direct parent", () => {
         const checkFn = jest.fn()
 
         const C = layerCompose(
@@ -105,6 +105,11 @@ describe("Services", () => {
                     {
                         sm($) {
                             $.method()
+                        }
+                    },
+                    {
+                        sm($) {
+                            $.method()
                             expect($.subService.willThrow).toThrow()
                             $.subService.sm()
                         }
@@ -115,8 +120,10 @@ describe("Services", () => {
         const c = C()
         c.service.sm()
 
-        expect(checkFn).toHaveBeenCalledTimes(2)
+        expect(checkFn).toHaveBeenCalledTimes(3)
     })
+
+    test.todo("service should have access to direct parent *only*")
 
     test.todo('parent methods/services do not overwrite own methods/services of a service')
 
@@ -130,7 +137,7 @@ describe("Services", () => {
             {
                 service: [{
                     subService: {
-                        sm(_, {optKey}) {
+                        sm(_) {
                             checkFn()
                             expect(_.key).toBe('data')
                         }

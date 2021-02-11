@@ -1,19 +1,11 @@
-import {isPromise, isService, renameIntoGetter, renameIntoSetter} from "../utils"
-import {
-    $$,
-    $dataPointer,
-    $extendSuper,
-    $functionSymbolIds,
-    $initializer, $isService,
-    $runOnInitialize,
-    IS_DEV_MODE
-} from "../const"
-import buildInitializer                                           from "./buildInitializer"
-import extendSuper                                              from "./extendSuper"
+import {isPromise, isService, renameIntoGetter, renameIntoSetter}                                        from "../utils"
+import {$$, $dataPointer, $extendSuper, $functionSymbolIds, $initializer, $runOnInitialize, IS_DEV_MODE} from "../const"
+import buildInitializer
+                                                                                                         from "./buildInitializer"
+import extendSuper
+                                                                                                         from "./extendSuper"
 
 let _compositionId = 0 // for debug purposes
-
-const lookup$ = {}
 
 // noinspection FunctionTooLongJS
 export default function (composed) {
@@ -21,25 +13,21 @@ export default function (composed) {
     const compositionId = Symbol(_compositionId + '::composition-id')
     const $ = {}
 
-    // composed[$runOnInitialize].unshift(instance => {
-    //     const _$ = Object.create($)
-    //     // _$[$$] = instance
-    //     // instance[compositionId] = _$
-    // })
+    composed[$runOnInitialize] = [
+        function create$(instance) {
+            const _$ = Object.create($)
 
-    // composed[compositionId] = {}
-    composed[$runOnInitialize] = [function create$ (instance) {
-        const _$ = Object.create($)
+            const extendWith = instance[$extendSuper]
+            if (extendWith) {
+                extendSuper(_$, extendWith)
+            }
 
-        // _$[$$] = () => instance // much more performant that // _$[$$] = instance
-        _$[$$] = instance // much more performant that // _$[$$] = instance
-        instance[compositionId] = _$
+            _$[$$] = instance
+            instance[compositionId] = _$
 
-    }, ...composed[$runOnInitialize]]
-
-    composed[$extendSuper] = function (extendWith) {
-        extendSuper(this[compositionId], extendWith)
-    }
+        },
+        ...composed[$runOnInitialize]
+    ]
 
     composed[$functionSymbolIds] = []
 
@@ -110,14 +98,14 @@ export default function (composed) {
 
             const getterName = renameIntoGetter(name)
             if (getterName) {
-                Object.defineProperty(composed, getterName, {get: composed[name]})
-                Object.defineProperty($, getterName, {get: $[name]})
+                Object.defineProperty(composed, getterName, { get: composed[name] })
+                Object.defineProperty($, getterName, { get: $[name] })
             }
 
             const setterName = renameIntoSetter(name)
             if (setterName) {
-                Object.defineProperty(composed, setterName, {set: composed[name]})
-                Object.defineProperty($, setterName, {set: $[name]})
+                Object.defineProperty(composed, setterName, { set: composed[name] })
+                Object.defineProperty($, setterName, { set: $[name] })
             }
         }
     }

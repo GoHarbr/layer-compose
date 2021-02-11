@@ -1,6 +1,6 @@
-import {$dataPointer, $extendSuper, $initializer, $isLc, $lcId, IS_DEV_MODE} from "../const"
-import {unwrapProxy}                                                         from "../proxies/utils"
-import {wrapCompositionWithProxy}                          from "../proxies/wrapCompositionWithProxy"
+import {$dataPointer, $extendSuper, $initializer, $isLc, IS_DEV_MODE} from "../const"
+import {unwrapProxy}                                                  from "../proxies/utils"
+import {wrapCompositionWithProxy}                                     from "../proxies/wrapCompositionWithProxy"
 
 function setData(instance, data) {
     instance[$dataPointer] = Object.create(data || {})
@@ -25,11 +25,11 @@ export function createConstructor(composed) {
         }
 
         $setData$(compositionInstance, data)
-        composed[$initializer](compositionInstance)
-
         if ($) {
-            compositionInstance[$extendSuper]($)
+            compositionInstance[$extendSuper] = $
         }
+
+        composed[$initializer](compositionInstance)
 
         return compositionInstance
     }
@@ -47,7 +47,7 @@ export function createConstructor(composed) {
 
     _constructor[$isLc] = true
     _constructor.partial = (presetValues) => {
-        const fn = (data = {}) => _constructor({...presetValues, ...data})
+        const fn = (data = {}) => _constructor({ ...presetValues, ...data })
         Object.assign(fn, _constructor)
         return fn
     }

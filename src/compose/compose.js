@@ -32,8 +32,8 @@ function compose(layerLike, composed) {
 
         const composition = layerLike[$composition]
         const next = Object.create(composed)
-        next[$runOnInitialize] = [composition[$initializer]]
-
+        next[$runOnInitialize] = [/* could run extend super here? */composition[$initializer]]
+        /* or maybe add it here for the next layer to access and then delete */
         function composeFn(fnName) {
             if (fnName in next) {
                 next[fnName] = functionComposer(next[fnName], composition[fnName])
