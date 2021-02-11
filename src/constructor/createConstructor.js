@@ -2,32 +2,20 @@ import {$dataPointer, $extendSuper, $initializer, $isLc, IS_DEV_MODE} from "../c
 import {unwrapProxy}                                                  from "../proxies/utils"
 import {wrapCompositionWithProxy}                                     from "../proxies/wrapCompositionWithProxy"
 
-function setData(instance, data) {
-    instance[$dataPointer] = Object.create(data || {})
-}
-
-function setDataDev(instance, data) {
-    // allows for reuse of created data proxies
-    // data[$dataProxyMap] = new Map()
-
-    setData(instance, data)
-}
-
-const $setData$ = IS_DEV_MODE ? setDataDev : setData
-
 export function createConstructor(composed) {
 
+    // let instanceId = 0
     function constructor(data = {}, $) {
+        // instanceId++
+
         const compositionInstance = Object.create(composed)
 
         if (typeof data !== "object") {
             throw new Error('Data must be an object (not a primitive)')
         }
 
-        $setData$(compositionInstance, data)
-        if ($) {
-            compositionInstance[$extendSuper] = $
-        }
+        compositionInstance[$dataPointer] = Object.create(data || {})
+        compositionInstance[$extendSuper] = $
 
         composed[$initializer](compositionInstance)
 

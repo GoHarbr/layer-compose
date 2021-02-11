@@ -1,6 +1,6 @@
 import {createConstructor}                                         from "./constructor/createConstructor"
-import compose                                                     from "./compose/compose"
-import {$composition, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
+import compose                                                                                 from "./compose/compose"
+import {$composition, $dataPointer, $extendSuper, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
 
 import cleanData               from './external-utils/cleanData'
 import transformGetters        from "./external-utils/transformGetters"
@@ -14,6 +14,8 @@ import transformToStandardArgs from "./compose/transformToStandardArgs"
 export default function layerCompose(...layers) {
     let composed = {
         [$runOnInitialize]: [],
+        [$extendSuper]: undefined,
+        [$dataPointer]: undefined,
         then: transformToStandardArgs($ => $),
         toJSON: transformToStandardArgs(_ => {
             return _

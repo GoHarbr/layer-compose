@@ -104,8 +104,9 @@ const data2 = {key2: 'v2'}
 create(data).method()
 create2(data).method()
 
-// new B(data).method()
 // C(data).method()
+
+// new B(data).method()
 // C2(data).partial_method()
 
 // add tests
@@ -116,10 +117,10 @@ suite
     // .add('class (1)', function () {
     //     new B(data2)
     // })
-    // .add('create (1; d1)', function () {
+    // .add('create (direct set)', function () {
     //     create(data)
     // })
-    // .add('create (2; d2)', function () {
+    // .add('create (assign)', function () {
     //     create2(data2)
     // })
     .add('layerCompose (1)', function () {
