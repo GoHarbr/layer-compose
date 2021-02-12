@@ -96,7 +96,7 @@ describe("Services", () => {
                             checkFn()
                         },
                         willThrow($) {
-                            $.method()
+                            $.$.method()
                             checkFn()
                         },
 
@@ -104,12 +104,12 @@ describe("Services", () => {
                 },
                     {
                         sm($) {
-                            $.method()
+                            $.$.method()
                         }
                     },
                     {
                         sm($) {
-                            $.method()
+                            $.$.method()
                             expect($.subService.willThrow).toThrow()
                             $.subService.sm()
                         }
@@ -284,12 +284,14 @@ describe("Services", () => {
             {
                 service: [
                     {
-                        setDataSource(_, opt) {
+                        setDataSource($, _, opt) {
                             _.shared = 'c'
                             _.child = opt - 1
+                            $.$.setDataSource(opt)
                         },
-                        async update(_) {
+                        async update($, _) {
                             cCheck(_.parent, _.shared, _.child)
+                            $.$.update()
                         },
                         async externalTrigger($) {
                             $.setDataSource(1)
@@ -313,11 +315,13 @@ describe("Services", () => {
 
         const Service = layerCompose(
             {
-                setDataSource(_, opt) {
+                setDataSource($, _, opt) {
                     _.shared = 'c'
                     _.child = opt - 1
+                    $.$.setDataSource(opt)
                 },
-                async update(_) {
+                async update($, _, opt) {
+                    $.$.update(opt)
                     cCheck(_.parent, _.shared, _.child)
                 },
                 async externalTrigger($) {
@@ -329,11 +333,11 @@ describe("Services", () => {
 
         const C = layerCompose(
             {
-                setDataSource(_, opt) {
+                setDataSource($, _, opt) {
                     _.parent = opt + 1
                     _.shared = 'p'
                 },
-                async update(_) {
+                async update($, _) {
                     pCheck(_.parent, _.shared)
                     expect(() => _.child).toThrow()
                 }

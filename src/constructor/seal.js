@@ -18,9 +18,10 @@ export default function (composed) {
             const _$ = Object.create($)
 
             const extendWith = instance[$extendSuper]
-            if (extendWith) {
-                extendSuper(_$, extendWith)
-            }
+            _$.$ = extendWith
+            // if (extendWith) {
+            //     extendSuper(_$, extendWith)
+            // }
 
             _$[$$] = instance
             instance[compositionId] = _$
