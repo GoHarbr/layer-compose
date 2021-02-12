@@ -4,10 +4,7 @@ import {wrapCompositionWithProxy}                                     from "../p
 
 export function createConstructor(composed) {
 
-    // let instanceId = 0
     function constructor(data = {}, $) {
-        // instanceId++
-
         const compositionInstance = Object.create(composed)
 
         if (typeof data !== "object") {
