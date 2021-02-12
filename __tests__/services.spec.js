@@ -265,4 +265,88 @@ describe("Services", () => {
         expect(unbox(c.service).entities.includes(3)).toBe(false)
         expect(unbox(c.service).entities.includes(4)).toBe(true)
     })
+
+    test("Services (non-sealed) should trigger parent methods", async () => {
+        const pCheck = jest.fn()
+        const cCheck = jest.fn()
+
+        const C = layerCompose(
+            {
+                setDataSource(_, opt) {
+                    _.parent = opt + 1
+                    _.shared = 'p'
+                },
+                async update(_) {
+                    pCheck(_.parent, _.shared)
+                    expect(() => _.child).toThrow()
+                }
+            },
+            {
+                service: [
+                    {
+                        setDataSource(_, opt) {
+                            _.shared = 'c'
+                            _.child = opt - 1
+                        },
+                        async update(_) {
+                            cCheck(_.parent, _.shared, _.child)
+                        },
+                        async externalTrigger($) {
+                            $.setDataSource(1)
+                            await $.update()
+                        }
+                    }
+                ]
+            }
+        )
+
+        const c = C()
+        await c.service.externalTrigger()
+
+        expect(pCheck).toHaveBeenLastCalledWith(2, 'p')
+        expect(cCheck).toHaveBeenLastCalledWith(2, 'c', 0)
+    })
+
+    test("Services (sealed) should trigger parent methods", async () => {
+        const pCheck = jest.fn()
+        const cCheck = jest.fn()
+
+        const Service = layerCompose(
+            {
+                setDataSource(_, opt) {
+                    _.shared = 'c'
+                    _.child = opt - 1
+                },
+                async update(_) {
+                    cCheck(_.parent, _.shared, _.child)
+                },
+                async externalTrigger($) {
+                    $.setDataSource(1)
+                    await $.update()
+                }
+            }
+        )
+
+        const C = layerCompose(
+            {
+                setDataSource(_, opt) {
+                    _.parent = opt + 1
+                    _.shared = 'p'
+                },
+                async update(_) {
+                    pCheck(_.parent, _.shared)
+                    expect(() => _.child).toThrow()
+                }
+            },
+            {
+                Service
+            }
+        )
+
+        const c = C()
+        await c.Service.externalTrigger()
+
+        expect(pCheck).toHaveBeenLastCalledWith(2, 'p')
+        expect(cCheck).toHaveBeenLastCalledWith(2, 'c', 0)
+    })
 })

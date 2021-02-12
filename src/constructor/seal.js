@@ -112,7 +112,7 @@ export default function (composed) {
 
     composed[$initializer] = buildInitializer(composed)
 
-    Object.freeze($)
+    // Object.freeze($)
 
     return composed
 }

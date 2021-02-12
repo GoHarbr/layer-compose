@@ -1,15 +1,21 @@
-import {IS_DEV_MODE} from "../const"
-import {isFunction} from '../utils'
+import {IS_DEV_MODE}   from "../const"
+import {isFunction}    from '../utils'
+import {combineResult} from "../compose/combineResult"
 
 function extendSuper_prod($, extendWith) {
     // todo, in dev mode watch for clashes
     if (extendWith) {
         for (const k in extendWith) {
-            if ($[k] === undefined) {
-                const fn = extendWith[k]
-                // if (!(fn[$isLc] || fn[$isService])) {
-                if (isFunction(fn)) {
+            const fn = extendWith[k]
+            if (isFunction(fn)) {
+                const $k = $[k]
+                if ($k === undefined) {
                     $[k] = fn.bind(extendWith)
+                } else {
+                    $[k] = (opt) => {
+                        const isAsync = $k.isAsync || fn.isAsync
+                        return combineResult(fn.call(extendWith, opt), $k.call($, opt), isAsync)
+                    }
                 }
             }
         }
