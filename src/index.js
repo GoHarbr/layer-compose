@@ -1,6 +1,6 @@
 import {createConstructor}                                         from "./constructor/createConstructor"
-import compose                                                                                 from "./compose/compose"
-import {$composition, $dataPointer, $extendSuper, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
+import compose                                                                                     from "./compose/compose"
+import {$$, $composition, $dataPointer, $extendSuper, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
 
 import cleanData               from './external-utils/cleanData'
 import transformGetters        from "./external-utils/transformGetters"
@@ -16,7 +16,7 @@ export default function layerCompose(...layers) {
         [$runOnInitialize]: [],
         [$extendSuper]: undefined,
         [$dataPointer]: undefined,
-        then: transformToStandardArgs($ => $),
+        // then: transformToStandardArgs(($, opt) => opt.onFulfilled($[$$])),
         toJSON: transformToStandardArgs(_ => {
             return _
         })
@@ -35,14 +35,10 @@ export default function layerCompose(...layers) {
     return constructor
 }
 
-export async function test() {
-}
-
 /*
  * Utils
  * */
 
-export {getDataFromPointer as unbox} from './utils'
 export {
     IS_DEV_MODE,
 

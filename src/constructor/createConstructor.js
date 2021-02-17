@@ -1,6 +1,7 @@
 import {$dataPointer, $extendSuper, $initializer, $isLc, IS_DEV_MODE} from "../const"
 import {unwrapProxy}                                                  from "../proxies/utils"
 import {wrapCompositionWithProxy}                                     from "../proxies/wrapCompositionWithProxy"
+import wrapStandardMethods                                            from "./wrapStandardMethods"
 
 export function createConstructor(composed) {
 
@@ -13,6 +14,7 @@ export function createConstructor(composed) {
 
         compositionInstance[$dataPointer] = Object.create(data || {})
         compositionInstance[$extendSuper] = $
+        wrapStandardMethods(compositionInstance) // for methods like .then
 
         composed[$initializer](compositionInstance)
 
