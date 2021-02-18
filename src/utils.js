@@ -58,6 +58,12 @@ export function getDataFromPointer(compositionInstance) {
     return unwrapProxy(compositionInstance[$dataPointer])
 }
 
+export function unbox(compositionOrObject) {
+    if (!compositionOrObject) return compositionOrObject
+    if ($dataPointer in compositionOrObject) return getDataFromPointer(compositionOrObject)
+    return unwrapProxy(compositionOrObject)
+}
+
 export function selectExistingServices(composition) {
     /*
     * Do not change implementation, create new function

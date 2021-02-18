@@ -132,6 +132,7 @@ function compose(layerLike, composed) {
 function wrapForDev(layerId, fn) {
     const wrapped = function ($, _, opt) {
         const __ = getDataProxy(layerId, _)
+        // todo. wrap opt in proxy as well
         return fn($, __, opt)
     }
     wrapped.isAsync = fn.isAsync

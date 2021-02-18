@@ -38,7 +38,7 @@ export default function layerCompose(...layers) {
 /*
  * Utils
  * */
-
+export {unbox} from "./utils"
 export {
     IS_DEV_MODE,
 
