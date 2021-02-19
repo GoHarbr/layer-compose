@@ -4,7 +4,8 @@
       "@babel/preset-env",
       {
         "targets": {
-          "node": true
+          "node": true,
+          "browsers": "supports promises and supports async-functions and last 5 versions"
         }
       }
     ]
