@@ -9,42 +9,47 @@ const paramsExtractorRe = new RegExp('(\\(.+?\\))|(.+?=>)', 'i')
 const decompositionRe = new RegExp('\(^\{.+\})|(\\$,\{.+\})', 'i')
 
 export default function (fn) {
-    const str = functionAsString(fn)
+    try {
+        const str = functionAsString(fn)
 
-    let matches = str.match(paramsExtractorRe)
-    if (matches) {
-        const paramDefinition = matches[0]
-        if (paramDefinition.match(decompositionRe)) {
-            throw new Error('Decomposition of super ($) or data/contents (_) is not allowed in layer methods')
-        }
-        const argOrder = ArgOrder(paramDefinition)
+        let matches = str.match(paramsExtractorRe)
+        if (matches) {
+            const paramDefinition = matches[0]
+            if (paramDefinition.match(decompositionRe)) {
+                throw new Error('Decomposition of super ($) or data/contents (_) is not allowed in layer methods')
+            }
+            const argOrder = ArgOrder(paramDefinition)
 
-        if (!argOrder.isValidFunction()) {
-            throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition')
-        }
+            if (!argOrder.isValidFunction()) {
+                throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition')
+            }
 
-        if (!argOrder.isInDefinedOrder()) {
-            throw new Error('Argument order should be in order ($, _, opt)')
-        }
+            if (!argOrder.isInDefinedOrder()) {
+                throw new Error('Argument order should be in order ($, _, opt)')
+            }
 
-        const [$, _, opt] = argOrder.getPresent()
+            const [$, _, opt] = argOrder.getPresent()
 
-        if (fn.length === 3 && !($ && _ && opt)) {
-            throw new Error('Missing `opt` parameter')
-        }
+            if (fn.length === 3 && !($ && _ && opt)) {
+                throw new Error('Missing `opt` parameter')
+            }
 
-        if ($ && _ /* && opt -- not necessary because its just ignored if not present */) {
-            return fn // no modification needed
-        } else {
-            if ($) {
-                return ($, _, opt) => fn($, opt)
+            if ($ && _ /* && opt -- not necessary because its just ignored if not present */) {
+                return fn // no modification needed
             } else {
-                return ($, _, opt) => fn(_, opt)
+                if ($) {
+                    return ($, _, opt) => fn($, opt)
+                } else {
+                    return ($, _, opt) => fn(_, opt)
+                }
             }
         }
-    }
 
-    throw new Error('Programmer error: Function does not follow proper argument format. Must use `$`, `_`, `opt` as arguments')
+        throw new Error('Programmer error: Function does not follow proper argument format. Must use `$`, `_`, `opt` as arguments')
+    } catch (e) {
+        if (IS_DEV_MODE) throw e
+        console.warn(e)
+    }
 }
 
 function ArgOrder(paramDefinition) {

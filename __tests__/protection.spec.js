@@ -47,7 +47,8 @@ describe("Protective mechanisms", () => {
         })
 
         const c = C()
-        expect(c.method).not.toThrow()
+        // fixme. without wrapping into its own function, internal `this` becomes undefined
+        expect(() => c.method()).not.toThrow()
     })
 
     test("function return values can be set as an internal value and used later", () => {
@@ -64,7 +65,9 @@ describe("Protective mechanisms", () => {
 
         const c1 = C()
         const c2 = C({key: c1.gen()})
-        expect(c2.method).not.toThrow()
+        // fixme. without wrapping into its own function, internal `this` becomes undefined
+
+        expect(() => c2.method()).not.toThrow()
     })
 
     if (IS_DEV_MODE) {
