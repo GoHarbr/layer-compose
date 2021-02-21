@@ -112,5 +112,19 @@ describe("Protective mechanisms", () => {
             expect(() => c.make('arg1', 'arg2')).toThrow()
             expect(() => c.make({}, 'arg2')).toThrow()
         })
+
+
+        test("Improper function format should end the whole program", () => {
+            expect(() => layerCompose({
+                fn() {}
+            })).toThrow()
+        })
+
+    } else {
+        test("Improper function format should not end the whole program", () => {
+            const C = layerCompose({
+                fn() {}
+            })
+        })
     }
 })
