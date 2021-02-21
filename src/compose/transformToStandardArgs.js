@@ -47,7 +47,7 @@ export default function (fn) {
 
         throw new Error('Programmer error: Function does not follow proper argument format. Must use `$`, `_`, `opt` as arguments')
     } catch (e) {
-        if (IS_DEV_MODE) throw e
+        // if (IS_DEV_MODE) throw e
         console.warn(e)
     }
 }

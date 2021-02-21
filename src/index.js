@@ -34,7 +34,7 @@ export default function layerCompose(...layers) {
 
         return constructor
     } catch (e) {
-        if (IS_DEV_MODE) throw e
+        // if (IS_DEV_MODE) throw e
         console.warn(e)
     }
 }
