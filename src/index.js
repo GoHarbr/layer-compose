@@ -17,9 +17,9 @@ export default function layerCompose(...layers) {
         [$extendSuper]: undefined,
         [$dataPointer]: undefined,
         // then: transformToStandardArgs(($, opt) => opt.onFulfilled($[$$])),
-        toJSON: transformToStandardArgs(_ => {
+        toJSON: ($, _, opt) => {
             return _
-        })
+        }
     }
 
     composed = compose(layers, composed)
