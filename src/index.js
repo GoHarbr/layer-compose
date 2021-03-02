@@ -1,6 +1,6 @@
 import {createConstructor}                                         from "./constructor/createConstructor"
 import compose                                                                                     from "./compose/compose"
-import {$$, $composition, $dataPointer, $extendSuper, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
+import {$composition, $dataPointer, $extendSuper, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
 
 import cleanData               from './external-utils/cleanData'
 import transformGetters        from "./external-utils/transformGetters"
@@ -34,8 +34,8 @@ export default function layerCompose(...layers) {
 
         return constructor
     } catch (e) {
-        // if (IS_DEV_MODE) throw e
-        console.warn(e)
+        if (IS_DEV_MODE) throw e
+        console.error(e)
     }
 }
 
