@@ -9,6 +9,7 @@ export const $isService = Symbol('isService')
 export const $dataPointer = Symbol('dataPointer')
 export const $extendSuper = Symbol('extendSuper')
 export const $runOnInitialize = Symbol('runOnInitialize')
+export const $initializedCalls = Symbol('initializedCalls')
 
 export const $initializer = Symbol()
 export const $isInitialized = Symbol()

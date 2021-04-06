@@ -8,9 +8,9 @@ describe("Initialization", () => {
 
         const C = layerCompose($ => {
             $.methodData()
-            $.methodOpt({key: 'opt'})
+            $.methodOpt().defaultOpt({key: 'opt'})
         },{
-            methodData(_) {
+            methodData($,_) {
                 cd(_.key)
             },
             methodOpt($, _, opt) {
@@ -18,7 +18,7 @@ describe("Initialization", () => {
                 $.subMethod(opt)
             }
         }, {
-            subMethod(_, opt) {
+            subMethod($,_, opt) {
                 cs(_.key, opt.key)
             }
         })

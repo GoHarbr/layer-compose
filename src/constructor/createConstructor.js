@@ -1,4 +1,11 @@
-import {$dataPointer, $extendSuper, $initializer, $isCompositionInstance, $isLc, IS_DEV_MODE} from "../const"
+import {
+    $dataPointer,
+    $initializedCalls,
+    $initializer,
+    $isCompositionInstance,
+    $isLc,
+    IS_DEV_MODE
+} from "../const"
 import {unwrapProxy}                                                                          from "../proxies/utils"
 import {wrapCompositionWithProxy}                                     from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods                                            from "./wrapStandardMethods"
@@ -13,9 +20,10 @@ export function createConstructor(composed) {
         }
 
         compositionInstance[$isCompositionInstance] = true
+        compositionInstance[$initializedCalls] = []
         compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject : Object.create(coreObject || {})
 
-        // todo. think though if extensions should be kept.
+        // todo. think through if extensions should be kept.
         // compositionInstance[$extendSuper] = $
 
         wrapStandardMethods(compositionInstance) // for methods like .then

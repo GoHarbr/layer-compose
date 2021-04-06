@@ -1,6 +1,6 @@
-import {isFunction}                    from "../utils"
-import {$runOnInitialize, IS_DEV_MODE} from "../const"
-import {definedGetProxy}               from "../proxies/proxies"
+import {isFunction}                                       from "../utils"
+import {$initializedCalls, $runOnInitialize, IS_DEV_MODE} from "../const"
+import {definedGetProxy}                                  from "../proxies/proxies"
 import {TaggedProxy}                   from "../proxies/utils"
 import {noSetAccessProxy}              from "../proxies/noSetAccessProxy"
 import generateCaller                  from "../compose/generateCaller"
@@ -20,11 +20,20 @@ const superFunctionProxy = (composition) => ({ // todo composition here is proba
         let v = target[prop]
         if (isFunction(v)) {
 
-            v = (givenOpts) => {
+            /*
+            * todo. rewrite so that default opts are combined
+            * */
+            // v = (givenOpts) => {
+            v = () => {
                 const fn = function (instance) {
-                    instance[prop](givenOpts)
+                    if (!instance[$initializedCalls].includes(prop)) {
+                        instance[prop](/*givenOpts*/)
+                        instance[$initializedCalls].push(prop)
+                    }
                 }
                 composition[$runOnInitialize].push(fn)
+
+                return v
             }
 
             v.defaultOpt = (newOpts) => {
