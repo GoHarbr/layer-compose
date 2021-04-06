@@ -7,7 +7,8 @@ import {IS_DEV_MODE} from '../const'
 
 const symbols = ['$', '_', 'opt']
 const paramsExtractorRe = new RegExp('(\\(.+?\\))|(.+?=>)', 'i')
-const decompositionRe = new RegExp('\(^\{.+\})|(\\$,\{.+\})', 'i')
+// const decompositionRe = new RegExp('\(^\{.+\})|(\\$,\{.+\})', 'i')
+const decompositionRe = new RegExp('\{.+\}', 'i')
 
 export default function (fn) {
     if (!IS_DEV_MODE) return fn
@@ -20,12 +21,12 @@ export default function (fn) {
     if (matches) {
         const paramDefinition = matches[0]
         if (paramDefinition.match(decompositionRe)) {
-            throw new Error('Decomposition of super ($) or data/contents (_) is not allowed in layer methods')
+            throw new Error('Decomposition is (currently) not allowed in layer methods')
         }
         const argOrder = ArgOrder(paramDefinition, fn.length)
 
         if (!argOrder.isValidFunction()) {
-            throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition')
+            throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition: ' + fn.name)
         }
 
         if (!argOrder.isInDefinedOrder()) {

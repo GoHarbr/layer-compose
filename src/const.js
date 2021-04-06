@@ -3,6 +3,7 @@ export const IS_DEV_MODE = process.env.NODE_ENV !== 'production'
 export const $isLc = Symbol('isLc')
 export const $lcId = Symbol('lcId')
 export const $isLcData = Symbol()
+export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')
 export const $dataPointer = Symbol('dataPointer')
@@ -19,6 +20,10 @@ export const $composition = Symbol()
 
 export const $dataProxyMap = Symbol('dataProxyMap')
 export const $borrowedKeys = Symbol('borrowedKeys')
+export const $writableKeys = Symbol('writableKeys')
 
 export const $layerId = Symbol()
 export const $$ = Symbol('$$')
+
+// export const $isSetter = Symbol("isSetter")
+// export const $isGetter = Symbol("isGetter")

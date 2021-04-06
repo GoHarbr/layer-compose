@@ -1,5 +1,9 @@
-import layerCompose, {unbox} from "../src"
+import layerCompose, {unbox, IS_DEV_MODE} from "../src"
 import {List}                from "./compositions/List.layers"
+
+process.on('unhandledRejection', (reason) => {
+    console.log('REJECTION', reason)
+})
 
 describe("Services", () => {
     test("should be callable", () => {
@@ -11,7 +15,7 @@ describe("Services", () => {
             }
             , {
                 service: [{
-                    sm(_) {
+                    sm($, _) {
                         checkFn()
                     }
                 }]
@@ -22,7 +26,7 @@ describe("Services", () => {
         expect(checkFn).toHaveBeenCalled()
     })
 
-    test("should have access to data", () => {
+    test.skip("should have access to data", () => {
         const checkFn = jest.fn()
 
         const C = layerCompose({
@@ -32,7 +36,7 @@ describe("Services", () => {
             }
             , {
                 service: [{
-                    sm(_) {
+                    sm($,_) {
                         checkFn()
                         expect(_.key).toBe('data')
                     }
@@ -51,23 +55,33 @@ describe("Services", () => {
 
         const C = layerCompose(
             {
+                key: false,
+            },
+            {
                 method($, _) {
-                    $.service.sm()
+                    $.service.serviceMethod()
                 }
             },
             {
                 service: [{
                     subService: {
-                        sm(_, {optKey}) {
+                        deepMethod($, _, opt) {
                             checkFn()
-                            expect(_.key).toBe('data')
-                            expect(optKey).toBe('value')
+                            // expect(_.key).toBe('data')
+
+                            if (IS_DEV_MODE) {
+                                expect(() => _.key).toThrow()
+                            } else {
+                                expect(_.key).toBe(undefined)
+                            }
+                            expect(opt.optKey).toBe('value')
                         }
                     },
                 },
                     {
-                        sm($) {
-                            $.subService.sm({optKey: 'value'})
+                        serviceMethod($, _) {
+                            expect(_.key).toBe('data')
+                            $.subService.deepMethod({optKey: 'value'})
                         }
                     }
                 ]
@@ -77,6 +91,7 @@ describe("Services", () => {
         const c = C(d)
         c.method()
 
+        expect(c.key).toBe('data')
         expect(checkFn).toHaveBeenCalled()
     })
 
@@ -92,24 +107,24 @@ describe("Services", () => {
             {
                 service: [{
                     subService: {
-                        sm($) {
+                        sm($, _) {
                             checkFn()
                         },
-                        willThrow($) {
-                            $.$.method()
+                        willThrow($, _) {
+                            _.method()
                             checkFn()
                         },
 
                     },
                 },
                     {
-                        sm($) {
-                            $.$.method()
+                        sm($, _) {
+                            _.method()
                         }
                     },
                     {
-                        sm($) {
-                            $.$.method()
+                        sm($, _) {
+                            _.method()
                             expect($.subService.willThrow).toThrow()
                             $.subService.sm()
                         }
@@ -137,9 +152,8 @@ describe("Services", () => {
             {
                 service: [{
                     subService: {
-                        sm(_) {
+                        sm($,_) {
                             checkFn()
-                            expect(_.key).toBe('data')
                         }
                     },
                 },
@@ -162,27 +176,26 @@ describe("Services", () => {
 
                 expect(service).toBeTruthy()
                 return {
-                    method(_) {
+                    method($,_) {
                     }
                 }
             },
             {
                 service: [{
-                    getKey(_) {
+                    getKey($,_) {
                         return d.key
                     }
                 }]
             })
 
         const d = {key: 'data'}
-        const c = C(_)
+        const c = C(d)
         expect(c.service.key).toEqual('data')
-        expect(c.service.getKey()).toEqual('data')
     })
 
     test.skip("precomposed services (with getters) should be chainable", () => {
         const service = layerCompose({
-            getKey(_) {
+            getKey($,_) {
                 return d.key
             }
         })
@@ -192,7 +205,7 @@ describe("Services", () => {
 
                 expect(service).toBeTruthy()
                 return {
-                    method(_) {
+                    method($,_) {
                     }
                 }
             },
@@ -201,7 +214,7 @@ describe("Services", () => {
             })
 
         const d = {key: 'data'}
-        const c = C(_)
+        const c = C(d)
         expect(c.service.key).toEqual('data')
         expect(c.service.getKey()).toEqual('data')
     })
@@ -224,21 +237,21 @@ describe("Services", () => {
 
         c.method()
 
-        expect(c.getAll().includes(3)).toBe(true)
-        expect(c.getAll().includes(4)).toBe(false)
+        expect(c.all.includes(3)).toBe(true)
+        expect(c.all.includes(4)).toBe(false)
 
-        expect(c.service.getAll().includes(3)).toBe(false)
-        expect(c.service.getAll().includes(4)).toBe(true)
+        expect(c.service.all.includes(3)).toBe(false)
+        expect(c.service.all.includes(4)).toBe(true)
 
 
         c.push({item: 1})
         c.service.push({item: 2})
 
-        expect(c.getAll().includes(1)).toBe(true)
-        expect(c.getAll().includes(2)).toBe(false)
+        expect(c.all.includes(1)).toBe(true)
+        expect(c.all.includes(2)).toBe(false)
 
-        expect(c.service.getAll().includes(1)).toBe(false)
-        expect(c.service.getAll().includes(2)).toBe(true)
+        expect(c.service.all.includes(1)).toBe(false)
+        expect(c.service.all.includes(2)).toBe(true)
     })
 
     test("Service data should be unboxable", () => {
@@ -272,26 +285,30 @@ describe("Services", () => {
 
         const C = layerCompose(
             {
-                setDataSource(_, opt) {
+                parent: true,
+
+                setDataSource($, _, opt) {
                     _.parent = opt + 1
                     _.shared = 'p'
                 },
-                async update(_) {
+                async update($,_) {
                     pCheck(_.parent, _.shared)
-                    expect(() => _.child).toThrow()
+                    IS_DEV_MODE ? expect(() => _.child).toThrow() : expect(_.child).toBe(undefined)
                 }
             },
             {
                 service: [
                     {
+                        shared: true,
+
                         setDataSource($, _, opt) {
                             _.shared = 'c'
                             _.child = opt - 1
-                            $.$.setDataSource(opt)
+                            _.setDataSource(opt)
                         },
                         async update($, _) {
                             cCheck(_.parent, _.shared, _.child)
-                            $.$.update()
+                            _.update()
                         },
                         async externalTrigger($) {
                             $.setDataSource(1)
@@ -318,10 +335,10 @@ describe("Services", () => {
                 setDataSource($, _, opt) {
                     _.shared = 'c'
                     _.child = opt - 1
-                    $.$.setDataSource(opt)
+                    _.setDataSource(opt)
                 },
                 async update($, _, opt) {
-                    $.$.update(opt)
+                    _.update(opt)
                     cCheck(_.parent, _.shared, _.child)
                 },
                 async externalTrigger($) {
@@ -331,7 +348,9 @@ describe("Services", () => {
             }
         )
 
-        const C = layerCompose(
+        const C = layerCompose({
+            parent: false,
+        },
             {
                 setDataSource($, _, opt) {
                     _.parent = opt + 1
@@ -339,7 +358,7 @@ describe("Services", () => {
                 },
                 async update($, _) {
                     pCheck(_.parent, _.shared)
-                    expect(() => _.child).toThrow()
+                    IS_DEV_MODE ? expect(() => _.child).toThrow() : expect(_.child).toBe(undefined)
                 }
             },
             {

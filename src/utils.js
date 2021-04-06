@@ -6,6 +6,11 @@ import {unwrapProxy}                               from "./proxies/utils"
 
 export function isServiceLayer(l) {
     if (!Array.isArray(l)) {
+        const vals = Object.values(l)
+        if (vals.length === 0) {
+            return false
+        }
+
         const propDescriptors = Object.getOwnPropertyDescriptors(l)
         const getters = Object.values(propDescriptors).filter(_ => !!_.get)
         if (getters.length > 0) {
@@ -13,13 +18,7 @@ export function isServiceLayer(l) {
         }
 
         /* every single value should be either an array, a constructor, marked as a service and not a function */
-        return Object.values(l)
-            .findIndex(_ =>
-                !Array.isArray(_)
-                && !isLcConstructor(_)
-                && !isService(_)
-                && typeof _ === 'function'
-            ) === -1
+        return vals.every(isLensDefinition)
     }
     return false
 }
@@ -30,6 +29,12 @@ export function isFragmentOfLayers(what) {
 
 export function isLcConstructor(what) {
     return what[$isLc]
+}
+
+export function isLensDefinition(what) {
+    return (typeof what !== 'function') && (Array.isArray(what)
+    || isLcConstructor(what)
+    || isService(what))
 }
 
 export function isService(what) {
@@ -91,6 +96,10 @@ export function renameIntoSetter(functionName) {
         return propName
             && propName[0].toLowerCase() + propName.slice(1)
     }
+}
+
+export function renameWithPrefix(prefix, name) {
+    return `${prefix}${name[0].toUpperCase()}${name.slice(1)}`
 }
 
 export function functionAsString(what) {

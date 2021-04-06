@@ -1,4 +1,4 @@
-import layerCompose, {unbox} from "../src"
+import layerCompose, {unbox, IS_DEV_MODE} from "../src"
 import {unwrapProxy}         from "../src/proxies/utils"
 
 describe("Layering", () => {
@@ -152,7 +152,7 @@ describe("Layering", () => {
     test("methods could be setters", () => {
         const C = layerCompose(
             {
-                setMyKey(_, opt) {
+                setMyKey($, _, opt) {
                     _.key = opt
                 },
                 internalSet($, _) {
@@ -164,8 +164,13 @@ describe("Layering", () => {
 
         const c = C({key: 'v'})
 
-        expect(() => c.myKey = 'set').toThrow()
-        expect(unbox(c).key).toBe('v')
+        if (IS_DEV_MODE) {
+            expect(() => c.key = 'set').toThrow()
+            expect(unbox(c).key).toBe('v')
+        }
+
+        c.myKey = 'z'
+        expect(unbox(c).key).toBe('z')
 
         c.internalSet()
         expect(unbox(c).key).toBe('internal')
@@ -177,7 +182,7 @@ describe("Layering", () => {
         const checkWatch = jest.fn()
         const checkNormal = jest.fn()
         const C = layerCompose({
-            watch(_) {
+            watch($,_) {
                 checkWatch()
             }
         }, {
@@ -185,7 +190,7 @@ describe("Layering", () => {
                 $.watch()
             }
         }, {
-            watch(_) {
+            watch($,_) {
                 checkNormal()
             }
         })
@@ -196,23 +201,26 @@ describe("Layering", () => {
         expect(checkWatch).toHaveBeenCalled()
     })
 
-    test("methods accessed with $ should not be called on higher composition", () => {
+    test("methods accessed with $ should call on higher composition", () => {
         /* watcher methods are methods defined above the call site */
 
         const checkHigher = jest.fn()
         const checkNormal = jest.fn()
         const C1 = layerCompose({
+            changeKey($, _, opt) {
+                _.key = opt
+            },
             method($) {
                 $.watch()
             }
         }, {
-            watch(_) {
+            watch($,_) {
                 checkNormal(_.key)
             }
         })
 
         const C2 = layerCompose({
-            watch(_) {
+            watch($,_) {
                 checkHigher(_.key)
             }
         }, C1)
@@ -220,13 +228,16 @@ describe("Layering", () => {
         const c = C2({key: 'v'})
         c.method()
         expect(checkNormal).toHaveBeenCalledWith('v')
-        expect(checkHigher).not.toHaveBeenCalled()
-
-        c.watch()
         expect(checkHigher).toHaveBeenCalledWith('v')
+
+        c.changeKey('z')
+        c.watch()
+        expect(checkHigher).toHaveBeenCalledWith('z')
+        expect(checkNormal).toHaveBeenCalledWith('z')
     })
 
-    test("compression method for method return values can be changed", () => {
+    /** @deprecated */
+    test.skip("compression method for method return values can be changed", () => {
         const expected = {k1:'v1', k2:'v2', k3:'v3'}
 
         const C1 = layerCompose($ => {
@@ -235,15 +246,15 @@ describe("Layering", () => {
             check($) {
                 expect(unwrapProxy($.method())).toEqual(expected)
             },
-            method(_) {
+            method($,_) {
                 return {k2: 'v2'}
             }
         }, {
-            method(_) {
+            method($,_) {
                 return {k1: 'v1'}
             }
         }, {
-            method(_) {
+            method($,_) {
                 return {k3: 'v3'}
             }
         })
@@ -257,12 +268,12 @@ describe("Layering", () => {
         expect.assertions(2)
 
         const L1 = layerCompose({
-            method(_) {
+            method($,_) {
                 expect(_.key).toEqual('v')
             }
         })
         const L2 = layerCompose({
-            method(_) {
+            method($,_) {
                 expect(_.key).toEqual('v')
             }
         })
@@ -273,18 +284,19 @@ describe("Layering", () => {
         c.method()
     })
 
-    test("when composing two sealed layers methods the comprossion method can be changed", () => {
+    /** @deprecated */
+    test.skip("when composing two sealed layers methods the comprossion method can be changed", () => {
         expect.assertions(3)
 
         const expected = {k1:'v1', k2:'v2'}
 
         const L1 = layerCompose({
-            method(_) {
+            method($,_) {
                 return {k1: 'v1'}
             }
         })
         const L2 = layerCompose({
-            method(_) {
+            method($,_) {
                 return {k2: 'v2'}
             }
         })

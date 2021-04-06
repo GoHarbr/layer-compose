@@ -32,6 +32,13 @@ function isProxy(p) {
     return proxyTargetMap.has(p)
 }
 
+export function unwrapProxyDeep(p) {
+    while(isProxy(p)) {
+        p = unwrapProxy(p)
+    }
+    return p
+}
+
 export function unwrapProxy(p) {
     if (isProxy(p)) {
         const target = proxyTargetMap.get(p)

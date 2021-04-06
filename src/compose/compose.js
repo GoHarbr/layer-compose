@@ -3,12 +3,12 @@ import {
     getLayerId,
     isFragmentOfLayers,
     isInitializer,
-    isLcConstructor,
-    isServiceLayer,
-}                              from "../utils"
+    isLcConstructor, isLensDefinition,
+    isServiceLayer, renameWithPrefix,
+} from "../utils"
 import {
     $composition, $functionSymbolIds,
-    $initializer,
+    $initializer, $isLc,
     $isService,
     $runOnInitialize,
     IS_DEV_MODE
@@ -32,10 +32,14 @@ function compose(layerLike, composed) {
 
         const composition = layerLike[$composition]
         const next = Object.create(composed)
-        next[$runOnInitialize] = [/* could run extend super here? */composition[$initializer]]
-        /* or maybe add it here for the next layer to access and then delete */
+        next[$runOnInitialize].push(composition[$initializer])
+
         function composeFn(fnName) {
             if (fnName in next) {
+                // todo. check that this is a function (and not a service)
+                if (typeof next[fnName] != "function" || typeof composition[fnName] != "function") {
+                    throw new Error('Cannot combine a non-function property and a function')
+                }
                 next[fnName] = functionComposer(next[fnName], composition[fnName])
             } else {
                 next[fnName] = composition[fnName]
@@ -45,9 +49,9 @@ function compose(layerLike, composed) {
         for (const fnName in composition) {
             composeFn(fnName)
         }
-        for (const fnSymbolName of composition[$functionSymbolIds]) {
-            composeFn(fnSymbolName)
-        }
+        // for (const fnSymbolName of composition[$functionSymbolIds]) {
+        //     composeFn(fnSymbolName)
+        // }
 
         return next
 
@@ -58,24 +62,6 @@ function compose(layerLike, composed) {
         layerLike($) // adds items into initialization + other utilities
 
         return composed
-
-    } else if (isServiceLayer(layerLike)) {
-        const services = layerLike
-
-        const serviceNames = Object.keys(services)
-        const conflictingName = serviceNames.find(_ => _ in composed)
-        if (conflictingName) {
-            throw new Error('Service is already defined: ' + conflictingName)
-        }
-
-        for (const name of serviceNames) {
-            if (!isLcConstructor(services[name])) {
-                services[name] = layerCompose(services[name])
-            }
-            services[name][$isService] = true
-        }
-
-        return Object.assign(composed, services)
 
     } else if (isFragmentOfLayers(layerLike)) {
         /*
@@ -90,39 +76,84 @@ function compose(layerLike, composed) {
     } else {
         const layerId = getLayerId(layerLike)
 
+        // todo. make sure getters and setters aren't overwriting services
+
         const next = Object.fromEntries(
-            Object.entries(layerLike).map(([name, fn]) => {
-                // if (!Object.isExtensible(func)) return
+            Object.entries(layerLike).map(([name, value]) => {
 
-                let composedFunction
+                // todo. what if not a function, but a primitive?
 
-                fn = transformToStandardArgs(fn)
+                // const ld = isLensDefinition(value)
+                // const sd = isServiceLayer(value)
+                // if (ld || sd) {
 
-                /*
-                * Functions with names starting with get are copied, renamed and become actual getters
-                * Getters are overriden by each other, unlike regular layer methods that are composed
-                **/
+                if (typeof value === 'boolean') {
+                    // if this is a shape definition
+                    // add getter
+                    const getter = [renameWithPrefix('get', name), ($, _) => _[name]]
+                    if (value === true) {
+                        // add a setter as well
+                        const setter = [renameWithPrefix('set', name), ($, _, opt) => {
+                            _[name] = opt
+                            return true
+                        }]
 
-                // const isGetter = !!renameIntoGetter(name)
-                const existing = composed[name]
-                if (existing /*&& !isGetter*/) {
-                    if (IS_DEV_MODE) {
-                        // composedFunction = functionComposer(existing, fn)
-                        composedFunction = functionComposer(existing, wrapForDev(layerId, fn))
+                        return [getter, setter]
                     } else {
-                        composedFunction = functionComposer(existing, fn)
+                        return [getter]
                     }
-                } else {
-                    composedFunction = fn
-                    composedFunction.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
+                } else if (typeof value === 'object' || isLcConstructor(value)) {
 
-                    if (IS_DEV_MODE) {
-                        composedFunction = wrapForDev(layerId, composedFunction)
+                    // if this is a service definition
+                    if (name in composed) {
+                        // todo. make sure getters and setters aren't overwriting services/lenses
+                        // todo. merge services
+                        throw new Error('Service cannot write a defined property: ' + name)
                     }
+
+                    let service
+                    if (!isLcConstructor(value)) {
+                        service = layerCompose(value)
+                    } else {
+                        service = value
+                    }
+                    service[$isService] = true
+
+                    return [[name, service]]
+                } else {
+                    // if this is a function definition, compose
+
+                    let composedEntry
+                    const fn = transformToStandardArgs(value)
+
+                    /*
+                    * Functions with names starting with get are copied, renamed and become actual getters
+                    * Getters are overriden by each other, unlike regular layer methods that are composed
+                    **/
+
+                    // const isGetter = !!renameIntoGetter(name)
+                    const existing = composed[name]
+                    if (existing /*&& !isGetter*/) {
+                        if (IS_DEV_MODE) {
+                            // composedFunction = functionComposer(existing, fn)
+                            composedEntry = functionComposer(existing, wrapForDev(layerId, fn))
+                        } else {
+                            composedEntry = functionComposer(existing, fn)
+                        }
+                    } else {
+                        composedEntry = fn
+                        // todo, this is not always reliable
+                        composedEntry.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
+
+                        if (IS_DEV_MODE) {
+                            composedEntry = wrapForDev(layerId, composedEntry)
+                        }
+                    }
+
+                    return [[name, composedEntry]]
                 }
 
-                return [name, composedFunction]
-            }).filter(m => !!m)
+            }).flat().filter(m => !!m)
         )
 
         return Object.assign(Object.create(composed), next)

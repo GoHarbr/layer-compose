@@ -1,9 +1,19 @@
 import {isPromise, isService, renameIntoGetter, renameIntoSetter}                                        from "../utils"
-import {$$, $dataPointer, $extendSuper, $functionSymbolIds, $initializer, $runOnInitialize, IS_DEV_MODE} from "../const"
+import {
+    $$,
+    $dataPointer,
+    $extendSuper,
+    $functionSymbolIds,
+    $initializer,
+    $runOnInitialize,
+    $writableKeys,
+    IS_DEV_MODE
+}                    from "../const"
 import buildInitializer
-                                                                                                         from "./buildInitializer"
+                     from "./buildInitializer"
 import extendSuper
-                                                                                                         from "./extendSuper"
+                     from "./extendSuper"
+import {unwrapProxy} from "../proxies/utils"
 
 let _compositionId = 0 // for debug purposes
 
@@ -17,8 +27,8 @@ export default function (composed) {
         function create$(instance) {
             const _$ = Object.create($)
 
-            const extendWith = instance[$extendSuper]
-            _$.$ = extendWith
+            // const extendWith = instance[$extendSuper]
+            // _$.$ = extendWith
             // if (extendWith) {
             //     extendSuper(_$, extendWith)
             // }
@@ -30,7 +40,7 @@ export default function (composed) {
         ...composed[$runOnInitialize]
     ]
 
-    composed[$functionSymbolIds] = []
+    // composed[$functionSymbolIds] = []
 
 
     for (const name in composed) {
@@ -42,17 +52,23 @@ export default function (composed) {
             const service = methodOrService
 
             composed[$runOnInitialize].push(instance => {
-                const d = instance[$dataPointer]
-                const s = service(d, instance)
+                // const d = instance[$dataPointer]
+                // const s = service(d, instance)
+                const s = service(instance)
                 instance[name] = s
                 instance[compositionId][name] = s
             })
         } else {
 
+            const getterName = renameIntoGetter(name)
+            const setterName = renameIntoSetter(name)
+
             /*
             * if this function belongs to another sealed composition, don't wrap around it
             * */
             if (Object.isExtensible(methodOrService)) {
+
+                let method = methodOrService
 
                 if (IS_DEV_MODE) {
                     composed[name] = function (opt, ...rest) {
@@ -60,10 +76,11 @@ export default function (composed) {
                             throw new Error("Layer methods can take only named parameters/options or a single argument")
                         }
 
-                        const r = methodOrService(this[compositionId], this[$dataPointer], opt || {},
-                            methodOrService.compressionMethod)
+                        const _ = unwrapProxy(this[$dataPointer])
+                        const r = method(this[compositionId], _, opt || {})
+                            // method.compressionMethod)
 
-                        if (isPromise(r) && methodOrService.isAsync) {
+                        if (isPromise(r) && method.isAsync) {
                             return r.catch(e => {
                                 console.error('Promise rejected:', e)
                                 throw e
@@ -74,40 +91,50 @@ export default function (composed) {
                     }
                 } else {
                     composed[name] = function (opt) {
-                        return methodOrService(this[compositionId], this[$dataPointer], opt || {},
-                            methodOrService.compressionMethod)
+                        return method(this[compositionId], this[$dataPointer], opt || {})
+                            // method.compressionMethod)
                     }
+                }
+
+                if (getterName) {
+                    Object.defineProperty(composed, getterName, { get: composed[name], configurable: true, })
+                    Object.defineProperty($, getterName, { get: $[name], configurable: true, })
+                }
+
+                if (setterName) {
+                    composed[$writableKeys].push(setterName)
+                    Object.defineProperty(composed, setterName, { set: composed[name] })
+                    Object.defineProperty($, setterName, { set: $[name] })
+                }
+
+                // to allow a builder pattern
+                const completeFn = composed[name]
+                composed[name] = function (opt, ...rest) {
+                    completeFn.call(this, opt, ...rest)
+                    return this
                 }
 
                 /* Sealing the function */
 
                 composed[name].isSealed = true
-                composed[name].isAsync = methodOrService.isAsync
+                // composed[name].isAsync = method.isAsync
                 Object.freeze(composed[name])
-
             }
 
-            const fnId = Symbol(_compositionId + '-$-' + name)
-            composed[$functionSymbolIds].push(fnId)
-            composed[fnId] = composed[name]
+
+
+
+            // const fnId = Symbol(_compositionId + '-$-' + name)
+            // composed[$functionSymbolIds].push(fnId)
+            // composed[fnId] = composed[name]
             $[name] = function (opt) {
                 const _this = this[$$]
-                return _this[fnId].call(_this, opt)
+                // return _this[fnId].call(_this, opt)
+                return _this[name].call(_this, opt)
             }
 
             // todo. autobind ^
 
-            const getterName = renameIntoGetter(name)
-            if (getterName) {
-                Object.defineProperty(composed, getterName, { get: composed[name] })
-                Object.defineProperty($, getterName, { get: $[name] })
-            }
-
-            const setterName = renameIntoSetter(name)
-            if (setterName) {
-                Object.defineProperty(composed, setterName, { set: composed[name] })
-                Object.defineProperty($, setterName, { set: $[name] })
-            }
         }
     }
 

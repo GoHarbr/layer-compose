@@ -1,6 +1,15 @@
 import {createConstructor}                                         from "./constructor/createConstructor"
 import compose                                                                                     from "./compose/compose"
-import {$composition, $dataPointer, $extendSuper, $isLc, $runOnInitialize, $spec, IS_DEV_MODE} from "./const"
+import {
+    $composition,
+    $dataPointer,
+    $extendSuper,
+    $isLc,
+    $runOnInitialize,
+    $spec,
+    $writableKeys,
+    IS_DEV_MODE
+} from "./const"
 
 import cleanData               from './external-utils/cleanData'
 import transformGetters        from "./external-utils/transformGetters"
@@ -16,6 +25,7 @@ export default function layerCompose(...layers) {
             [$runOnInitialize]: [],
             [$extendSuper]: undefined,
             [$dataPointer]: undefined,
+            [$writableKeys]: [],
             // then: transformToStandardArgs(($, opt) => opt.onFulfilled($[$$])),
             toJSON: ($, _, opt) => {
                 return _

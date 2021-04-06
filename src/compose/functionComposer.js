@@ -2,7 +2,10 @@ import {combineResult} from "./combineResult"
 import {$$}            from "../const"
 
 export function functionComposer(existing, func) {
-    const isAsync = existing.isAsync || func.isAsync || func[Symbol.toStringTag] === 'AsyncFunction'
+
+    // const isAsync = existing.isAsync || func.isAsync || func[Symbol.toStringTag] === 'AsyncFunction'
+    // todo. deprecated
+    const isAsync = false
 
     let composed
     if (Object.isExtensible(existing)) {

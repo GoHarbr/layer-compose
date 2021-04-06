@@ -1,19 +1,23 @@
-import {$dataPointer, $extendSuper, $initializer, $isLc, IS_DEV_MODE} from "../const"
-import {unwrapProxy}                                                  from "../proxies/utils"
+import {$dataPointer, $extendSuper, $initializer, $isCompositionInstance, $isLc, IS_DEV_MODE} from "../const"
+import {unwrapProxy}                                                                          from "../proxies/utils"
 import {wrapCompositionWithProxy}                                     from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods                                            from "./wrapStandardMethods"
 
 export function createConstructor(composed) {
 
-    function constructor(data = {}, $) {
+    function constructor(coreObject = {}) {
         const compositionInstance = Object.create(composed)
 
-        if (typeof data !== "object") {
+        if (typeof coreObject !== "object") {
             throw new Error('Data must be an object (not a primitive)')
         }
 
-        compositionInstance[$dataPointer] = Object.create(data || {})
-        compositionInstance[$extendSuper] = $
+        compositionInstance[$isCompositionInstance] = true
+        compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject : Object.create(coreObject || {})
+
+        // todo. think though if extensions should be kept.
+        // compositionInstance[$extendSuper] = $
+
         wrapStandardMethods(compositionInstance) // for methods like .then
 
         composed[$initializer](compositionInstance)

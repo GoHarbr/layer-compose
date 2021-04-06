@@ -16,8 +16,7 @@ export function generateSuperAccessor(composedUpTo) {
 
 const superFunctionProxy = (composition) => ({ // todo composition here is probably unnecessary, use `target`
     get(target, prop) {
-        /* todo
-        *   check that the prop is a getter and return a corresponding function */
+
         let v = target[prop]
         if (isFunction(v)) {
 
@@ -42,9 +41,9 @@ const superFunctionProxy = (composition) => ({ // todo composition here is proba
             }
 
             // todo. function that sets the result combination method
-            v.compressWith = (compressionMethod) => {
-                target[prop].compressionMethod = compressionMethod
-            }
+            // v.compressWith = (compressionMethod) => {
+            //     target[prop].compressionMethod = compressionMethod
+            // }
         }
 
         return !IS_DEV_MODE ? v : definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition: superFunctionProxy})

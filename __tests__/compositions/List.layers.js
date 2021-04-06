@@ -6,23 +6,23 @@ export const List = [
         push: $ => $.watch(),
     },
     {
-        watch(_) {
+        watch($,_) {
             // IS_DEV_MODE && console.log('List is updated. Entry count: ' + _.entities.length)
         },
-        pushAll(_, {items}) {
-            _.entities = [..._.entities, ...items]
+        pushAll($,_, opt) {
+            _.entities = [..._.entities, ...opt.items]
         },
-        push(_, {item}) {
-            _.entities.push(item)
+        push($,_, opt) {
+            _.entities.push(opt.item)
         },
-        getAll: _ => {
+        getAll: ($,_) => {
             return _.entities
         },
-        find(_, {id}) {
-            return _.entities.find(t => t.id === id)
+        find($,_, opt) {
+            return _.entities.find(t => t.id === opt.id)
         },
 
-        init(_) {
+        init($,_) {
             _.entities = []
         }
     }

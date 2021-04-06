@@ -1,7 +1,7 @@
 // todo. make sure types do not change during execution
 
-import {isFunction}               from "../utils"
-import {TaggedProxy, unwrapProxy} from "./utils"
+import {isFunction}                                from "../utils"
+import {TaggedProxy, unwrapProxy, unwrapProxyDeep} from "./utils"
 
 export const definedGetProxy = {
     get(target, prop) {
@@ -9,9 +9,10 @@ export const definedGetProxy = {
     },
 
     _get(target, prop, innerProxyDefinition) {
-        let v = unwrapProxy(target[prop])
+        let v = unwrapProxyDeep(target[prop])
 
-        v = definedGetProxy._wrapFunction(target, prop, {innerProxyDefinition})
+        // v = definedGetProxy._wrapFunction(target, prop, {innerProxyDefinition})
+
         // null is a valid optional value
         return definedGetProxy._mustBeDefined(v, prop, {innerProxyDefinition})
     },
