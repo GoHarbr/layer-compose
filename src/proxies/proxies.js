@@ -36,11 +36,11 @@ export const definedGetProxy = {
 
     _mustBeDefined(v, prop, {innerProxyDefinition} = {}) {
         if (v !== undefined || typeof prop === 'symbol') {
-            if (typeof v === 'object' && !!v /* if null */) {
-                return TaggedProxy(v, innerProxyDefinition || definedGetProxy)
-            } else {
+            // if (typeof v === 'object' && !!v /* if null */) {
+            //     return TaggedProxy(v, innerProxyDefinition || definedGetProxy)
+            // } else {
                 return v
-            }
+            // }
         }
         throw new Error('Property does not exist: ' + prop)
     }

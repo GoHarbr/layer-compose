@@ -5,15 +5,18 @@ import {
     $isCompositionInstance,
     $isLc,
     IS_DEV_MODE
-} from "../const"
-import {unwrapProxy}                                                                          from "../proxies/utils"
-import {wrapCompositionWithProxy}                                     from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods                                            from "./wrapStandardMethods"
+}                                 from "../const"
+import {unwrapProxy}              from "../proxies/utils"
+import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
+import wrapStandardMethods        from "./wrapStandardMethods"
+import createBinder               from "./createBinder"
 
 export function createConstructor(composed) {
+    const bindWith = createBinder(composed)
 
     function constructor(coreObject = {}) {
         const compositionInstance = Object.create(composed)
+        bindWith(compositionInstance) // direct mutation
 
         if (typeof coreObject !== "object") {
             throw new Error('Data must be an object (not a primitive)')
@@ -34,6 +37,7 @@ export function createConstructor(composed) {
     }
 
     let _constructor = constructor
+    _constructor[$isLc] = true
 
 
     if (IS_DEV_MODE) {
@@ -44,11 +48,37 @@ export function createConstructor(composed) {
         }
     }
 
-    _constructor[$isLc] = true
-    _constructor.partial = (presetValues) => {
-        const fn = (data = {}) => _constructor({ ...presetValues, ...data })
-        Object.assign(fn, _constructor)
-        return fn
+    _constructor.partial = function (presetValues) {
+        /*
+        * Todo. These are lost during layering. Feature or bug?
+        * */
+        const _this = this
+        const fn = (data = {}) => {
+            const core = Object.create(data)
+            for (const k of Object.keys(presetValues)) {
+                if (core[k] === undefined) core[k] = presetValues[k]
+            }
+            return _this(core)
+        }
+        return Object.assign(fn, _this)
+        // return fn
+    }
+
+    _constructor.transform = function (transformer, postTransform) {
+        const _this = this
+
+        const fn = (core) => {
+            const t = transformer(core)
+            const c = _this(t)
+            if (postTransform) postTransform(c, t)
+            return c
+        }
+        return Object.assign(fn, _this)
+        // return fn
+    }
+
+    _constructor.wrap = function (wrapWith) {
+
     }
 
     return _constructor

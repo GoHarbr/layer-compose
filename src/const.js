@@ -17,7 +17,7 @@ export const $setData = Symbol()
 export const $functionSymbolIds = Symbol('array-of-function-symbol-ids')
 
 export const $spec = Symbol()
-export const $composition = Symbol()
+export const $composition = Symbol('composition')
 
 export const $dataProxyMap = Symbol('dataProxyMap')
 export const $borrowedKeys = Symbol('borrowedKeys')

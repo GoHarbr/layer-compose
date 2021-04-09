@@ -120,7 +120,7 @@ function compose(layerLike, composed) {
                     service[$isService] = true
 
                     return [[name, service]]
-                } else {
+                } else if (typeof value == 'function') {
                     // if this is a function definition, compose
 
                     let composedEntry
@@ -151,6 +151,8 @@ function compose(layerLike, composed) {
                     }
 
                     return [[name, composedEntry]]
+                } else {
+                    throw new Error('Only functions, services, and shape definitions (booleans) are allowed')
                 }
 
             }).flat().filter(m => !!m)

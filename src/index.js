@@ -11,9 +11,12 @@ import {
     IS_DEV_MODE
 } from "./const"
 
-import cleanData               from './external-utils/cleanData'
-import transformGetters        from "./external-utils/transformGetters"
-import seal                    from "./constructor/seal"
+import cleanData        from './external-utils/cleanData'
+import transformGetters from "./external-utils/transformGetters"
+import seal             from "./constructor/seal"
+import Async            from "./compositions/Async"
+import {getComposition} from "./utils"
+
 /*
 * todo:
 *  add ability to replace services. could be useful for testing, or could be a bad idea.
@@ -26,7 +29,6 @@ export default function layerCompose(...layers) {
             [$extendSuper]: undefined,
             [$dataPointer]: undefined,
             [$writableKeys]: [],
-            // then: transformToStandardArgs(($, opt) => opt.onFulfilled($[$$])),
             toJSON: ($, _, opt) => {
                 return _
             }
@@ -41,7 +43,6 @@ export default function layerCompose(...layers) {
         constructor[$spec] = layers
         constructor[$composition] = composed
 
-
         return constructor
     } catch (e) {
         if (IS_DEV_MODE) throw e
@@ -52,10 +53,12 @@ export default function layerCompose(...layers) {
 /*
  * Utils
  * */
-export {unbox} from "./utils"
+export {unbox, getComposition} from "./utils"
 export {
     IS_DEV_MODE,
 
     cleanData,
-    transformGetters
+    transformGetters,
+
+    Async
 }

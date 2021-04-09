@@ -1,6 +1,6 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$dataPointer, $isLc, $isService, $layerId} from "./const"
-import {unwrapProxy}                               from "./proxies/utils"
+import {$composition, $dataPointer, $isLc, $isService, $layerId} from "./const"
+import {unwrapProxy}                                             from "./proxies/utils"
 
 /* isType checks // todo move */
 
@@ -57,6 +57,13 @@ export function isPromise(what) {
     return what && typeof what == "object" && ("then" in what) && isFunction(what.then)
 }
 
+/* Constructor related */
+
+export function getComposition(constructor) {
+    const $ = $composition
+    return constructor[$]
+}
+
 /* Instance related // todo move */
 
 export function getDataFromPointer(compositionInstance) {
@@ -81,6 +88,8 @@ export function selectExistingServices(composition) {
 export function getLayerId(layer) {
     return layer[$layerId] || (layer[$layerId] = Symbol())
 }
+
+/* Function modification */
 
 export function renameIntoGetter(functionName) {
     if (functionName.startsWith('get')) {

@@ -25,31 +25,49 @@ export default function (fn) {
         }
         const argOrder = ArgOrder(paramDefinition, fn.length)
 
-        if (!argOrder.isValidFunction()) {
-            throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition: ' + fn.name)
-        }
-
-        if (!argOrder.isInDefinedOrder()) {
-            throw new Error('Argument order should be in order ($, _, opt)')
-        }
-
-        const [$, _, opt] = argOrder.getPresent()
-        if ($ && _ /* && opt -- not necessary because its just ignored if not present */) {
-            return fn // no modification needed
+        if (compilerArgsScrambleCheck(paramDefinition, argOrder)) {
+            console.warn('Code has been compiled and function arg names changed. Some dev checks are off: ' + fn.name)
+            return fn
         } else {
-            if ($) {
-                return ($, _, opt) => fn($, opt)
+            if (!argOrder.isValidFunction()) {
+                throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition: ' + fn.name)
+            }
+
+            if (!argOrder.isInDefinedOrder()) {
+                throw new Error('Argument order should be in order ($, _, opt)')
+            }
+
+            const [$, _, opt] = argOrder.getPresent()
+            if ($ && _ /* && opt -- not necessary because its just ignored if not present */) {
+                return fn // no modification needed
             } else {
-                return ($, _, opt) => fn(_, opt)
+                if ($) {
+                    return ($, _, opt) => fn($, opt)
+                } else {
+                    return ($, _, opt) => fn(_, opt)
+                }
             }
         }
     }
 
-    throw new Error('Programmer error: Function does not follow proper argument format. Must use `$`, `_`, `opt` as arguments')
+    throw new Error('Programmer error: Function does not follow proper argument format. Must use `$`, `_`, `opt` as arguments: ' + fn.name)
 }
 
 function ArgOrder(paramDefinition, paramCount) {
-    const indexes = symbols.map(s => paramDefinition.indexOf(s))
+    const indexes = symbols.map(s => {
+        let i
+        let pd = paramDefinition
+        // for cases such as _x being detected as _
+        while (pd) {
+            i = pd.indexOf(s)
+            // check for word boundry
+            if (i === -1 || [' ', ',', ')'].includes(pd[i+s.length])) {
+                return i
+            }
+            pd = pd.slice(i + s.length)
+        }
+        return -1
+    })
     const $ = {
         isBefore(arg, other) {
 
@@ -92,4 +110,10 @@ function ArgOrder(paramDefinition, paramCount) {
     }
 
     return $
+}
+
+function compilerArgsScrambleCheck(argsString, argOrder) {
+    if (argsString && argsString.split(',').length > 1) {
+        return !(argOrder.has('$') || argOrder.has('_'))
+    }
 }

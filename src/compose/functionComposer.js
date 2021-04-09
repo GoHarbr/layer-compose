@@ -18,15 +18,18 @@ export function functionComposer(existing, func) {
     } else {
         if (Object.isExtensible(func)) {
             composed = function ($, _, opt, compressionMethod) {
-                const acc = existing.call($[$$], opt)
+                // const acc = existing.call($[$$], opt)
+                const acc = existing.call($, opt)
                 const next = func($, _, opt)
 
                 return combineResult(acc, next, isAsync, compressionMethod)
             }
         } else {
             composed = function ($, _, opt, compressionMethod) {
-                const acc = existing.call($[$$], opt)
-                const next = func.call($[$$], opt)
+                const acc = existing.call($, opt)
+                const next = func.call($, opt)
+                // const acc = existing.call($[$$], opt)
+                //                 const next = func.call($[$$], opt)
 
                 return combineResult(acc, next, isAsync, compressionMethod)
             }

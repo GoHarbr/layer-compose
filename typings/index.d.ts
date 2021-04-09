@@ -41,6 +41,7 @@ export default layerCompose
 
 /* utils */
 export function unbox(what: lcInstance<any>): object | undefined
+export function getComposition(what: lcConstructor<any>): object | undefined
 export function cleanData(data: object): object
 export function transformGetters(data: object): object
 export const IS_DEV_MODE: boolean

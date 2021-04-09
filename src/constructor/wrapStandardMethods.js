@@ -1,4 +1,7 @@
 export default function wrapStandardMethods(instance) {
-    // instance.then = (onFulfilled, onRejected) => instance.then({onFulfilled, onRejected})
-    instance.then = null
+    if (instance.then) {
+        instance.then = (onFulfilled, onRejected) => instance.then({onFulfilled, onRejected})
+    } else {
+        instance.then = null
+    }
 }
