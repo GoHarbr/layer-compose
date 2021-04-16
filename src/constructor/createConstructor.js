@@ -24,7 +24,8 @@ export function createConstructor(composed) {
 
         compositionInstance[$isCompositionInstance] = true
         compositionInstance[$initializedCalls] = []
-        compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject : Object.create(coreObject || {})
+        // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject : Object.create(coreObject || {})
+        compositionInstance[$dataPointer] = coreObject
 
         // todo. think through if extensions should be kept.
         // compositionInstance[$extendSuper] = $
@@ -53,8 +54,7 @@ export function createConstructor(composed) {
         * Todo. These are lost during layering. Feature or bug?
         * */
         const _this = this
-        const fn = (data = {}) => {
-            const core = Object.create(data)
+        const fn = (core = {}) => {
             for (const k of Object.keys(presetValues)) {
                 if (core[k] === undefined) core[k] = presetValues[k]
             }

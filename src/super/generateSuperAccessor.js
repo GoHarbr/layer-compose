@@ -23,11 +23,11 @@ const superFunctionProxy = (composition) => ({ // todo composition here is proba
             /*
             * todo. rewrite so that default opts are combined
             * */
-            // v = (givenOpts) => {
-            v = () => {
+            v = (givenOpts) => {
+            // v = () => {
                 const fn = function (instance) {
                     if (!instance[$initializedCalls].includes(prop)) {
-                        instance[prop](/*givenOpts*/)
+                        instance[prop](givenOpts)
                         instance[$initializedCalls].push(prop)
                     }
                 }
