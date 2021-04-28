@@ -9,7 +9,7 @@ export const definedGetProxy = {
     },
 
     _get(target, prop, innerProxyDefinition) {
-        let v = unwrapProxyDeep(target[prop])
+        let v = unwrapProxyDeep(target[prop], /* unwrap compositions */ false)
 
         // v = definedGetProxy._wrapFunction(target, prop, {innerProxyDefinition})
 

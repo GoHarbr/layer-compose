@@ -1,3 +1,4 @@
+import {$isCompositionInstance} from "../const"
 
 export function isIncompatibleWithProxy(target, prop) {
     /* todo. improve this check, not fully reliable as is */
@@ -32,9 +33,13 @@ function isProxy(p) {
     return proxyTargetMap.has(p)
 }
 
-export function unwrapProxyDeep(p) {
+export function unwrapProxyDeep(p, unwrapCompositions = true) {
     while(isProxy(p)) {
-        p = unwrapProxy(p)
+        if (unwrapCompositions || !p[$isCompositionInstance]) {
+            p = unwrapProxy(p)
+        } else {
+            return p
+        }
     }
     return p
 }
