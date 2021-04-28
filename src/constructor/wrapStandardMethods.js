@@ -1,6 +1,16 @@
 export default function wrapStandardMethods(instance) {
     if (instance.then) {
-        instance.then = (onFulfilled, onRejected) => instance.then({onFulfilled, onRejected})
+
+        const then = instance.then
+        instance.then = (onFulfilled, onRejected) => {
+            then({
+                onFulfilled,
+                onRejected
+            });
+
+            return null
+        }
+
     } else {
         instance.then = null
     }
