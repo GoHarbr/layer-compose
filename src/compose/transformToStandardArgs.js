@@ -6,7 +6,7 @@ import {functionAsString} from "../utils"
 import {IS_DEV_MODE} from '../const'
 
 const symbols = ['$', '_', 'opt']
-const paramsExtractorRe = new RegExp('(\\(.+?\\))|(.+?=>)', 'i')
+const paramsExtractorRe = new RegExp('(\\(.+?\\))|([^)(]+?=>)', 'i')
 // const decompositionRe = new RegExp('\(^\{.+\})|(\\$,\{.+\})', 'i')
 const decompositionRe = new RegExp('\{.+\}', 'i')
 
