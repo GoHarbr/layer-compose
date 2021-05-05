@@ -3,3 +3,7 @@
 
 - async
     - if constructor is async, check that `.then()` is called within 100ms
+
+- internal interface
+    - private state
+    - live transforms / lenses

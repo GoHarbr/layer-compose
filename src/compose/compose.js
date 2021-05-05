@@ -3,7 +3,7 @@ import {
     getLayerId,
     isFragmentOfLayers,
     isInitializer,
-    isLcConstructor, isLensDefinition,
+    isLcConstructor, isLensDefinition, isService,
     isServiceLayer, renameWithPrefix,
 } from "../utils"
 import {
@@ -105,14 +105,16 @@ function compose(layerLike, composed) {
                 } else if (typeof value === 'object' || isLcConstructor(value)) {
 
                     // if this is a service definition
+                    let service
                     if (name in composed) {
                         // todo. make sure getters and setters aren't overwriting services/lenses
                         // todo. merge services
-                        throw new Error('Service cannot write a defined property: ' + name)
-                    }
-
-                    let service
-                    if (!isLcConstructor(value)) {
+                        if (isService(composed[name])) {
+                            service = layerCompose(value, composed[name])
+                        } else {
+                            throw new Error('Service cannot be merged with a non-service on key: ' + name)
+                        }
+                    } else if (!isLcConstructor(value)) {
                         service = layerCompose(value)
                     } else {
                         service = value
