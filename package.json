@@ -1,6 +1,6 @@
 {
   "name": "layer-compose",
-  "version": "0.3.0-rc4",
+  "version": "0.3.0-rc5",
   "main": "lib/index.js",
   "types": "typings/index.d.ts",
   "description": "",

@@ -1,4 +1,4 @@
-import cleanData from "../src/external-utils/cleanData"
+import cleanData from "../src/external/utils/cleanData"
 
 describe("External utils", () => {
     test("cleanData", () => {

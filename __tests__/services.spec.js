@@ -59,12 +59,12 @@ describe("Services", () => {
             },
             {
                 method($, _) {
-                    $.service.serviceMethod()
+                    $.Service.serviceMethod()
                 }
             },
             {
-                service: [{
-                    subService: {
+                Service: [{
+                    SubService: {
                         deepMethod($, _, opt) {
                             checkFn()
                             // expect(_.key).toBe('data')
@@ -81,7 +81,7 @@ describe("Services", () => {
                     {
                         serviceMethod($, _) {
                             expect(_.key).toBe('data')
-                            $.subService.deepMethod({optKey: 'value'})
+                            $.SubService.deepMethod({optKey: 'value'})
                         }
                     }
                 ]

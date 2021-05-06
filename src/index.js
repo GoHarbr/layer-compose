@@ -11,10 +11,10 @@ import {
     IS_DEV_MODE
 } from "./const"
 
-import cleanData        from './external-utils/cleanData'
-import transformGetters from "./external-utils/transformGetters"
+import cleanData        from './external/utils/cleanData'
+import transformGetters from "./external/utils/transformGetters"
 import seal             from "./constructor/seal"
-import Async            from "./compositions/Async"
+import Async            from "./external/compositions/Async"
 import {getComposition} from "./utils"
 
 /*
@@ -39,9 +39,9 @@ export default function layerCompose(...layers) {
 
         const constructor = createConstructor(composed)
 
-        constructor[$isLc] = true
+        // constructor[$isLc] = true
         constructor[$spec] = layers
-        constructor[$composition] = composed
+        // constructor[$composition] = composed
 
         return constructor
     } catch (e) {

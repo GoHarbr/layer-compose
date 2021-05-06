@@ -1,15 +1,18 @@
 import {
+    $composition,
     $dataPointer,
     $initializedCalls,
     $initializer,
     $isCompositionInstance,
     $isLc,
     IS_DEV_MODE
-}                                 from "../const"
-import {unwrapProxy}              from "../proxies/utils"
-import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods        from "./wrapStandardMethods"
-import createBinder               from "./createBinder"
+} from "../const"
+import {unwrapProxy}                                                                               from "../proxies/utils"
+import {wrapCompositionWithProxy}                                                                  from "../proxies/wrapCompositionWithProxy"
+import wrapStandardMethods
+                                                                                                   from "./wrapStandardMethods"
+import createBinder                                                                                from "./createBinder"
+import layerCompose                                                                                from '../index'
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
@@ -24,7 +27,8 @@ export function createConstructor(composed) {
 
         compositionInstance[$isCompositionInstance] = true
         compositionInstance[$initializedCalls] = []
-        // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject : Object.create(coreObject || {})
+        // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
+        // Object.create(coreObject || {})
         compositionInstance[$dataPointer] = coreObject
 
         // todo. think through if extensions should be kept.
@@ -37,48 +41,48 @@ export function createConstructor(composed) {
         return compositionInstance
     }
 
-    let _constructor = constructor
-    _constructor[$isLc] = true
-
-
+    let _constructor
     if (IS_DEV_MODE) {
-        _constructor = (data, $) => {
+        _constructor = (data) => {
             data = unwrapProxy(data)
-            const i = constructor(data, $)
+            const i = constructor(data)
             return wrapCompositionWithProxy(i)
         }
+    } else {
+        _constructor = constructor
     }
+
+    _constructor[$isLc] = true
+    _constructor[$composition] = composed
+
+
+    /*
+    * Partial can be re-implemented through hidden methods `_...`
+    * or data proxy for initialization (and so can transform then)
+    * */
 
     _constructor.partial = function (presetValues) {
-        /*
-        * Todo. These are lost during layering. Feature or bug?
-        * */
-        const _this = this
-        const fn = (core = {}) => {
-            for (const k of Object.keys(presetValues)) {
-                if (core[k] === undefined) core[k] = presetValues[k]
-            }
-            return _this(core)
-        }
-        return Object.assign(fn, _this)
-        // return fn
+
+        return layerCompose($ => instance => {
+                const core = instance[$dataPointer]
+                for (const k of Object.keys(presetValues)) {
+                    if (core[k] === undefined) core[k] = presetValues[k]
+                }
+            },
+            _constructor
+        )
     }
 
-    _constructor.transform = function (transformer, postTransform) {
+    /** Meant for using with services and is not meant to be transferable onto extending Compositoins (use in one location only approach) */
+    _constructor.transform = function (transformer) {
         const _this = this
 
         const fn = (core) => {
             const t = transformer(core)
-            const c = _this(t)
-            if (postTransform) postTransform(c, t)
-            return c
+            return _this(t)
         }
+
         return Object.assign(fn, _this)
-        // return fn
-    }
-
-    _constructor.wrap = function (wrapWith) {
-
     }
 
     return _constructor

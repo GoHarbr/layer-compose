@@ -1,22 +1,11 @@
-import layerCompose            from "../index"
-import {
-    getLayerId,
-    isFragmentOfLayers,
-    isInitializer,
-    isLcConstructor, isLensDefinition, isService,
-    isServiceLayer, renameWithPrefix,
-} from "../utils"
-import {
-    $composition, $functionSymbolIds,
-    $initializer, $isLc,
-    $isService,
-    $runOnInitialize,
-    IS_DEV_MODE
-} from "../const"
-import {generateSuperAccessor} from "../super/generateSuperAccessor"
-import transformToStandardArgs from "./transformToStandardArgs"
-import {functionComposer}      from "./functionComposer"
-import {getDataProxy}          from "../data/getDataProxy"
+import layerCompose                                                                                   from "../index"
+import {getLayerId, isFragmentOfLayers, isInitializer, isLcConstructor, isService, renameWithPrefix,} from "../utils"
+import {$composition, $initializer, $isService, $runOnInitialize, IS_DEV_MODE}                        from "../const"
+import {generateSuperAccessor}                                                                        from "../super/generateSuperAccessor"
+import transformToStandardArgs
+                                                                                                      from "./transformToStandardArgs"
+import {functionComposer}                                                                             from "./functionComposer"
+import {getDataProxy}                                                                                 from "../data/getDataProxy"
 
 /*
 * todo.
@@ -57,9 +46,13 @@ function compose(layerLike, composed) {
 
     } else if (isInitializer(layerLike)) {
         /* todo. make sure that initializers don't depend on other services having been initialized */
+        /* todo. make sure $ accessor can not be used once initialized */
 
         const $ = generateSuperAccessor(composed)
-        layerLike($) // adds items into initialization + other utilities
+        const fn = layerLike($) // adds items into initialization + other utilities
+
+        // fn is to be ran on initialization
+        if (fn) composed[$runOnInitialize].push(fn)
 
         return composed
 
@@ -105,10 +98,13 @@ function compose(layerLike, composed) {
                 } else if (typeof value === 'object' || isLcConstructor(value)) {
 
                     // if this is a service definition
+                    if (name[0] !== name[0].toUpperCase()) {
+                        throw new Error("Service names should start with uppercase: " + name)
+                    }
+
                     let service
                     if (name in composed) {
                         // todo. make sure getters and setters aren't overwriting services/lenses
-                        // todo. merge services
                         if (isService(composed[name])) {
                             service = layerCompose(value, composed[name])
                         } else {

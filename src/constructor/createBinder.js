@@ -2,6 +2,9 @@
 * Wraps instance into a builder pattern & autobinds
 * */
 
+import {isService}              from "../utils"
+import {$isCompositionInstance} from "../const"
+
 export default function createBinder(composed) {
     let constructor
 
@@ -10,11 +13,14 @@ export default function createBinder(composed) {
         constructor = (instance) => {
             // make sure getters/setters are non iterable props
             const f = instance[prop]
-            instance[prop] = function (...args) {
-                f.apply(instance, args)
 
-                // to allow a builder pattern
-                return instance
+            if (!f[$isCompositionInstance]) {
+                instance[prop] = function (...args) {
+                    f.apply(instance, args)
+
+                    // to allow a builder pattern
+                    return instance
+                }
             }
 
             if (_c) _c(instance)

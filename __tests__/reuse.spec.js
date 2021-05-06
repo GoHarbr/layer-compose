@@ -42,6 +42,25 @@ describe("Reusing compositonis across instances", () => {
         expect(checkFn).toHaveBeenCalled()
     })
 
+    test("Extend composition that uses partial", () => {
+        const checkFn = jest.fn()
+        const C1 = layerCompose({
+            m($) {
+                checkFn()
+            }
+        }).partial({
+            a: 1
+        })
+
+        expect(() => {
+            const C2 = layerCompose( C1, {tm($) {}})
+            const c2 = C2()
+            c2.m()
+            c2.tm()
+        }).not.toThrow()
+        expect(checkFn).toHaveBeenCalled()
+    })
+
     test("Extend composition and lock `opt`", () => {
         const checkFn = jest.fn()
         const C1 = layerCompose({

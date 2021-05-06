@@ -18,7 +18,14 @@ export function isServiceLayer(l) {
         }
 
         /* every single value should be either an array, a constructor, marked as a service and not a function */
-        return vals.every(isLensDefinition)
+        const isSL = vals.every(isLensDefinition)
+        if (isSL) {
+            console.log(Object.keys(l))
+            if (Object.keys(l).find(k => k[0] !== k[0].toUpperCase())) {
+                throw new Error("Service names must start with a capital")
+            }
+        }
+        return isSL
     }
     return false
 }
@@ -42,7 +49,8 @@ export function isService(what) {
 }
 
 export function isInitializer(l) {
-    return isFunction(l) && l.length === 1 // todo check that it only takes super (rather exactly 1 arg)
+    return isFunction(l) && l.length >= 1 && l.length <= 2
+    // todo check argument names
 }
 
 export function isConstructorLayer(what) {

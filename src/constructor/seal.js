@@ -1,19 +1,7 @@
-import {isPromise, isService, renameIntoGetter, renameIntoSetter}                                        from "../utils"
-import {
-    $$,
-    $dataPointer,
-    $extendSuper,
-    $functionSymbolIds,
-    $initializer,
-    $runOnInitialize,
-    $writableKeys,
-    IS_DEV_MODE
-}                    from "../const"
-import buildInitializer
-                     from "./buildInitializer"
-import extendSuper
-                     from "./extendSuper"
-import {unwrapProxy} from "../proxies/utils"
+import {isPromise, isService, renameIntoGetter, renameIntoSetter} from "../utils"
+import {$dataPointer, $initializer, $writableKeys, IS_DEV_MODE}   from "../const"
+import buildInitializer                                           from "./buildInitializer"
+import {unwrapProxy}                                              from "../proxies/utils"
 
 let _compositionId = 0 // for debug purposes
 
@@ -21,27 +9,6 @@ let _compositionId = 0 // for debug purposes
 export default function (composed) {
     _compositionId++
     const compositionId = Symbol(_compositionId + '::composition-id')
-
-    // const $ = {}
-    // composed[$runOnInitialize] = [
-    //     function create$(instance) {
-    //         const _$ = Object.create($)
-    //
-    //         // const extendWith = instance[$extendSuper]
-    //         // _$.$ = extendWith
-    //         // if (extendWith) {
-    //         //     extendSuper(_$, extendWith)
-    //         // }
-    //
-    //         _$[$$] = instance
-    //         instance[compositionId] = _$
-    //
-    //     },
-    //     ...composed[$runOnInitialize]
-    // ]
-
-    // composed[$functionSymbolIds] = []
-
 
     for (const name in composed) {
         const methodOrService = composed[name]
@@ -51,15 +18,13 @@ export default function (composed) {
         if (isService(methodOrService)) {
             const service = methodOrService
 
-            composed[$runOnInitialize].push(instance => {
-                /*
-                * todo: make services lazy
-                * */
-
-                const s = service(instance)
-                instance[name] = s
-                // instance[compositionId][name] = s
-            })
+            let s
+            const get = function () {
+                if (!s) s = service(this)
+                console.log('Getting a service', this)
+                return s
+            }
+            Object.defineProperty(composed, name, { get })
         } else {
 
             /*
@@ -78,7 +43,7 @@ export default function (composed) {
                         const _ = unwrapProxy(this[$dataPointer]) // todo. is this necessary
                         // const r = method(this[compositionId], _, opt || {})
                         const r = method(this, _, opt || {})
-                            // method.compressionMethod)
+                        // method.compressionMethod)
 
                         if (isPromise(r) && method.isAsync) {
                             return r.catch(e => {
@@ -93,7 +58,7 @@ export default function (composed) {
                     composed[name] = function (opt) {
                         return method(this, this[$dataPointer], opt || {})
                         // return method(this[compositionId], this[$dataPointer], opt || {})
-                            // method.compressionMethod)
+                        // method.compressionMethod)
                     }
                 }
 
@@ -120,7 +85,6 @@ export default function (composed) {
             }
 
 
-
             // const fnId = Symbol(_compositionId + '-$-' + name)
             // composed[$functionSymbolIds].push(fnId)
             // composed[fnId] = composed[name]
@@ -131,14 +95,10 @@ export default function (composed) {
             //     return _this[name].call(_this, opt)
             // }
 
-            // todo. autobind ^
-
         }
     }
 
     composed[$initializer] = buildInitializer(composed)
-
-    // Object.freeze($)
 
     return composed
 }

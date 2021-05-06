@@ -1,3 +1,4 @@
+/** Removes undefined properties */
 export default function cleanData(data) {
     if (data == null || typeof data != "object") {
         if (data === undefined) throw new Error('Data cannot be `undefined`')

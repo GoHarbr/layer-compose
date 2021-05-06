@@ -7,3 +7,9 @@
 - internal interface
     - private state
     - live transforms / lenses
+    
+- external interface
+    - private method
+  
+- services
+    - make lazy
