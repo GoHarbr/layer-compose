@@ -61,12 +61,12 @@ export function createConstructor(composed) {
     * or data proxy for initialization (and so can transform then)
     * */
 
-    _constructor.partial = function (presetValues) {
+    _constructor.partial = _constructor.withDefaults = function (presetValues) {
 
         return layerCompose($ => instance => {
                 const core = instance[$dataPointer]
                 for (const k of Object.keys(presetValues)) {
-                    if (core[k] === undefined) core[k] = presetValues[k]
+                    if (core[k] == null) core[k] = presetValues[k]
                 }
             },
             _constructor
