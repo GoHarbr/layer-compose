@@ -63,11 +63,13 @@ export function createConstructor(composed) {
 
     _constructor.partial = _constructor.withDefaults = function (presetValues) {
 
-        return layerCompose($ => instance => {
-                const core = instance[$dataPointer]
-                for (const k of Object.keys(presetValues)) {
-                    if (core[k] == null) core[k] = presetValues[k]
-                }
+        return layerCompose(($,_) => {
+                _(core => {
+                    for (const k of Object.keys(presetValues)) {
+                        if (core[k] == null) core[k] = presetValues[k]
+                    }
+                    return core
+                })
             },
             _constructor
         )

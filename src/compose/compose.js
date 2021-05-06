@@ -1,6 +1,6 @@
 import layerCompose                                                                                   from "../index"
 import {getLayerId, isFragmentOfLayers, isInitializer, isLcConstructor, isService, renameWithPrefix,} from "../utils"
-import {$composition, $initializer, $isService, $runOnInitialize, IS_DEV_MODE}                        from "../const"
+import {$composition, $dataPointer, $initializer, $isService, $runOnInitialize, IS_DEV_MODE}          from "../const"
 import {generateSuperAccessor}                                                                        from "../super/generateSuperAccessor"
 import transformToStandardArgs
                                                                                                       from "./transformToStandardArgs"
@@ -49,10 +49,17 @@ function compose(layerLike, composed) {
         /* todo. make sure $ accessor can not be used once initialized */
 
         const $ = generateSuperAccessor(composed)
-        const fn = layerLike($) // adds items into initialization + other utilities
+
+        const _ = (transformer) => {
+            composed[$runOnInitialize].push(instance => {
+                instance[$dataPointer] = transformer(instance[$dataPointer])
+            })
+        }
+
+        layerLike($, _) // adds items into initialization + other utilities
 
         // fn is to be ran on initialization
-        if (fn) composed[$runOnInitialize].push(fn)
+        // if (fn) composed[$runOnInitialize].push(fn)
 
         return composed
 
