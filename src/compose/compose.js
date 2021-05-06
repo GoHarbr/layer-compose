@@ -103,10 +103,12 @@ function compose(layerLike, composed) {
                     }
 
                     let service
-                    if (name in composed) {
+                    const serviceName = "_" + name
+
+                    if (serviceName in composed) {
                         // todo. make sure getters and setters aren't overwriting services/lenses
-                        if (isService(composed[name])) {
-                            service = layerCompose(value, composed[name])
+                        if (isService(composed[serviceName])) {
+                            service = layerCompose(value, composed[serviceName])
                         } else {
                             throw new Error('Service cannot be merged with a non-service on key: ' + name)
                         }
@@ -117,7 +119,7 @@ function compose(layerLike, composed) {
                     }
                     service[$isService] = true
 
-                    return [[name, service]]
+                    return [[serviceName, service]]
                 } else if (typeof value == 'function') {
                     // if this is a function definition, compose
 

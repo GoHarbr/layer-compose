@@ -1,6 +1,5 @@
-import layerCompose, {unbox} from "../src"
-import {List}                from "./compositions/List.layers"
-import View                  from "./compositions/View"
+import layerCompose from "../src"
+import View         from "./compositions/View"
 
 describe("Post composition transformations", () => {
     test("partial", () => {
@@ -13,7 +12,7 @@ describe("Post composition transformations", () => {
             b: 2
         })
 
-        const c = C({a: 1})
+        const c = C({ a: 1 })
         expect(c.a).toBe(1)
         expect(c.b).toBe(2)
     })
@@ -22,5 +21,31 @@ describe("Post composition transformations", () => {
         const v = View()
         expect(v.dom).toBe('container-div')
         expect(v.update().dom).toBe('container-div-update')
+    })
+
+    test("partial as a service", () => {
+        const C = layerCompose({
+            Service: View
+        })
+        const c = C()
+
+        expect(c.Service.dom).toBe('container-div')
+        expect(c.Service.update().dom).toBe('container-div-update')
+    })
+
+    test("wrapped partial as a service", () => {
+        const C = layerCompose({
+                Service: layerCompose(View)
+            },
+            {
+                a: false
+            }).withDefaults({
+            a: 1
+        })
+        const c = C()
+
+        expect(c.Service.dom).toBe('container-div')
+        expect(c.Service.update().dom).toBe('container-div-update')
+        expect(c.a).toBe(1)
     })
 })

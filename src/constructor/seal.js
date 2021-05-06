@@ -17,6 +17,7 @@ export default function (composed) {
 
         if (isService(methodOrService)) {
             const service = methodOrService
+            const serviceName = name.slice(1) // services are stored with _ prefix inside compositions
 
             let s
             const get = function () {
@@ -24,7 +25,8 @@ export default function (composed) {
                 console.log('Getting a service', this)
                 return s
             }
-            Object.defineProperty(composed, name, { get })
+
+            Object.defineProperty(composed, serviceName, { get })
         } else {
 
             /*
