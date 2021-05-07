@@ -1,5 +1,9 @@
 export const IS_DEV_MODE = process.env.NODE_ENV !== 'production'
 
+if (IS_DEV_MODE) {
+    console.warn("layerCompose symbols loaded. You should see this message only once. Check your bundler (ie: webpack) configuration otherwise")
+}
+
 export const $isLc = Symbol('isLc')
 export const $lcId = Symbol('lcId')
 export const $isLcData = Symbol()

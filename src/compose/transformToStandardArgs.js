@@ -30,7 +30,10 @@ export default function (fn) {
             return fn
         } else {
             if (!argOrder.isValidFunction()) {
-                throw new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition: ' + fn.name + fn.toString())
+                const e = new Error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition: ' + fn.name)
+                console.error('Functions that do not require super ($) or data/contents (_) access should be defined outside of a composition: '
+                    + fn.name + '\n' + fn.toString() + '\n' + e.stack)
+                throw e
             }
 
             if (!argOrder.isInDefinedOrder()) {
