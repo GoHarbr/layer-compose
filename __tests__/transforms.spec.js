@@ -48,4 +48,13 @@ describe("Post composition transformations", () => {
         expect(c.Service.update().dom).toBe('container-div-update')
         expect(c.a).toBe(1)
     })
+
+
+    test("transform inner interface inside complex composition", () => {
+        const V = View.transform(_ => ({container: _.a}))
+        const v = V({a: "a"})
+
+        expect(v.dom).toBe('a')
+        expect(v.update().dom).toBe('a-update')
+    })
 })

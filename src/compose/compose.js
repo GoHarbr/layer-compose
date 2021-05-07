@@ -51,15 +51,16 @@ function compose(layerLike, composed) {
         const $ = generateSuperAccessor(composed)
 
         const _ = (transformer) => {
-            composed[$runOnInitialize].push(instance => {
+            composed[$runOnInitialize].unshift(instance => {
                 instance[$dataPointer] = transformer(instance[$dataPointer])
             })
         }
 
-        layerLike($, _) // adds items into initialization + other utilities
+        // const fn = layerLike($, _) // adds items into initialization + other utilities
+        layerLike($, _)
 
         // fn is to be ran on initialization
-        // if (fn) composed[$runOnInitialize].push(fn)
+        // if (typeof fn == "function") composed[$runOnInitialize].push(fn)
 
         return composed
 

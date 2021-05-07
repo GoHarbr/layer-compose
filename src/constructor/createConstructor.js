@@ -6,13 +6,12 @@ import {
     $isCompositionInstance,
     $isLc,
     IS_DEV_MODE
-} from "../const"
-import {unwrapProxy}                                                                               from "../proxies/utils"
-import {wrapCompositionWithProxy}                                                                  from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods
-                                                                                                   from "./wrapStandardMethods"
-import createBinder                                                                                from "./createBinder"
-import layerCompose                                                                                from '../index'
+}                                 from "../const"
+import {unwrapProxy}              from "../proxies/utils"
+import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
+import wrapStandardMethods        from "./wrapStandardMethods"
+import createBinder               from "./createBinder"
+import layerCompose               from '../index'
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
@@ -63,7 +62,7 @@ export function createConstructor(composed) {
 
     _constructor.partial = _constructor.withDefaults = function (presetValues) {
 
-        return layerCompose(($,_) => {
+        return layerCompose(($, _) => {
                 _(core => {
                     for (const k of Object.keys(presetValues)) {
                         if (core[k] == null) core[k] = presetValues[k]
@@ -75,16 +74,14 @@ export function createConstructor(composed) {
         )
     }
 
-    /** Meant for using with services and is not meant to be transferable onto extending Compositoins (use in one location only approach) */
+    /** Change the shape of the internal interface */
     _constructor.transform = function (transformer) {
-        const _this = this
-
-        const fn = (core) => {
-            const t = transformer(core)
-            return _this(t)
-        }
-
-        return Object.assign(fn, _this)
+        return layerCompose(($, _) =>
+                _(core => {
+                    return transformer(core)
+                }),
+            _constructor
+        )
     }
 
     return _constructor

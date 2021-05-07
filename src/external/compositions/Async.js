@@ -1,11 +1,7 @@
 import layerCompose from '../../index'
 
 export default layerCompose(
-    $ => $.init(),
     {
-        init($, _) {
-            _.executionQueue = []
-        },
         await($,_,opt) {
             _.executionQueue.push(opt)
             $.execute()
@@ -15,6 +11,10 @@ export default layerCompose(
             await execute(_.executionQueue)
             _.isExecuting = false
         }
+    }
+).partial(
+    {
+        executionQueue: []
     }
 )
 

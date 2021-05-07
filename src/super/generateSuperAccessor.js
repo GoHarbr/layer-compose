@@ -26,6 +26,11 @@ const superFunctionProxy = (composition) => ({ // todo composition here is proba
             v = (givenOpts) => {
             // v = () => {
                 const fn = function (instance) {
+
+                    /*
+                    * Fixme. This should be layer dependannt, though the question of how to deduplicate...
+                    * */
+
                     if (!instance[$initializedCalls].includes(prop)) {
                         instance[prop](givenOpts)
                         instance[$initializedCalls].push(prop)
