@@ -1,4 +1,4 @@
-import layerCompose from "../../index"
+import layerCompose from "../../layerCompose"
 
 export default function (transformer, ...layers) {
     return layerCompose(($, _) =>

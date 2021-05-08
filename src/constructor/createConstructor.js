@@ -11,7 +11,8 @@ import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
 import createBinder                  from "./createBinder"
-import layerCompose, {withTransform} from '../external/patterns/withTransform'
+import withTransform from '../external/patterns/withTransform'
+import layerCompose from '../layerCompose'
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
