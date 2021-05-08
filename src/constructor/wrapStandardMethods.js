@@ -5,7 +5,7 @@ export default function wrapStandardMethods(instance) {
         instance.then = (onFulfilled, onRejected) => {
             then({
                 onFulfilled,
-                onRejected
+                onRejected: onRejected || null
             });
 
             return null
