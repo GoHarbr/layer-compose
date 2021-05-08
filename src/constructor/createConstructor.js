@@ -20,7 +20,15 @@ export function createConstructor(composed) {
         const compositionInstance = Object.create(composed)
         bindWith(compositionInstance) // direct mutation
 
-        if (typeof coreObject !== "object") {
+        /* allow core objects to get reference to wrapping composition */
+        let core
+        if (typeof coreObject === "function") {
+            core = coreObject(compositionInstance)
+        } else {
+            core = coreObject
+        }
+
+        if (typeof core !== "object") {
             throw new Error('Data must be an object (not a primitive)')
         }
 
@@ -28,7 +36,7 @@ export function createConstructor(composed) {
         compositionInstance[$initializedCalls] = []
         // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
         // Object.create(coreObject || {})
-        compositionInstance[$dataPointer] = coreObject
+        compositionInstance[$dataPointer] = core
 
         // todo. think through if extensions should be kept.
         // compositionInstance[$extendSuper] = $
