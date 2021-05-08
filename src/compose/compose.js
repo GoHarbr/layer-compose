@@ -23,24 +23,38 @@ function compose(layerLike, composed) {
         const next = Object.create(composed)
         next[$runOnInitialize].push(composition[$initializer])
 
-        function composeFn(fnName) {
-            if (fnName in next) {
-                // todo. check that this is a function (and not a service)
-                if (typeof next[fnName] != "function" || typeof composition[fnName] != "function") {
-                    throw new Error('Cannot combine a non-function property and a function')
+        function composeWith(keyName) {
+            if (keyName in next) {
+                const isService = next[keyName][$isService]
+                if (isService) {
+                    if (!composition[keyName][$isService]) {
+                        throw new Error("Cannot combine a service with a non-service: " + keyName)
+                    }
+                    const combinedService = layerCompose(
+                        composition[keyName][$composition],
+                        next[keyName][$composition]
+                    )
+                    combinedService[$isService] = true
+
+                    next[keyName] = combinedService
+
+                } else {
+                    // if not a service, then it's a function
+
+                    if (typeof next[keyName] != "function" || typeof composition[keyName] != "function") {
+                        throw new Error('Cannot combine a non-function property and a function')
+                    }
+                    next[keyName] = functionComposer(next[keyName], composition[keyName])
                 }
-                next[fnName] = functionComposer(next[fnName], composition[fnName])
+
             } else {
-                next[fnName] = composition[fnName]
+                next[keyName] = composition[keyName]
             }
         }
 
         for (const fnName in composition) {
-            composeFn(fnName)
+            composeWith(fnName)
         }
-        // for (const fnSymbolName of composition[$functionSymbolIds]) {
-        //     composeFn(fnSymbolName)
-        // }
 
         return next
 
@@ -72,6 +86,7 @@ function compose(layerLike, composed) {
         for (let i = layerLike.length; i--; i >= 0) {
             const l = layerLike[i]
             composed = compose(l, composed)
+            composed[$runOnInitialize] = [...composed[$runOnInitialize], ...(l[$runOnInitialize] || [])]
         }
         return composed
     } else {
@@ -83,10 +98,6 @@ function compose(layerLike, composed) {
             Object.entries(layerLike).map(([name, value]) => {
 
                 // todo. what if not a function, but a primitive?
-
-                // const ld = isLensDefinition(value)
-                // const sd = isServiceLayer(value)
-                // if (ld || sd) {
 
                 if (typeof value === 'boolean') {
                     // if this is a shape definition
@@ -105,13 +116,13 @@ function compose(layerLike, composed) {
                     }
                 } else if (typeof value === 'object' || isLcConstructor(value)) {
 
-                    // if this is a service definition
+                    // if this is a service definition then it starts with a capital letter
                     if (name[0] !== name[0].toUpperCase()) {
                         throw new Error("Service names should start with uppercase: " + name)
                     }
 
                     let service
-                    const serviceName = "_" + name
+                    const serviceName = name[0] === "_" ? name : "_" + name
 
                     if (serviceName in composed) {
                         // todo. make sure getters and setters aren't overwriting services/lenses
@@ -151,9 +162,9 @@ function compose(layerLike, composed) {
                     } else {
                         composedEntry = fn
                         // todo, this is not always reliable
-                        composedEntry.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
+                        // composedEntry.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
 
-                        if (IS_DEV_MODE) {
+                        if (IS_DEV_MODE && Object.isExtensible(composedEntry)) {
                             composedEntry = wrapForDev(layerId, composedEntry)
                         }
                     }

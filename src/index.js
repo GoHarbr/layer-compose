@@ -16,6 +16,7 @@ import transformGetters from "./external/utils/transformGetters"
 import seal             from "./constructor/seal"
 import Async            from "./external/compositions/Async"
 import {getComposition} from "./utils"
+import withTransform    from "./external/patterns/withTransform"
 
 /*
 * todo:
@@ -60,5 +61,7 @@ export {
     cleanData,
     transformGetters,
 
-    Async
+    Async,
+
+    withTransform
 }

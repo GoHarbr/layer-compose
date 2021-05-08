@@ -10,8 +10,8 @@ import {
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
-import createBinder               from "./createBinder"
-import layerCompose               from '../index'
+import createBinder                  from "./createBinder"
+import layerCompose, {withTransform} from '../external/patterns/withTransform'
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
@@ -84,12 +84,7 @@ export function createConstructor(composed) {
 
     /** Change the shape of the internal interface */
     _constructor.transform = function (transformer) {
-        return layerCompose(($, _) =>
-                _(core => {
-                    return transformer(core)
-                }),
-            _constructor
-        )
+        return withTransform(transformer, _constructor)
     }
 
     return _constructor

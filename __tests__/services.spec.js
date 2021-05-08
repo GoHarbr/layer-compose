@@ -1,5 +1,5 @@
-import layerCompose, {unbox, IS_DEV_MODE} from "../src"
-import {List}                from "./compositions/List.layers"
+import layerCompose, {IS_DEV_MODE, unbox} from "../src"
+import {List}                             from "./compositions/List.layers"
 
 process.on('unhandledRejection', (reason) => {
     console.log('REJECTION', reason)
@@ -36,14 +36,14 @@ describe("Services", () => {
             }
             , {
                 service: [{
-                    sm($,_) {
+                    sm($, _) {
                         checkFn()
                         expect(_.key).toBe('data')
                     }
                 }]
             })
 
-        const d = {key: 'data'}
+        const d = { key: 'data' }
         const c = C(d)
         c.method()
 
@@ -81,13 +81,13 @@ describe("Services", () => {
                     {
                         serviceMethod($, _) {
                             expect(_.key).toBe('data')
-                            $.SubService.deepMethod({optKey: 'value'})
+                            $.SubService.deepMethod({ optKey: 'value' })
                         }
                     }
                 ]
             })
 
-        const d = {key: 'data'}
+        const d = { key: 'data' }
         const c = C(d)
         c.method()
 
@@ -147,23 +147,25 @@ describe("Services", () => {
 
         const C = layerCompose(
             {
-                method($, _) {}
+                method($, _) {
+                }
             },
             {
                 service: [{
                     subService: {
-                        sm($,_) {
+                        sm($, _) {
                             checkFn()
                         }
                     },
                 },
                     {
-                        sm($) {}
+                        sm($) {
+                        }
                     }
                 ]
             })
 
-        const d = {key: 'data'}
+        const d = { key: 'data' }
         const c = C(d)
         c.service.subService.sm()
 
@@ -172,40 +174,40 @@ describe("Services", () => {
 
     test.skip("services (with getters) should be chainable", () => {
         const C = layerCompose(($, _) => {
-                const {service} = $
+                const { service } = $
 
                 expect(service).toBeTruthy()
                 return {
-                    method($,_) {
+                    method($, _) {
                     }
                 }
             },
             {
                 service: [{
-                    getKey($,_) {
+                    getKey($, _) {
                         return d.key
                     }
                 }]
             })
 
-        const d = {key: 'data'}
+        const d = { key: 'data' }
         const c = C(d)
         expect(c.service.key).toEqual('data')
     })
 
     test.skip("precomposed services (with getters) should be chainable", () => {
         const service = layerCompose({
-            getKey($,_) {
+            getKey($, _) {
                 return d.key
             }
         })
 
         const C = layerCompose(($, _) => {
-                const {service} = $
+                const { service } = $
 
                 expect(service).toBeTruthy()
                 return {
-                    method($,_) {
+                    method($, _) {
                     }
                 }
             },
@@ -213,7 +215,7 @@ describe("Services", () => {
                 service
             })
 
-        const d = {key: 'data'}
+        const d = { key: 'data' }
         const c = C(d)
         expect(c.service.key).toEqual('data')
         expect(c.service.getKey()).toEqual('data')
@@ -223,8 +225,8 @@ describe("Services", () => {
         const C = layerCompose(
             {
                 method($) {
-                    $.push({item:3})
-                    $.service.push({item:4})
+                    $.push({ item: 3 })
+                    $.service.push({ item: 4 })
                 }
             },
             {
@@ -233,7 +235,7 @@ describe("Services", () => {
             List
         )
 
-        const c = C({entities: []})
+        const c = C({ entities: [] })
 
         c.method()
 
@@ -244,8 +246,8 @@ describe("Services", () => {
         expect(c.service.all.includes(4)).toBe(true)
 
 
-        c.push({item: 1})
-        c.service.push({item: 2})
+        c.push({ item: 1 })
+        c.service.push({ item: 2 })
 
         expect(c.all.includes(1)).toBe(true)
         expect(c.all.includes(2)).toBe(false)
@@ -258,8 +260,8 @@ describe("Services", () => {
         const C = layerCompose(
             {
                 method($) {
-                    $.push({item:3})
-                    $.service.push({item:4})
+                    $.push({ item: 3 })
+                    $.service.push({ item: 4 })
                 }
             },
             {
@@ -268,7 +270,7 @@ describe("Services", () => {
             List
         )
 
-        const c = C({entities: []})
+        const c = C({ entities: [] })
 
         c.method()
 
@@ -291,7 +293,7 @@ describe("Services", () => {
                     _.parent = opt + 1
                     _.shared = 'p'
                 },
-                async update($,_) {
+                async update($, _) {
                     pCheck(_.parent, _.shared)
                     IS_DEV_MODE ? expect(() => _.child).toThrow() : expect(_.child).toBe(undefined)
                 }
@@ -349,8 +351,8 @@ describe("Services", () => {
         )
 
         const C = layerCompose({
-            parent: false,
-        },
+                parent: false,
+            },
             {
                 setDataSource($, _, opt) {
                     _.parent = opt + 1
@@ -371,5 +373,41 @@ describe("Services", () => {
 
         expect(pCheck).toHaveBeenLastCalledWith(2, 'p')
         expect(cCheck).toHaveBeenLastCalledWith(2, 'c', 0)
+    })
+
+    test("Services should be composable", () => {
+        const Ctop = layerCompose({
+            Service: [
+                ($, _) => _(core => unbox(core)),
+                {
+                    getTop($, _) {
+                        return "top"
+                    },
+                    call($, _) {
+                        _.jestCheck()
+                    }
+                }],
+        })
+        const Cbottom = layerCompose({
+
+            Service: {
+                getBottom($, _) {
+                    return "bottom"
+                }
+            }
+        })
+
+        const C = layerCompose(Ctop, Cbottom)
+
+        const jestCheck = jest.fn()
+        const c = C({
+            jestCheck
+        })
+
+        expect(c.Service.top).toBe('top')
+        expect(c.Service.bottom).toBe('bottom')
+
+        c.Service.call()
+        expect(jestCheck).toHaveBeenCalledTimes(1)
     })
 })
