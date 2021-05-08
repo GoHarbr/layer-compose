@@ -20,6 +20,7 @@ export const $isInitialized = Symbol()
 export const $setData = Symbol()
 export const $functionSymbolIds = Symbol('array-of-function-symbol-ids')
 
+export const $isSealed = Symbol("isSealed")
 export const $spec = Symbol()
 export const $composition = Symbol('composition')
 

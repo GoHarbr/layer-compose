@@ -66,7 +66,8 @@ export default function seal (composed) {
 
                 /* Sealing the function */
 
-                composed[name].isSealed = true
+                composed[name].isSealed = true // todo. remove
+                composed[name][$isSealed] = true
                 // composed[name].isAsync = method.isAsync
                 Object.freeze(composed[name])
             }

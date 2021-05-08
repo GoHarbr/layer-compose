@@ -1,7 +1,7 @@
 import layerCompose                                                                                   from "../index"
-import {getLayerId, isFragmentOfLayers, isInitializer, isLcConstructor, isService, renameWithPrefix,} from "../utils"
-import {$composition, $dataPointer, $initializer, $isService, $runOnInitialize, IS_DEV_MODE}          from "../const"
-import {generateSuperAccessor}                                                                        from "../super/generateSuperAccessor"
+import {getLayerId, isFragmentOfLayers, isInitializer, isLcConstructor, isService, renameWithPrefix,}   from "../utils"
+import {$composition, $dataPointer, $initializer, $isSealed, $isService, $runOnInitialize, IS_DEV_MODE} from "../const"
+import {generateSuperAccessor}                                                                          from "../super/generateSuperAccessor"
 import transformToStandardArgs
                                                                                                       from "./transformToStandardArgs"
 import {functionComposer}                                                                             from "./functionComposer"
@@ -143,7 +143,7 @@ function compose(layerLike, composed) {
                     // if this is a function definition, compose
 
                     let composedEntry
-                    const fn = transformToStandardArgs(value)
+                    const fn = value[$isSealed] ? value : transformToStandardArgs(value)
 
                     /*
                     * Functions with names starting with get are copied, renamed and become actual getters
@@ -153,7 +153,7 @@ function compose(layerLike, composed) {
                     // const isGetter = !!renameIntoGetter(name)
                     const existing = composed[name]
                     if (existing /*&& !isGetter*/) {
-                        if (IS_DEV_MODE) {
+                        if (IS_DEV_MODE && !fn[$isSealed]) {
                             // composedFunction = functionComposer(existing, fn)
                             composedEntry = functionComposer(existing, wrapForDev(layerId, fn))
                         } else {
