@@ -13,7 +13,7 @@ declare module "layer-compose" {
 
     export = layerCompose
 
-    function layerCompose<T extends IObject[], R extends TUnionToIntersection<T[number]>>(...layers: T): layerCompose.lcConstructor<T>;
+    function layerCompose<T extends IObject[], R extends TUnionToIntersection<T[number]>>(...layers: T): layerCompose.lcConstructor<R>;
 }
 
 declare namespace layerCompose {
@@ -25,10 +25,14 @@ declare namespace layerCompose {
     export type lcSuperAccessor<T extends object> = {
         [key in keyof T]: T[key] extends (args: any) => any ? lcSuperMethod<T[key]> : T[key]
     }
-    export type lcInstance<T extends object> = {
+    export type lcInstance<T> = {
         [key in keyof T]: T[key]
     }
-    export type lcConstructor<M extends object> = (data: object | undefined) => lcInstance<M>
+    export interface lcConstructor<M> {
+        (data: object | undefined) : lcInstance<M>
+        withDefaults: (object) => lcConstructor<M>
+        transform: (object) => lcConstructor<M>
+    }
 
     /* utils */
     export function unbox(what: lcInstance<any>): object | undefined
@@ -38,6 +42,8 @@ declare namespace layerCompose {
     export function cleanData(data: object): object
 
     export function transformGetters(data: object): object
+
+    export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
 
     export const IS_DEV_MODE: boolean
 }

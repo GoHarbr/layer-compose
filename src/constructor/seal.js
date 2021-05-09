@@ -22,7 +22,6 @@ export default function seal (composed) {
             let s
             const get = function () {
                 if (!s) s = service(this)
-                console.log('Getting a service', this)
                 return s
             }
 
