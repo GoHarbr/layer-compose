@@ -1,6 +1,6 @@
 // taken from https://github.com/voodoocreation/ts-deepmerge/blob/master/src/index.ts
 
-declare module "layer-compose" {
+// declare module "layer-compose" {
     interface IObject {
         [key: string]: any;
     }
@@ -11,12 +11,12 @@ declare module "layer-compose" {
         ? I
         : never;
 
-    export = layerCompose
+    // export = layerCompose
 
-    function layerCompose<T extends IObject[], R extends TUnionToIntersection<T[number]>>(...layers: T): layerCompose.lcConstructor<R>;
-}
+    export function layerCompose<T extends IObject[], R extends TUnionToIntersection<T[number]>>(...layers: T): lcConstructor<R> // layerCompose.lcConstructor<R>;
+// }
 
-declare namespace layerCompose {
+// declare namespace layerCompose {
     export interface lcSuperMethod<F extends (args: any) => any> {
         (args: Parameters<F>): ReturnType<F>
         lockOpt: (opt: {}) => void
@@ -34,6 +34,8 @@ declare namespace layerCompose {
         transform: (object) => lcConstructor<M>
     }
 
+    export default layerCompose
+
     /* utils */
     export function unbox(what: lcInstance<any>): object | undefined
 
@@ -46,4 +48,4 @@ declare namespace layerCompose {
     export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
 
     export const IS_DEV_MODE: boolean
-}
+// }

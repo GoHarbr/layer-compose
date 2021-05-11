@@ -10,8 +10,11 @@ import layerCompose from './layerCompose'
 
 export default layerCompose
 
+
 export {unbox, getComposition} from "./utils"
 export {
+    layerCompose,
+
     IS_DEV_MODE,
 
     cleanData,
