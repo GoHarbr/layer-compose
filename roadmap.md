@@ -7,9 +7,12 @@
 - internal interface
     - private state
     - live transforms / lenses
+    - verify $ methods exist
     
 - external interface
     - private method
   
 - services
-    - make lazy
+
+- composition
+  - fix: double include of common layers/compositions

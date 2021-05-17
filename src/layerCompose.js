@@ -4,6 +4,10 @@ import seal                                                                     
 import {createConstructor}                                                               from "./constructor/createConstructor"
 
 export default function layerCompose(...layers) {
+    if (layers.some(_ => !_)) {
+        throw new Error("A layer cannot be nothing")
+    }
+    
     try {
         let composed = {
             [$runOnInitialize]: [],

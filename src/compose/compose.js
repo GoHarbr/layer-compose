@@ -66,6 +66,7 @@ function compose(layerLike, composed) {
 
         const _ = (transformer) => {
             composed[$runOnInitialize].unshift(instance => {
+                // fixme wrap the data into the proxy if DEV
                 instance[$dataPointer] = transformer(instance[$dataPointer])
             })
         }
