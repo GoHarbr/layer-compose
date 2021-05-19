@@ -7,7 +7,7 @@ export default function layerCompose(...layers) {
     if (layers.some(_ => !_)) {
         throw new Error("A layer cannot be nothing")
     }
-    
+
     try {
         let composed = {
             [$runOnInitialize]: [],
@@ -30,7 +30,7 @@ export default function layerCompose(...layers) {
 
         return constructor
     } catch (e) {
+        console.error("layerCompose encountered an error while compiling a composition:", e, e.stack)
         if (IS_DEV_MODE) throw e
-        console.error(e)
     }
 }

@@ -18,35 +18,40 @@ export function createConstructor(composed) {
     const bindWith = createBinder(composed)
 
     function constructor(coreObject = {}) {
-        const compositionInstance = Object.create(composed)
-        bindWith(compositionInstance) // direct mutation
+        try {
+            const compositionInstance = Object.create(composed)
+            bindWith(compositionInstance) // direct mutation
 
-        /* allow core objects to get reference to wrapping composition */
-        let core
-        if (typeof coreObject === "function") {
-            core = coreObject(compositionInstance)
-        } else {
-            core = coreObject
+            /* allow core objects to get reference to wrapping composition */
+            let core
+            if (typeof coreObject === "function") {
+                core = coreObject(compositionInstance)
+            } else {
+                core = coreObject
+            }
+
+            if (typeof core !== "object") {
+                throw new Error('Data must be an object (not a primitive)')
+            }
+
+            compositionInstance[$isCompositionInstance] = true
+            compositionInstance[$initializedCalls] = []
+            // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
+            // Object.create(coreObject || {})
+            compositionInstance[$dataPointer] = core
+
+            // todo. think through if extensions should be kept.
+            // compositionInstance[$extendSuper] = $
+
+            wrapStandardMethods(compositionInstance) // for methods like .then
+
+            composed[$initializer](compositionInstance)
+
+            return compositionInstance
+        } catch (e) {
+            console.error("layerCompose encountered an error while compiling a composition:", e, e.stack)
+            if (IS_DEV_MODE) throw e
         }
-
-        if (typeof core !== "object") {
-            throw new Error('Data must be an object (not a primitive)')
-        }
-
-        compositionInstance[$isCompositionInstance] = true
-        compositionInstance[$initializedCalls] = []
-        // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
-        // Object.create(coreObject || {})
-        compositionInstance[$dataPointer] = core
-
-        // todo. think through if extensions should be kept.
-        // compositionInstance[$extendSuper] = $
-
-        wrapStandardMethods(compositionInstance) // for methods like .then
-
-        composed[$initializer](compositionInstance)
-
-        return compositionInstance
     }
 
     let _constructor
