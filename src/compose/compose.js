@@ -5,7 +5,7 @@ import {
     $dataPointer,
     $isSealed,
     $isService,
-    $layerIds,
+    $layers,
     $runOnInitialize,
     IS_DEV_MODE
 } from "../const"
@@ -20,6 +20,15 @@ import {getDataProxy}                                                           
 *  add import() ability from strings
 * */
 
+function processFragmentOfLayers(layerLike, composed) {
+    for (let i = layerLike.length; i--; i >= 0) {
+        const l = layerLike[i]
+        composed = compose(l, composed)
+        composed[$runOnInitialize] = [...composed[$runOnInitialize], ...(l[$runOnInitialize] || [])]
+    }
+    return composed
+}
+
 // noinspection FunctionWithMultipleLoopsJS,OverlyComplexFunctionJS,FunctionTooLongJS
 function compose(layerLike, composed) {
     /* making sure that composeInto was created properly*/
@@ -27,17 +36,18 @@ function compose(layerLike, composed) {
 
     const layerId = getLayerId(layerLike) // can also return compositionId
 
-    if (composed[$layerIds].has(layerId)) {
+    if (composed[$layers].has(layerId)) {
         console.debug("Layer is already present in the composition", Object.keys(layerLike))
         return composed
     } else {
-        composed[$layerIds].add(layerId)
+        composed[$layers].set(layerId, layerLike)
     }
 
     if (isLcConstructor(layerLike)) {
 
-        const nextLayer = layerLike[$composition]
-        return compose(nextLayer, composed)
+        const _l = layerLike[$composition][$layers].values()
+        const layers = Array.from(_l)
+        return processFragmentOfLayers(layers, composed)
 
 
     } else if (isInitializer(layerLike)) {
@@ -66,12 +76,7 @@ function compose(layerLike, composed) {
         * The style of spec definition is
         * bottom layers (base mixins; called first) are defined after top layers (extending mixins; called last)
         * */
-        for (let i = layerLike.length; i--; i >= 0) {
-            const l = layerLike[i]
-            composed = compose(l, composed)
-            composed[$runOnInitialize] = [...composed[$runOnInitialize], ...(l[$runOnInitialize] || [])]
-        }
-        return composed
+        return processFragmentOfLayers(layerLike, composed)
     } else {
 
         // todo. make sure getters and setters aren't overwriting services
@@ -159,7 +164,8 @@ function compose(layerLike, composed) {
             }).flat().filter(m => !!m)
         )
 
-        return Object.assign(Object.create(composed), next)
+        // return Object.assign(Object.create(composed), next)
+        return Object.assign(composed, next)
     }
 }
 

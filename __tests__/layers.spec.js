@@ -322,4 +322,38 @@ describe("Layering", () => {
         expect(unwrapProxy(r2)).toEqual(expected)
         c2.check()
     })
+
+    test("Encapsulated layer provides its methods to the outer interface", () => {
+            const checkFn = jest.fn()
+
+            const Inner = layerCompose({
+                inner($, _) {
+                    console.log('Shared called')
+                    checkFn()
+                }
+            })
+
+            const C1 = layerCompose({
+                    first($,_,opt) {
+                        console.log('first')
+                    },
+                },
+                Inner
+
+            )
+
+            const C2 = layerCompose({
+                    second($,_,opt) {
+                        console.log('second')
+                    },
+                },
+
+                C1
+            )
+
+            const i = C2()
+            i.inner()
+
+            expect(checkFn).toHaveBeenCalledTimes(1)
+    })
 })

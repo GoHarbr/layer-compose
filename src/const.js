@@ -6,7 +6,6 @@ if (IS_DEV_MODE) {
 
 export const $isLc = Symbol('isLc')
 export const $compositionId = Symbol('compositionId')
-export const $layerIds = Symbol("layerIds")
 export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')
@@ -21,14 +20,15 @@ export const $setData = Symbol()
 export const $functionSymbolIds = Symbol('array-of-function-symbol-ids')
 
 export const $isSealed = Symbol("isSealed")
-export const $spec = Symbol()
+// export const $spec = Symbol()
 export const $composition = Symbol('composition')
+export const $layers = Symbol("layers")
 
 export const $dataProxyMap = Symbol('dataProxyMap')
 export const $borrowedKeys = Symbol('borrowedKeys')
 export const $writableKeys = Symbol('writableKeys')
 
-export const $layerId = Symbol()
+export const $layerId = Symbol("layerId")
 export const $$ = Symbol('$$')
 
 // export const $isSetter = Symbol("isSetter")
