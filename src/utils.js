@@ -1,6 +1,6 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$composition, $dataPointer, $isLc, $isService, $layerId} from "./const"
-import {unwrapProxy}                                             from "./proxies/utils"
+import {$composition, $compositionId, $dataPointer, $isLc, $isService, $layerId} from "./const"
+import {unwrapProxy}                                                             from "./proxies/utils"
 
 /* isType checks // todo move */
 
@@ -94,7 +94,7 @@ export function selectExistingServices(composition) {
 }
 
 export function getLayerId(layer) {
-    return layer[$layerId] || (layer[$layerId] = Symbol())
+    return layer[$layerId] || layer[$compositionId] || (layer[$layerId] = Symbol())
 }
 
 /* Function modification */

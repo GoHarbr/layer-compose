@@ -9,7 +9,7 @@ describe("Reusing compositonis across instances", () => {
     test("Two instances of the same composition should not share data", () => {
         const keys = []
         const C = layerCompose({
-            method(_) {
+            method($,_) {
                 keys.push(_.key)
             }
         })
@@ -64,7 +64,7 @@ describe("Reusing compositonis across instances", () => {
     test("Extend composition and lock `opt`", () => {
         const checkFn = jest.fn()
         const C1 = layerCompose({
-            m(_, opt) {
+            m($,_, opt) {
                 checkFn(opt.key)
             }
         })
@@ -86,7 +86,7 @@ describe("Reusing compositonis across instances", () => {
     test("Extend composition and use a dependency", () => {
         const checkFn = jest.fn()
         const C1 = layerCompose({
-            m(_, opt) {
+            getKey($, _, opt) {
                 return _.key
             }
         })
@@ -94,7 +94,7 @@ describe("Reusing compositonis across instances", () => {
         const C2 = layerCompose(
             {
                 check($, _) {
-                    checkFn(_.key, $.m())
+                    checkFn(_.key, $.key)
                 }
             },
             C1
@@ -114,5 +114,75 @@ describe("Reusing compositonis across instances", () => {
 
         i2.check()
         expect(checkFn).toHaveBeenCalledWith(2, 2)
+    })
+
+    test("Skip including already incorporated composition (when on top)", () => {
+        const checkFn = jest.fn()
+
+        const Shared = layerCompose({
+            shared($,_) {
+                console.log('Shared called')
+                checkFn()
+            }
+        })
+
+        const C1 = layerCompose({
+            first($,_,opt) {
+                console.log('first')
+            },
+        },
+            Shared
+
+        )
+
+        const C2 = layerCompose({
+            second($,_,opt) {
+                console.log('second')
+            },
+        },
+
+            C1,
+            Shared,
+        )
+
+        const i = C2()
+            i.shared()
+
+        expect(checkFn).toHaveBeenCalledTimes(1)
+    })
+
+    test("Skip including already incorporated composition (when on bottom)", () => {
+        const checkFn = jest.fn()
+
+        const Shared = layerCompose({
+            shared($,_) {
+                console.log('Shared called')
+                checkFn()
+            }
+        })
+
+        const C1 = layerCompose({
+            first($,_,opt) {
+                console.log('first')
+            },
+        },
+            Shared
+
+        )
+
+        const C2 = layerCompose({
+            second($,_,opt) {
+                console.log('second')
+            },
+        },
+
+            Shared,
+            C1
+        )
+
+        const i = C2()
+            i.shared()
+
+        expect(checkFn).toHaveBeenCalledTimes(1)
     })
 })

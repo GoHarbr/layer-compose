@@ -5,8 +5,8 @@ if (IS_DEV_MODE) {
 }
 
 export const $isLc = Symbol('isLc')
-export const $lcId = Symbol('lcId')
-export const $isLcData = Symbol()
+export const $compositionId = Symbol('compositionId')
+export const $layerIds = Symbol("layerIds")
 export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')

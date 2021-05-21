@@ -1,5 +1,10 @@
 import {combineResult} from "./combineResult"
-import {$$}            from "../const"
+
+function wrapCall(fn) {
+    return Object.isExtensible(fn) ?
+        ($, _, opt, compressionMethod) => fn($, _, opt, compressionMethod)
+        : ($, _, opt, compressionMethod) => fn.call($, opt)
+}
 
 export function functionComposer(existing, func) {
 
@@ -7,34 +12,16 @@ export function functionComposer(existing, func) {
     // todo. deprecated
     const isAsync = false
 
-    let composed
-    if (Object.isExtensible(existing)) {
-         composed = function ($, _, opt, compressionMethod) {
-            const acc = existing($, _, opt, compressionMethod)
-            const next = func($, _, opt)
+    const existingCall = wrapCall(existing)
+    const nextCall = wrapCall(func)
 
-            return combineResult(acc, next, isAsync, compressionMethod)
-        }
-    } else {
-        if (Object.isExtensible(func)) {
-            composed = function ($, _, opt, compressionMethod) {
-                // const acc = existing.call($[$$], opt)
-                const acc = existing.call($, opt)
-                const next = func($, _, opt)
+    const composed = function ($, _, opt, compressionMethod) {
+        const acc = existingCall($, _, opt, compressionMethod)
+        const next = nextCall($, _, opt)
 
-                return combineResult(acc, next, isAsync, compressionMethod)
-            }
-        } else {
-            composed = function ($, _, opt, compressionMethod) {
-                const acc = existing.call($, opt)
-                const next = func.call($, opt)
-                // const acc = existing.call($[$$], opt)
-                //                 const next = func.call($[$$], opt)
-
-                return combineResult(acc, next, isAsync, compressionMethod)
-            }
-        }
+        return combineResult(acc, next, isAsync, compressionMethod)
     }
+
     composed.isAsync = isAsync
     return composed
 }

@@ -16,3 +16,4 @@
 
 - composition
   - fix: double include of common layers/compositions
+  - casting (when wrapping over itself)

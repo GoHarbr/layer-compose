@@ -1,5 +1,5 @@
-import {$dataPointer, $extendSuper, $runOnInitialize, $spec, $writableKeys, IS_DEV_MODE} from "./const"
-import compose                                                                           from "./compose/compose"
+import {$dataPointer, $extendSuper, $layerIds, $runOnInitialize, $spec, $writableKeys, IS_DEV_MODE} from "./const"
+import compose                                                                                      from "./compose/compose"
 import seal                                                                              from "./constructor/seal"
 import {createConstructor}                                                               from "./constructor/createConstructor"
 
@@ -10,6 +10,7 @@ export default function layerCompose(...layers) {
 
     try {
         let composed = {
+            [$layerIds]: new Set(),
             [$runOnInitialize]: [],
             [$extendSuper]: undefined,
             [$dataPointer]: undefined,

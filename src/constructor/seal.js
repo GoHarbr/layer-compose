@@ -1,6 +1,6 @@
-import {isPromise, isService, renameIntoGetter, renameIntoSetter}          from "../utils"
-import {$dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
-import buildInitializer                                                    from "./buildInitializer"
+import {isPromise, isService, renameIntoGetter, renameIntoSetter}                          from "../utils"
+import {$compositionId, $dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
+import buildInitializer                                                                    from "./buildInitializer"
 import {unwrapProxy}                                              from "../proxies/utils"
 
 let _compositionId = 0 // for debug purposes
@@ -9,6 +9,8 @@ let _compositionId = 0 // for debug purposes
 export default function seal (composed) {
     _compositionId++
     const compositionId = Symbol(_compositionId + '::composition-id')
+
+    composed[$compositionId] = compositionId
 
     for (const name in composed) {
         const methodOrService = composed[name]

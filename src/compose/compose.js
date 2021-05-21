@@ -1,6 +1,14 @@
 import layerCompose                                                                                   from "../index"
 import {getLayerId, isFragmentOfLayers, isInitializer, isLcConstructor, isService, renameWithPrefix,}   from "../utils"
-import {$composition, $dataPointer, $initializer, $isSealed, $isService, $runOnInitialize, IS_DEV_MODE} from "../const"
+import {
+    $composition,
+    $dataPointer,
+    $isSealed,
+    $isService,
+    $layerIds,
+    $runOnInitialize,
+    IS_DEV_MODE
+} from "../const"
 import {generateSuperAccessor}                                                                          from "../super/generateSuperAccessor"
 import transformToStandardArgs
                                                                                                       from "./transformToStandardArgs"
@@ -17,46 +25,20 @@ function compose(layerLike, composed) {
     /* making sure that composeInto was created properly*/
     if (!composed[$runOnInitialize] || !Array.isArray(composed[$runOnInitialize])) throw new Error()
 
+    const layerId = getLayerId(layerLike) // can also return compositionId
+
+    if (composed[$layerIds].has(layerId)) {
+        console.debug("Layer is already present in the composition", Object.keys(layerLike))
+        return composed
+    } else {
+        composed[$layerIds].add(layerId)
+    }
+
     if (isLcConstructor(layerLike)) {
 
-        const composition = layerLike[$composition]
-        const next = Object.create(composed)
-        next[$runOnInitialize].push(composition[$initializer])
+        const nextLayer = layerLike[$composition]
+        return compose(nextLayer, composed)
 
-        function composeWith(keyName) {
-            if (keyName in next) {
-                const isService = next[keyName][$isService]
-                if (isService) {
-                    if (!composition[keyName][$isService]) {
-                        throw new Error("Cannot combine a service with a non-service: " + keyName)
-                    }
-                    const combinedService = layerCompose(
-                        composition[keyName][$composition],
-                        next[keyName][$composition]
-                    )
-                    combinedService[$isService] = true
-
-                    next[keyName] = combinedService
-
-                } else {
-                    // if not a service, then it's a function
-
-                    if (typeof next[keyName] != "function" || typeof composition[keyName] != "function") {
-                        throw new Error('Cannot combine a non-function property and a function')
-                    }
-                    next[keyName] = functionComposer(next[keyName], composition[keyName])
-                }
-
-            } else {
-                next[keyName] = composition[keyName]
-            }
-        }
-
-        for (const fnName in composition) {
-            composeWith(fnName)
-        }
-
-        return next
 
     } else if (isInitializer(layerLike)) {
         /* todo. make sure that initializers don't depend on other services having been initialized */
@@ -91,7 +73,6 @@ function compose(layerLike, composed) {
         }
         return composed
     } else {
-        const layerId = getLayerId(layerLike)
 
         // todo. make sure getters and setters aren't overwriting services
 
