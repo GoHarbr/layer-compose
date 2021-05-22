@@ -4,23 +4,28 @@ import {
     $composition,
     $dataPointer,
     $isSealed,
-    $isService,
+    $isService, $layerOrder,
     $layers,
     $runOnInitialize,
     IS_DEV_MODE
-} from "../const"
-import {generateSuperAccessor}                                                                          from "../super/generateSuperAccessor"
+}                                 from "../const"
+import {generateSuperAccessor}    from "../super/generateSuperAccessor"
 import transformToStandardArgs
-                                                                                                      from "./transformToStandardArgs"
-import {functionComposer}                                                                             from "./functionComposer"
-import {getDataProxy}                                                                                 from "../data/getDataProxy"
+                                  from "./transformToStandardArgs"
+import {functionComposer}         from "./functionComposer"
+import {getDataProxy}             from "../data/getDataProxy"
+import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 
 /*
 * todo.
 *  add import() ability from strings
 * */
 
-function processFragmentOfLayers(layerLike, composed) {
+function processFragmentOfLayers(layerLike, composed, inGivenOrder = false) {
+    if (inGivenOrder) {
+        layerLike.reverse()
+    }
+
     for (let i = layerLike.length; i--; i >= 0) {
         const l = layerLike[i]
         composed = compose(l, composed)
@@ -37,17 +42,23 @@ function compose(layerLike, composed) {
     const layerId = getLayerId(layerLike) // can also return compositionId
 
     if (composed[$layers].has(layerId)) {
-        console.debug("Layer is already present in the composition", Object.keys(layerLike))
+        // console.debug("Layer is already present in the composition", Object.keys(layerLike))
         return composed
     } else {
         composed[$layers].set(layerId, layerLike)
+        composed[$layerOrder].push(layerId)
     }
 
     if (isLcConstructor(layerLike)) {
 
-        const _l = layerLike[$composition][$layers].values()
-        const layers = Array.from(_l)
-        return processFragmentOfLayers(layers, composed)
+        const layerDirectory = layerLike[$composition][$layers]
+        const layers = layerLike[$composition][$layerOrder].map(lId => layerDirectory.get(lId))
+
+        if (IS_DEV_MODE && layers.some(_ => !_)) {
+            throw new Error("A layer was not found") // temporary sanity check
+        }
+
+        return processFragmentOfLayers(layers, composed, /* in given order */ true)
 
 
     } else if (isInitializer(layerLike)) {
@@ -59,7 +70,7 @@ function compose(layerLike, composed) {
         const _ = (transformer) => {
             composed[$runOnInitialize].unshift(instance => {
                 // fixme wrap the data into the proxy if DEV
-                instance[$dataPointer] = transformer(instance[$dataPointer])
+                instance[$dataPointer] = transformer(instance[$dataPointer]) || instance[$dataPointer]
             })
         }
 
@@ -172,8 +183,12 @@ function compose(layerLike, composed) {
 function wrapForDev(layerId, fn) {
     const wrapped = function ($, _, opt) {
         const __ = getDataProxy(layerId, _)
+        const $$ = wrapCompositionWithProxy($)
+        // const _opt = wrapCompositionWithProxy(opt)
+
         // todo. wrap opt in proxy as well
-        return fn($, __, opt)
+        // return fn($$, __, _opt)
+        return fn($$, __, opt)
     }
     wrapped.isAsync = fn.isAsync
     return wrapped

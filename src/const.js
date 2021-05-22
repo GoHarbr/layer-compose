@@ -23,6 +23,7 @@ export const $isSealed = Symbol("isSealed")
 // export const $spec = Symbol()
 export const $composition = Symbol('composition')
 export const $layers = Symbol("layers")
+export const $layerOrder = Symbol("layerOrder")
 
 export const $dataProxyMap = Symbol('dataProxyMap')
 export const $borrowedKeys = Symbol('borrowedKeys')

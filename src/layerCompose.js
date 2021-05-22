@@ -1,5 +1,5 @@
-import {$dataPointer, $extendSuper, $layers, $runOnInitialize, $writableKeys, IS_DEV_MODE} from "./const"
-import compose                                                                                    from "./compose/compose"
+import {$dataPointer, $extendSuper, $layerOrder, $layers, $runOnInitialize, $writableKeys, IS_DEV_MODE} from "./const"
+import compose                                                                                          from "./compose/compose"
 import seal                                                                              from "./constructor/seal"
 import {createConstructor}                                                               from "./constructor/createConstructor"
 
@@ -11,6 +11,7 @@ export default function layerCompose(...layers) {
     try {
         let composed = {
             [$layers]: new Map(),
+            [$layerOrder]: [],
             [$runOnInitialize]: [],
             [$extendSuper]: undefined,
             [$dataPointer]: undefined,
