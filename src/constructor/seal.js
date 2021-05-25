@@ -1,6 +1,6 @@
-import {isPromise, isService, renameIntoGetter, renameIntoSetter}                          from "../utils"
-import {$compositionId, $dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
-import buildInitializer                                                                    from "./buildInitializer"
+import {isPromise, isService, renameIntoGetter, renameIntoSetter}                                        from "../utils"
+import {$composition, $compositionId, $dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
+import buildInitializer                                                                                  from "./buildInitializer"
 import {unwrapProxy}                                              from "../proxies/utils"
 
 let _compositionId = 0 // for debug purposes
@@ -21,9 +21,12 @@ export default function seal (composed) {
             const serviceName = name.slice(1) // services are stored with _ prefix inside compositions
             const service = methodOrService
 
-            let s
+            const storeUnder = service[$composition][$compositionId]
             const get = function () {
-                if (!s) s = service(this)
+                let s = this[storeUnder]
+                if (!s) {
+                    this[storeUnder] = s = service(this)
+                }
                 return s
             }
 

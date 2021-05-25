@@ -15,5 +15,6 @@
 - services
 
 - composition
-  - fix: double include of common layers/compositions
+  ---- fix: double include of common layers/compositions
   - casting (when wrapping over itself)
+  - test: services should not be reused between instances 
