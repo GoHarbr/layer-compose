@@ -6,14 +6,20 @@ export default layerCompose(
             _.executionQueue.push(opt)
             $.execute()
         },
-        async execute($, _) {
+        execute($, _) {
             if (!_.isExecuting) {
 
                 _.isExecuting = true
-                _.executionQueuePromise = execute(_.executionQueue)
+                _.executionQueuePromise = new Promise((onFulfilled, onRejected) => {
+                    const done = (e) => {
+                        _.isExecuting = false
 
-                await _.executionQueuePromise
-                _.isExecuting = false
+                        // todo. should the queue be cleared up in case of a rejection?
+
+                        !e && onFulfilled() || onRejected(e)
+                    }
+                    execute(_.executionQueue, done)
+                })
             }
         },
 
@@ -29,13 +35,16 @@ export default layerCompose(
     }
 )
 
-async function execute(queue) {
-    while(queue.length) {
+function execute(queue, done) {
+    if(queue.length) {
         const what = queue.shift()
         if (typeof what === "function") {
-            await what()
+            const p = what()
+            p.then(() => execute(queue, done), done)
         } else {
-            await what
+            what.then(() => execute(queue, done), done)
         }
+    } else {
+        done()
     }
 }
