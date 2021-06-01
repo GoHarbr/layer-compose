@@ -4,9 +4,9 @@ export default layerCompose(
     {
         await($,_,opt) {
             _.executionQueue.push(opt)
-            $.execute()
+            $._executeAllAwaitables()
         },
-        execute($, _) {
+        _executeAllAwaitables($, _) {
             if (!_.isExecuting) {
 
                 _.isExecuting = true
@@ -21,6 +21,11 @@ export default layerCompose(
                     execute(_.executionQueue, done)
                 })
             }
+        },
+        mustBeAwaited($,_) {
+            if (_.executionQueuePromise.state !== "fulfilled") {
+                throw new Error("This function must execute after all other promises have been resolved")
+             }
         },
 
         then($,_,opt) {
@@ -40,7 +45,11 @@ function execute(queue, done) {
         const what = queue.shift()
         if (typeof what === "function") {
             const p = what()
-            p.then(() => execute(queue, done), done)
+            if ("then" in p && typeof p.then == "function") {
+                p.then(() => execute(queue, done), done)
+            } else {
+                execute(queue, done)
+            }
         } else {
             what.then(() => execute(queue, done), done)
         }

@@ -1,12 +1,12 @@
 import {
-    $composition,
+    $composition, $compositionId,
     $dataPointer,
     $initializedCalls,
     $initializer,
     $isCompositionInstance,
-    $isLc,
+    $isLc, $layers,
     IS_DEV_MODE
-}                                 from "../const"
+} from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
@@ -91,6 +91,11 @@ export function createConstructor(composed) {
     /** Change the shape of the internal interface */
     _constructor.transform = function (transformer) {
         return withTransform(transformer, _constructor)
+    }
+
+    _constructor.is = function (what) {
+        const is = what[$composition] && what[$composition][$layers].includes(composed[$compositionId])
+        return is || false
     }
 
     return _constructor

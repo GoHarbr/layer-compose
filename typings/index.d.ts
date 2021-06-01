@@ -30,13 +30,16 @@
     }
     export interface lcConstructor<M> {
         (data: object | undefined) : lcInstance<M>
-        withDefaults: (object) => lcConstructor<M>
-        transform: (object) => lcConstructor<M>
+        withDefaults: (object: object) => lcConstructor<M>
+        transform: (object: object) => lcConstructor<M>
+        is: (c: lcConstructor<any>) => boolean
     }
 
     export default layerCompose
 
     /* utils */
+	export const Async: lcConstructor<any>
+
     export function unbox(what: lcInstance<any>): object | undefined
 
     export function getComposition(what: lcConstructor<any>): object | undefined
