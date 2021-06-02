@@ -1,6 +1,7 @@
 {
   "name": "layer-compose",
-  "version": "0.3.3",
+  "version": "0.3.4",
+  "private": true,
   "main": "lib/index.js",
   "types": "typings/index.d.ts",
   "description": "",
@@ -10,7 +11,8 @@
   "scripts": {
     "test": "jest",
     "package": "tar --exclude='.[^/]*' --exclude='layerCompose.tar.gz' --exclude='node_modules' -czvf layerCompose.tar.gz ./",
-    "build": "babel src -d lib && yarn run package && if ! [ -x \"command -v yalc\" ]; then yalc push; fi "
+    "build": "babel src -d lib && yarn run package && if ! [ -x \"command -v yalc\" ]; then yalc push --private; fi ",
+    "watch": "nodemon -i lib -x 'yarn build'"
   },
   "devDependencies": {
     "@babel/cli": "^7.12.10",

@@ -48,7 +48,7 @@ export default function seal (composed) {
 
                         const _ = unwrapProxy(this[$dataPointer]) // todo. is this necessary
                         // const r = method(this[compositionId], _, opt || {})
-                        const r = method(this, _, opt || {})
+                        const r = method(this, _, optOrEmpty(opt))
                         // method.compressionMethod)
 
                         if (isPromise(r) && method.isAsync) {
@@ -62,7 +62,7 @@ export default function seal (composed) {
                     }
                 } else {
                     composed[name] = function (opt) {
-                        return method(this, this[$dataPointer], opt || {})
+                        return method(this, this[$dataPointer], optOrEmpty(opt))
                         // return method(this[compositionId], this[$dataPointer], opt || {})
                         // method.compressionMethod)
                     }
@@ -108,4 +108,8 @@ export default function seal (composed) {
     composed[$initializer] = buildInitializer(composed)
 
     return composed
+}
+
+function optOrEmpty(what) {
+    return what == null ? {} : what
 }

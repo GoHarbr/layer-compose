@@ -1,18 +1,20 @@
 import {
-    $composition, $compositionId,
+    $composition,
+    $compositionId,
     $dataPointer,
     $initializedCalls,
     $initializer,
     $isCompositionInstance,
-    $isLc, $layers,
+    $isLc,
+    $layers,
     IS_DEV_MODE
-} from "../const"
+}                                 from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
-import createBinder                  from "./createBinder"
-import withTransform from '../external/patterns/withTransform'
-import layerCompose from '../layerCompose'
+import createBinder               from "./createBinder"
+import withTransform              from '../external/patterns/withTransform'
+import layerCompose               from '../layerCompose'
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
@@ -94,8 +96,13 @@ export function createConstructor(composed) {
     }
 
     _constructor.is = function (what) {
-        const is = what[$composition] && what[$composition][$layers].includes(composed[$compositionId])
-        return is || false
+        let layers
+        if (what[$composition]) {
+            layers = what[$composition][$layers]
+        } else if (what[$layers]) {
+            layers = what[$layers]
+        }
+        return layers && layers.has(composed[$compositionId])
     }
 
     return _constructor

@@ -2,7 +2,7 @@ import layerCompose from '../../layerCompose'
 
 export default layerCompose(
     {
-        await($,_,opt) {
+        await($, _, opt) {
             _.executionQueue.push(opt)
             $._executeAllAwaitables()
         },
@@ -22,14 +22,19 @@ export default layerCompose(
                 })
             }
         },
-        mustBeAwaited($,_) {
-            if (_.executionQueuePromise.state !== "fulfilled") {
+        mustBeAwaited($, _) {
+            if (_.isExecuting) {
                 throw new Error("This function must execute after all other promises have been resolved")
-             }
+            }
         },
 
-        then($,_,opt) {
-            _.executionQueuePromise.then(opt.onFulfilled, opt.onRejected)
+        then($, _, opt) {
+
+            if (typeof opt == "function") {
+                _.executionQueuePromise.then(opt)
+            } else {
+                _.executionQueuePromise.then(opt.onFulfilled, opt.onRejected)
+            }
         },
     }
 ).partial(
@@ -41,14 +46,21 @@ export default layerCompose(
 )
 
 function execute(queue, done) {
-    if(queue.length) {
+    if (queue.length) {
         const what = queue.shift()
+
         if (typeof what === "function") {
-            const p = what()
-            if ("then" in p && typeof p.then == "function") {
-                p.then(() => execute(queue, done), done)
-            } else {
-                execute(queue, done)
+            try {
+
+                const p = what()
+
+                if (p != null && "then" in p && typeof p.then == "function") {
+                    p.then(() => execute(queue, done), done)
+                } else {
+                    execute(queue, done)
+                }
+            } catch (e) {
+                done(e)
             }
         } else {
             what.then(() => execute(queue, done), done)
