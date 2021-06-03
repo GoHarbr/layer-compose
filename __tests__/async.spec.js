@@ -1,14 +1,83 @@
 import layerCompose from "../src"
 
 describe('Async', () => {
-    test('can await a function (that returns)', async () => {
+    test('can await a getter', async () => {
+        const RC = layerCompose({
+            inner: true
+        })
         const c = layerCompose({
-            async func($) {
+            async getObject($) {
                 return {res: true}
+            },
+            async getValue($,_) {
+                return "string"
+            },
+            async getComposition($,_) {
+                return RC({inner: true})
             }
         })()
 
-        expect((await c.func()).res).toBe(true)
+        expect((await c.value)).toBe("string")
+        expect((await c.object).res).toBe(true)
+        expect((await c.composition).inner).toBe(true)
+    })
+
+    test('can await a getter that uses another', async () => {
+        const c = layerCompose({
+            async getObject($) {
+                return {res: true}
+            },
+            async getValue($,_) {
+                const r = await $.object
+                return r.res
+            },
+        })()
+
+        expect((await c.value)).toBe(true)
+    })
+
+    test('can await a getter in a service', async () => {
+        const Service = layerCompose({
+            async getObject($) {
+                return {res: "service"}
+            },
+            async getValue($,_) {
+                const r = await $.object
+                return r.res
+            },
+        })
+
+        const C = layerCompose({
+            Service
+        })
+
+        const s = C().Service
+
+        expect((await s.value)).toBe("service")
+    })
+
+    test('can await a getter in a service that returns a composition', async () => {
+        const RC = layerCompose({
+            inner: true
+        })
+
+        const Service = layerCompose({
+            async getObject($) {
+                return {res: "service"}
+            },
+            async getValue($,_) {
+                const r = await $.object
+                return RC({inner: false})
+            },
+        })
+
+        const C = layerCompose({
+            Service
+        })
+
+        const s = C().Service
+
+        expect((await s.value).inner).toBe(false)
     })
 
     test('can await a multi-layer function (that returns)', async () => {

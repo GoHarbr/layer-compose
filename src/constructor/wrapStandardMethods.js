@@ -4,7 +4,12 @@ export default function wrapStandardMethods(instance) {
         const then = instance.then
         instance.then = (onFulfilled, onRejected) => {
             then({
-                onFulfilled,
+                onFulfilled: () => {
+                    const restoreTo = instance.then
+                    instance.then = null
+                    onFulfilled(instance);
+                    instance.then = restoreTo
+                },
                 onRejected: onRejected || null
             });
 

@@ -1,6 +1,6 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$composition, $compositionId, $dataPointer, $isLc, $isService, $layerId} from "./const"
-import {unwrapProxy}                                                             from "./proxies/utils"
+import {$composition, $compositionId, $dataPointer, $isCompositionInstance, $isLc, $isService, $layerId} from "./const"
+import {unwrapProxy}                                                                                     from "./proxies/utils"
 
 /* isType checks // todo move */
 
@@ -62,7 +62,7 @@ export function isFunction(what) {
 }
 
 export function isPromise(what) {
-    return what && typeof what == "object" && ("then" in what) && isFunction(what.then)
+    return what && typeof what == "object" && ("then" in what) && isFunction(what.then) && !what[$isCompositionInstance]
 }
 
 /* Constructor related */

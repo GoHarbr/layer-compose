@@ -35,7 +35,7 @@
         is: (c: lcConstructor<any>) => boolean
     }
 
-    export default layerCompose
+    // export default layerCompose
 
     /* utils */
 	export const Async: lcConstructor<any>
