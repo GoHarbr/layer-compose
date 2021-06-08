@@ -410,4 +410,33 @@ describe("Services", () => {
         c.Service.call()
         expect(jestCheck).toHaveBeenCalledTimes(1)
     })
+
+    test("Services could be circular (P-C-P)", () => {
+        const parentCheck = jest.fn()
+        const childCheck = jest.fn()
+
+        const Child = layerCompose({
+            child($,_) {
+                childCheck()
+            }
+        },
+            $ => $(_ => {
+                return {Parent: _}
+            })
+        )
+
+        const Parent = layerCompose({
+            parent($,_) {
+                parentCheck()
+            },
+        }, {
+            Child
+        })
+
+        const p = Parent()
+        p.Child.Parent.parent()
+
+        expect(parentCheck).toHaveBeenCalled()
+        expect(childCheck).not.toHaveBeenCalled()
+    })
 })

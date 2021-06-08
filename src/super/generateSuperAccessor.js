@@ -1,23 +1,33 @@
-import {isFunction}                                       from "../utils"
-import {$initializedCalls, $runOnInitialize, IS_DEV_MODE} from "../const"
-import {definedGetProxy}                                  from "../proxies/proxies"
+import {isFunction}                                                     from "../utils"
+import {$dataPointer, $initializedCalls, $runOnInitialize, IS_DEV_MODE} from "../const"
+import {definedGetProxy}                                                from "../proxies/proxies"
 import {TaggedProxy}                   from "../proxies/utils"
 import {noSetAccessProxy}              from "../proxies/noSetAccessProxy"
 import generateCaller                  from "../compose/generateCaller"
 
 export function generateSuperAccessor(composedUpTo) {
-    /*todo
-    *  add ability to curry a function and then use it in another
-    *   override a method if the same one is present in this layer
-    * */
+    const serviceGenerator = (serviceRuntimeGenerator) => {
+        const fn = function (instance) {
+            const additions = serviceRuntimeGenerator(instance[$dataPointer])
+            if (additions) {
+                if (typeof additions == 'object') {
+                    Object.assign(instance, additions)
+                } else {
+                    throw new Error("Runtime instance modification must produce an object (named list) of services")
+                }
+            }
+        }
 
-    return wrap$WithProxy(composedUpTo)
+        composedUpTo[$runOnInitialize].unshift(fn)
+    }
+
+    return wrap$WithProxy(serviceGenerator, composedUpTo)
 }
 
 const superFunctionProxy = (composition) => ({ // todo composition here is probably unnecessary, use `target`
     get(target, prop) {
 
-        let v = target[prop]
+        let v = composition[prop]
         if (isFunction(v)) {
 
             /*
@@ -65,6 +75,6 @@ const superFunctionProxy = (composition) => ({ // todo composition here is proba
     ...noSetAccessProxy
 })
 
-export function wrap$WithProxy(composition) {
-    return TaggedProxy(composition, superFunctionProxy(composition))
+export function wrap$WithProxy(wrapOver, composition) {
+    return TaggedProxy(wrapOver, superFunctionProxy(composition))
 }
