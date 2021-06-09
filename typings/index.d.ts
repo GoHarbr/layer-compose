@@ -49,6 +49,7 @@
     export function transformGetters(data: object): object
 
     export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
+    export function transform(transformer: (object) => object): Function
 
     export const IS_DEV_MODE: boolean
 // }
