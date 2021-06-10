@@ -59,7 +59,7 @@ export function createConstructor(composed) {
     let _constructor
     if (IS_DEV_MODE) {
         _constructor = (data) => {
-            data = unwrapProxy(data)
+            data = unwrapProxy(data, /* unwrap composition */ false)
             const i = constructor(data)
             return wrapCompositionWithProxy(i)
         }

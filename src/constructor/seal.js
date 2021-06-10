@@ -1,7 +1,8 @@
 import {isPromise, isService, renameIntoGetter, renameIntoSetter}                                        from "../utils"
 import {$composition, $compositionId, $dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
 import buildInitializer                                                                                  from "./buildInitializer"
-import {unwrapProxy}                                              from "../proxies/utils"
+import {unwrapProxy}                                                                                     from "../proxies/utils"
+import {wrapCompositionWithProxy}                                                                        from "../proxies/wrapCompositionWithProxy"
 
 let _compositionId = 0 // for debug purposes
 
@@ -25,7 +26,11 @@ export default function seal (composed) {
             const get = function () {
                 let s = this[storeUnder]
                 if (!s) {
-                    this[storeUnder] = s = service(this)
+                    let core = this
+                    if (IS_DEV_MODE) {
+                        core = wrapCompositionWithProxy(core)
+                    }
+                    this[storeUnder] = s = service(core)
                 }
                 return s
             }

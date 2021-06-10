@@ -35,7 +35,7 @@ function isProxy(p) {
 
 export function unwrapProxyDeep(p, unwrapCompositions = true) {
     while(isProxy(p)) {
-        if (unwrapCompositions || !p[$isCompositionInstance]) {
+        if (unwrapCompositions || p && !p[$isCompositionInstance]) {
             p = unwrapProxy(p)
         } else {
             return p
@@ -44,8 +44,8 @@ export function unwrapProxyDeep(p, unwrapCompositions = true) {
     return p
 }
 
-export function unwrapProxy(p) {
-    if (isProxy(p)) {
+export function unwrapProxy(p, unwrapCompositions = true) {
+    if (isProxy(p) && (unwrapCompositions || p && !p[$isCompositionInstance])) {
         const target = proxyTargetMap.get(p)
         return unwrapProxy(target)
     } else {
