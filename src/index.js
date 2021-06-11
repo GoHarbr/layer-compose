@@ -13,6 +13,7 @@ export default layerCompose
 
 
 export {unbox, getComposition, getLayerId} from "./utils"
+export {unwrapProxy} from './proxies/utils'
 export {
     layerCompose,
 
