@@ -12,7 +12,7 @@ import layerCompose from './layerCompose'
 export default layerCompose
 
 
-export {unbox, getComposition} from "./utils"
+export {unbox, getComposition, getLayerId} from "./utils"
 export {
     layerCompose,
 
