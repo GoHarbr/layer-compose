@@ -83,7 +83,18 @@ export function createConstructor(composed) {
         return layerCompose(($, _) => {
                 _(core => {
                     for (const k of Object.keys(presetValues)) {
-                        if (core[k] == null) core[k] = presetValues[k]
+                        if (core[k] == null) {
+                            let v = presetValues[k]
+                            if (typeof v == "function" && v.length === 0) {
+                                v = v()
+                                // truthy check for in case of null
+                            } else if (!!v && typeof v == "object") {
+                                throw new Error(`Raw objects are not allowed as defaults (key: ${k}). They will carry over to other instances. Use \`() => ...\` to generate them dynamically`)
+                            }
+
+                            if (v === undefined) throw new Error(`Default value for key ${k} cannot be 'undefined'`)
+                            core[k] = v
+                        }
                     }
                     return core
                 })
