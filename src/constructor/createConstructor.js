@@ -28,6 +28,8 @@ export function createConstructor(composed) {
             let core
             if (typeof coreObject === "function") {
                 core = coreObject(compositionInstance)
+            } else if (coreObject == null) {
+                core = {}
             } else {
                 core = coreObject
             }
