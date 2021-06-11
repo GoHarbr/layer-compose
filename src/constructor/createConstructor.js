@@ -19,7 +19,7 @@ import layerCompose               from '../layerCompose'
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
 
-    function constructor(coreObject = {}) {
+    function constructor(coreObject) {
         try {
             const compositionInstance = Object.create(composed)
             bindWith(compositionInstance) // direct mutation
