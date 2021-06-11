@@ -1,6 +1,7 @@
-import {isPromise, isService, renameIntoGetter, renameIntoSetter}                                        from "../utils"
+import {getLayerId, isPromise, isService, renameIntoGetter, renameIntoSetter}                            from "../utils"
 import {$composition, $compositionId, $dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
-import buildInitializer                                                                                  from "./buildInitializer"
+import buildInitializer
+                                                                                                         from "./buildInitializer"
 import {unwrapProxy}                                                                                     from "../proxies/utils"
 import {wrapCompositionWithProxy}                                                                        from "../proxies/wrapCompositionWithProxy"
 
@@ -9,9 +10,7 @@ let _compositionId = 0 // for debug purposes
 // noinspection FunctionTooLongJS
 export default function seal (composed) {
     _compositionId++
-    const compositionId = Symbol(_compositionId + '::composition-id')
-
-    composed[$compositionId] = compositionId
+    composed[$compositionId] = composed[$compositionId] || Symbol(_compositionId + '::composition-id')
 
     for (const name in composed) {
         const methodOrService = composed[name]

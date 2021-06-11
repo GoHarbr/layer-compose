@@ -8,7 +8,13 @@ import generateCaller                  from "../compose/generateCaller"
 export function generateSuperAccessor(composedUpTo) {
     const serviceGenerator = (serviceRuntimeGenerator) => {
         const fn = function (instance) {
-            const additions = serviceRuntimeGenerator(instance[$dataPointer])
+            let additions
+            if (typeof serviceRuntimeGenerator == "function") {
+                additions = serviceRuntimeGenerator(instance[$dataPointer])
+            } else {
+                additions = serviceRuntimeGenerator
+            }
+
             if (additions) {
                 if (typeof additions == 'object') {
                     Object.assign(instance, additions)
