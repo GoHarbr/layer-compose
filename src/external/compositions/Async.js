@@ -3,7 +3,11 @@ import layerCompose from '../../layerCompose'
 export default layerCompose(
     {
         await($, _, opt) {
-            _.executionQueue.push(opt)
+            let toQueue = opt
+            if (typeof toQueue === "function") {
+                toQueue = () => opt($,_)
+            }
+            _.executionQueue.push(toQueue)
             $._executeAllAwaitables()
         },
         _executeAllAwaitables($, _) {
