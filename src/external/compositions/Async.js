@@ -44,10 +44,11 @@ export default layerCompose(
 ).partial(
     {
         isExecuting: false,
-        executionQueue: [],
         executionQueuePromise: Promise.resolve()
     }
-)
+).transform(_ => {
+    if (!_.executionQueue) _.executionQueue = []
+})
 
 function execute(queue, done) {
     if (queue.length) {
