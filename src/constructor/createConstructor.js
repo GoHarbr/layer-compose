@@ -83,7 +83,10 @@ export function createConstructor(composed) {
         return layerCompose(($, _) => {
                 _(core => {
                     for (const k of Object.keys(presetValues)) {
-                        if (core[k] == null) {
+                        if (!(k in core) || core[k] == null) {
+                            if (IS_DEV_MODE) {
+                                if (core[$isCompositionInstance]) console.warn("Setting a default value on an inner interface that is a composition: " + k)
+                            }
                             let v = presetValues[k]
                             if (typeof v == "function" && v.length === 0) {
                                 v = v()
