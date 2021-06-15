@@ -49,8 +49,10 @@
 
     export function transformGetters(data: object): object
 
-    export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
     export function transform(transformer: (object) => object): Function
+    export function defaults(defaultValues: object): Function
+
+    export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
 
     export const IS_DEV_MODE: boolean
 // }

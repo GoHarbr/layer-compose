@@ -6,6 +6,7 @@ import Async            from "./external/compositions/Async"
 import {getComposition} from "./utils"
 import withTransform    from "./external/patterns/withTransform"
 import transform    from "./external/patterns/transform"
+import defaults    from "./external/patterns/defaults"
 
 import layerCompose from './layerCompose'
 
@@ -25,5 +26,6 @@ export {
     Async,
 
     transform,
+    defaults,
     withTransform
 }
