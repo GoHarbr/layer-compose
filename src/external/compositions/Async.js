@@ -1,16 +1,29 @@
-import layerCompose from '../../layerCompose'
+import layerCompose  from '../../layerCompose'
+import transform     from "../patterns/transform"
+import defaults      from "../patterns/defaults"
+import {IS_DEV_MODE} from "../../const"
 
-export default layerCompose(
+const Await = layerCompose(
+    transform(() => ({})),
+    defaults({
+        isExecuting: false,
+        executionQueue: () => [],
+        executionQueuePromise: () => Promise.resolve()
+    }),
+
     {
         await($, _, opt) {
             let toQueue = opt
             if (typeof toQueue === "function") {
-                toQueue = () => opt($,_)
+                toQueue = () => opt($, _)
+            } else if (IS_DEV_MODE && typeof toQueue?.then != "function") {
+                throw new Error("Non-promise values should not be queued")
             }
+
             _.executionQueue.push(toQueue)
-            $._executeAllAwaitables()
+            $.executeAllAwaitables()
         },
-        _executeAllAwaitables($, _) {
+        executeAllAwaitables($, _) {
             if (!_.isExecuting) {
 
                 _.isExecuting = true
@@ -22,7 +35,7 @@ export default layerCompose(
 
                         !e && onFulfilled() || onRejected(e)
                     }
-                    execute(_.executionQueue, done)
+                    executeAsyncQueue(_.executionQueue, done)
                 })
             }
         },
@@ -33,7 +46,6 @@ export default layerCompose(
         },
 
         then($, _, opt) {
-
             if (typeof opt == "function") {
                 _.executionQueuePromise.then(opt)
             } else {
@@ -41,15 +53,23 @@ export default layerCompose(
             }
         },
     }
-).partial(
-    {
-        isExecuting: false,
-        executionQueue: () => [],
-        executionQueuePromise: () => Promise.resolve()
-    }
 )
 
-function execute(queue, done) {
+export default layerCompose({
+    mustBeAwaited($, _, opt) {
+        return $.Await.mustBeAwaited(opt)
+    },
+    await($, _, opt) {
+        return $.Await.await(opt)
+    },
+    then($, _, opt) {
+        return $.Await.then(opt.onFulfilled, opt.onRejected)
+    },
+
+    Await,
+})
+
+function executeAsyncQueue(queue, done) {
     if (queue.length) {
         const what = queue.shift()
 
@@ -59,15 +79,15 @@ function execute(queue, done) {
                 const p = what()
 
                 if (p != null && "then" in p && typeof p.then == "function") {
-                    p.then(() => execute(queue, done), done)
+                    p.then(() => executeAsyncQueue(queue, done), done)
                 } else {
-                    execute(queue, done)
+                    executeAsyncQueue(queue, done)
                 }
             } catch (e) {
                 done(e)
             }
         } else {
-            what.then(() => execute(queue, done), done)
+            what.then(() => executeAsyncQueue(queue, done), done)
         }
     } else {
         done()
