@@ -26,6 +26,13 @@ function wrapThen(instance) {
     }
 }
 
+function wrapJson(instance) {
+    if ("json" in instance) {
+        instance.toJSON = () => instance.json
+    }
+}
+
 export default function wrapStandardMethods(instance) {
     wrapThen(instance)
+    wrapJson(instance)
 }

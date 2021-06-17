@@ -2,7 +2,10 @@ import {IS_DEV_MODE} from "./const"
 
 import cleanData        from './external/utils/cleanData'
 import transformGetters from "./external/utils/transformGetters"
+
 import Async            from "./external/compositions/Async"
+import withJson            from "./external/compositions/withJson"
+
 import {getComposition} from "./utils"
 import withTransform    from "./external/patterns/withTransform"
 import transform    from "./external/patterns/transform"
@@ -24,6 +27,7 @@ export {
     transformGetters,
 
     Async,
+    withJson,
 
     transform,
     defaults,
