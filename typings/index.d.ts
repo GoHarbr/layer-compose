@@ -43,6 +43,7 @@
 
     export function unbox(what: lcInstance<any>): object | undefined
     export function getLayerId(what: any): Symbol | undefined
+    export function renameIntoGetter(name: string): string | undefined
 
     export function getComposition(what: lcConstructor<any>): object | undefined
 

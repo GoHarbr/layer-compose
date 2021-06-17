@@ -6,7 +6,7 @@ import transformGetters from "./external/utils/transformGetters"
 import Async            from "./external/compositions/Async"
 import withJson            from "./external/compositions/withJson"
 
-import {getComposition} from "./utils"
+import {getComposition, renameIntoGetter} from "./utils"
 import withTransform    from "./external/patterns/withTransform"
 import transform    from "./external/patterns/transform"
 import defaults    from "./external/patterns/defaults"
@@ -16,7 +16,7 @@ import layerCompose from './layerCompose'
 export default layerCompose
 
 
-export {unbox, getComposition, getLayerId} from "./utils"
+export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
 export {unwrapProxy} from './proxies/utils'
 export {
     layerCompose,
