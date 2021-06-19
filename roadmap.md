@@ -11,6 +11,7 @@
     
 - external interface
     - private method
+  - warn when accesing an internal var when an external accessor is available (on a different layer)
   
 - services
 
