@@ -86,25 +86,12 @@ export default function seal (composed) {
             // if these properties become iterable, move this block into extensible check above
             if (getterName) {
                 Object.defineProperty(composed, getterName, { get: composed[name], configurable: true, })
-                // Object.defineProperty($, getterName, { get: $[name], configurable: true, })
             }
 
             if (setterName) {
                 composed[$writableKeys].push(setterName)
-                Object.defineProperty(composed, setterName, { set: composed[name] })
-                // Object.defineProperty($, setterName, { set: $[name] })
+                Object.defineProperty(composed, setterName, { set: composed[name], configurable: true })
             }
-
-
-            // const fnId = Symbol(_compositionId + '-$-' + name)
-            // composed[$functionSymbolIds].push(fnId)
-            // composed[fnId] = composed[name]
-
-            // $[name] = function (opt) {
-            //     const _this = this[$$]
-            //     // return _this[fnId].call(_this, opt)
-            //     return _this[name].call(_this, opt)
-            // }
 
         }
     }
