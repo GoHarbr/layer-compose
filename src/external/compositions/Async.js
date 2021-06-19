@@ -7,21 +7,26 @@ const Await = layerCompose(
     transform(() => ({})),
     defaults({
         isExecuting: false,
+        error: null,
         executionQueue: () => [],
         executionQueuePromise: () => Promise.resolve()
     }),
 
     {
         await($, _, opt) {
-            let toQueue = opt
-            if (typeof toQueue === "function") {
-                toQueue = () => opt($, _)
-            } else if (IS_DEV_MODE && typeof toQueue?.then != "function") {
-                throw new Error("Non-promise values should not be queued")
-            }
+            if (_.error) {
+                console.warn("Skipping await call, there has been an error in the flow")
+            } else {
+                let toQueue = opt
+                if (typeof toQueue === "function") {
+                    toQueue = () => opt($, _)
+                } else if (IS_DEV_MODE && typeof toQueue?.then != "function") {
+                    throw new Error("Non-promise values should not be queued")
+                }
 
-            _.executionQueue.push(toQueue)
-            $.executeAllAwaitables()
+                _.executionQueue.push(toQueue)
+                $.executeAllAwaitables()
+            }
         },
         executeAllAwaitables($, _) {
             if (!_.isExecuting) {
@@ -30,7 +35,7 @@ const Await = layerCompose(
                 _.executionQueuePromise = new Promise((onFulfilled, onRejected) => {
                     const done = (e) => {
                         _.isExecuting = false
-
+                        if (e) _.error = e
                         // todo. should the queue be cleared up in case of a rejection?
 
                         !e && onFulfilled() || onRejected(e)
