@@ -1,10 +1,18 @@
 import {$isCompositionInstance, IS_DEV_MODE} from "../../const"
 
-export default function (presetValues) {
+/**
+ *
+ * @param overwriteToPojo if the inner interface is not a POJO, overwrite it to be
+ * */
+export default function (presetValues, overwriteToPojo = false) {
 
-    return ($, _) => _(core => {
+    return ($, _) => _(initialCore => {
+        let core = overwriteToPojo && initialCore[$isCompositionInstance] ? {} : initialCore
+
         for (const k of Object.keys(presetValues)) {
-            if (!(k in core) || core[k] == null) {
+            const notIn = !(k in core)
+
+            if (notIn || core[k] == null) {
                 if (IS_DEV_MODE) {
                     if (core[$isCompositionInstance]) console.warn("Setting a default value on an inner interface that is a composition: " + k)
                 }

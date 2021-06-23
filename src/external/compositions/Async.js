@@ -4,7 +4,7 @@ import defaults      from "../patterns/defaults"
 import {IS_DEV_MODE} from "../../const"
 
 const Await = layerCompose(
-    transform(() => ({})),
+    transform(_ => ({awaitTarget: _})),
     defaults({
         isExecuting: false,
         error: null,
@@ -19,7 +19,7 @@ const Await = layerCompose(
             } else {
                 let toQueue = opt
                 if (typeof toQueue === "function") {
-                    toQueue = () => opt($, _)
+                    toQueue = () => opt(_.awaitTarget)
                 } else if (IS_DEV_MODE && typeof toQueue?.then != "function") {
                     throw new Error("Non-promise values should not be queued")
                 }
