@@ -39,6 +39,7 @@
 
     /* utils */
 	export const Async: lcConstructor<any>
+	export const Observable: lcConstructor<any>
 	export const withJson: lcConstructor<any>
 
     export function unbox(what: lcInstance<any>): object | undefined

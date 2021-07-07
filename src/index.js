@@ -4,6 +4,7 @@ import cleanData        from './external/utils/cleanData'
 import transformGetters from "./external/utils/transformGetters"
 
 import Async            from "./external/compositions/Async"
+import Observable            from "./external/compositions/Observable"
 import withJson            from "./external/compositions/withJson"
 
 import {getComposition, renameIntoGetter} from "./utils"
@@ -27,6 +28,7 @@ export {
     transformGetters,
 
     Async,
+    Observable,
     withJson,
 
     transform,
