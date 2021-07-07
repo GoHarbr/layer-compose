@@ -1,16 +1,17 @@
-*layerCompose* is a **safe** state management tool, with built in automatic checks
-*layerCompose* is a class composer: traditional classes meet **mixins**
-*layerCompose* brings the best of UI Component architecture to the rest of javascript for managing and encapsulating **state**
+*layerCompose* is a **safe** state management tool, with built in automatic checks  
+*layerCompose* is a class composer: traditional classes meet **mixins**  
+*layerCompose* brings the best of UI Component architecture to the rest of javascript for managing and encapsulating **state**  
 
 ## layerCompose
 
 In a nutshell, *layerCompose* allows to assemble numerous functions in the form:
 ```javascript
-    function ($ /* super, like js `this` */, _ /* core -- like React props (but writable) */, opt /* additional named options */) {}
+    function ($ /* "super", like js `this` */, _ /* "core": like React props (but writable) */, opt /* additional named options */) {}
 ```
 in nested configurations
 ```javascript
-    const Class /* Referred to as Composition */ = layerCompose(
+/* Referred to as Composition */
+    const Class  = layerCompose(
     {
         generateConfig($,_) { /* ... */ },
         
