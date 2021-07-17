@@ -1,4 +1,13 @@
-import {$dataPointer, $extendSuper, $layerOrder, $layers, $runOnInitialize, $writableKeys, IS_DEV_MODE} from "./const"
+import {
+    $dataPointer,
+    $extendSuper,
+    $layerOrder,
+    $layers,
+    $parentComposition,
+    $runOnInitialize,
+    $writableKeys,
+    IS_DEV_MODE
+} from "./const"
 import compose                                                                                          from "./compose/compose"
 import seal                                                                              from "./constructor/seal"
 import {createConstructor}                                                               from "./constructor/createConstructor"
@@ -15,7 +24,7 @@ export default function layerCompose(...layers) {
             [$runOnInitialize]: [],
             [$extendSuper]: undefined,
             [$dataPointer]: undefined,
-            [$writableKeys]: [],
+            [$writableKeys]: [$parentComposition],
             toJSON: ($, _, opt) => {
                 return _
             }

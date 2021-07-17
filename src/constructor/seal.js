@@ -1,5 +1,14 @@
 import {getLayerId, isPromise, isService, renameIntoGetter, renameIntoSetter}                            from "../utils"
-import {$composition, $compositionId, $dataPointer, $initializer, $isSealed, $writableKeys, IS_DEV_MODE} from "../const"
+import {
+    $composition,
+    $compositionId,
+    $dataPointer,
+    $initializer,
+    $isSealed,
+    $parentComposition,
+    $writableKeys,
+    IS_DEV_MODE
+} from "../const"
 import buildInitializer
                                                                                                          from "./buildInitializer"
 import {unwrapProxy}                                                                                     from "../proxies/utils"
@@ -29,7 +38,8 @@ export default function seal (composed) {
                     if (IS_DEV_MODE) {
                         core = wrapCompositionWithProxy(core)
                     }
-                    this[storeUnder] = s = service(core)
+                    // todo. coreObject should be the gotten by `core[lower case service name]`
+                    this[storeUnder] = s = service(core, core)
                 }
                 return s
             }

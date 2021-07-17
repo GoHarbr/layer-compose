@@ -6,9 +6,9 @@ import {
     $initializer,
     $isCompositionInstance,
     $isLc,
-    $layers,
+    $layers, $parentComposition,
     IS_DEV_MODE
-}                                 from "../const"
+} from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
@@ -20,7 +20,7 @@ import defaults                   from "../external/patterns/defaults"
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
 
-    function constructor(coreObject) {
+    function constructor(coreObject, parentComposition) {
         try {
             const compositionInstance = Object.create(composed)
             bindWith(compositionInstance) // direct mutation
@@ -39,6 +39,7 @@ export function createConstructor(composed) {
                 throw new Error('Data must be an object (not a primitive)')
             }
 
+            compositionInstance[$parentComposition] = parentComposition
             compositionInstance[$isCompositionInstance] = true
             compositionInstance[$initializedCalls] = []
             // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
@@ -61,9 +62,12 @@ export function createConstructor(composed) {
 
     let _constructor
     if (IS_DEV_MODE) {
-        _constructor = (data) => {
+        _constructor = (data, parentComposition) => {
             data = unwrapProxy(data, /* unwrap composition */ false)
-            const i = constructor(data)
+            if (parentComposition !== undefined && !parentComposition[$isCompositionInstance]) {
+                throw new Error("Parent composition must be an instance of a composition")
+            }
+            const i = constructor(data, parentComposition)
             return wrapCompositionWithProxy(i)
         }
     } else {
