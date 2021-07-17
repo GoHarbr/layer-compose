@@ -2,8 +2,8 @@
 * Wraps instance into a builder pattern & autobinds
 * */
 
-import {isService}              from "../utils"
-import {$isCompositionInstance} from "../const"
+import {isService, renameIntoGetter} from "../utils"
+import {$isCompositionInstance}      from "../const"
 
 export default function createBinder(composed) {
     let constructor
@@ -15,11 +15,20 @@ export default function createBinder(composed) {
             const f = instance[prop]
 
             if (!f[$isCompositionInstance]) {
-                instance[prop] = function (...args) {
-                    f.apply(instance, args)
+                const isGetter = !!renameIntoGetter(prop)
 
-                    // to allow a builder pattern
-                    return instance
+                /** Getters are the only way to escape out of the builder pattern */
+                if (isGetter) {
+                    instance[prop] = function (...args) {
+                        return f.apply(instance, args)
+                    }
+                } else {
+                    instance[prop] = function (...args) {
+                        f.apply(instance, args)
+
+                        // to allow a builder pattern
+                        return instance
+                    }
                 }
             }
 
