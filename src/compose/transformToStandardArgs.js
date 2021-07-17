@@ -13,6 +13,10 @@ const decompositionRe = new RegExp('\{.+\}', 'i')
 export default function (fn) {
     if (!IS_DEV_MODE) return fn
 
+    if (typeof fn.toString != "function") {
+        console.warn("Functions cannot be read as strings")
+        return fn
+    }
     // if (fn.length !== 3) throw new Error('A layer function must take ($, _, opt) as arguments')
 
     const str = functionAsString(fn)
