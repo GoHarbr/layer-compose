@@ -7,13 +7,14 @@
 - internal interface
     - private state
     - live transforms / lenses
-    - verify $ methods exist
+    - verify $ methods exist (if yes, disallow getting same value through _)
     
 - external interface
     - private method
   - warn when accesing an internal var when an external accessor is available (on a different layer)
   
 - services
+  - make runtime additions lazy
 
 - composition
   ---- fix: double include of common layers/compositions

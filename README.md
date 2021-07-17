@@ -1,6 +1,10 @@
-*layerCompose* is a **safe** state management tool, with built in automatic checks  
-*layerCompose* is a class composer: traditional classes meet **mixins**  
-*layerCompose* brings the best of UI Component architecture to the rest of javascript for managing and encapsulating **state**  
+
+How do we write software that grows easily, and how do we write it as a team?
+
+
+*layerCompose* is a **safe** state management tool, with built in automatic checks
+*layerCompose* is a class composer: traditional classes meet **mixins**  (easy refactor)
+*layerCompose* brings the best of UI Component architecture (think React) to the rest of javascript for managing and encapsulating **state**  
   
 *layerCompose* is **powerful** -- at Harbr, we've built a full UI rendering framework in <100 lines of code using *layerCompose + uhtml*
 
