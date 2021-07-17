@@ -43,9 +43,10 @@ function makeProxy(proxyTarget) {
     return new Proxy(proxyTarget, {
         set(target, prop, val) {
 
+            const hasChanged = target[prop] !== val
             target[prop] = val;
 
-            if (typeof prop != 'symbol' && prop[0] !== "_") {
+            if (hasChanged && typeof prop != 'symbol' && prop[0] !== "_") {
                 const owner = proxyTarget[$owner];
                 if (owner && "onUpdate" in owner) {
                     owner.onUpdate({
