@@ -1,4 +1,4 @@
-import layerCompose                                                                                   from "../index"
+import layerCompose                                                                                   from "../layerCompose"
 import {getLayerId, isFragmentOfLayers, isInitializer, isLcConstructor, isService, renameWithPrefix,}   from "../utils"
 import {
     $composition,
