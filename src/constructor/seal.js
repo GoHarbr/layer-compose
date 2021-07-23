@@ -39,7 +39,8 @@ export default function seal (composed) {
                         core = wrapCompositionWithProxy(core)
                     }
                     // todo. coreObject should be the gotten by `core[lower case service name]`
-                    this[storeUnder] = s = service(core, core)
+                    s = service(core, core)
+                    if (this[storeUnder] !== false) this[storeUnder] = s
                 }
                 return s
             }
