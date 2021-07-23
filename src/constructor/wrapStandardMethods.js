@@ -18,7 +18,8 @@ function wrapThen(instance) {
                 onRejected: onRejected || null
             })
 
-            return null
+            // return null
+            return instance
         }
 
     } else {
