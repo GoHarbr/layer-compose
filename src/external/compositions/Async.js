@@ -13,6 +13,10 @@ const Await = layerCompose(
     }),
 
     {
+        error: false
+    },
+
+    {
         await($, _, opt) {
             if (_.error) {
                 console.warn("Skipping await call, there has been an error in the flow")
@@ -29,10 +33,9 @@ const Await = layerCompose(
             }
         },
         executeAllAwaitables($, _) {
-            if (!_.isExecuting) {
-
-                _.isExecuting = true
-                _.executionQueuePromise = new Promise((onFulfilled, onRejected) => {
+            // todo. factor out for performance
+            function makePromise() {
+                return new Promise((onFulfilled, onRejected) => {
                     const done = (e) => {
                         _.isExecuting = false
                         if (e) _.error = e
@@ -43,20 +46,71 @@ const Await = layerCompose(
                     executeAsyncQueue(_.executionQueue, done)
                 })
             }
+
+            if (!_.isExecuting) {
+                _.isExecuting = true
+                // _.executionQueuePromise = _.executionQueuePromise ? _.executionQueuePromise.then(makePromise) : makePromise()
+                _.executionQueuePromise = makePromise()
+            }
         },
         mustBeAwaited($, _) {
             if (_.isExecuting) {
                 throw new Error("This function must execute after all other promises have been resolved")
             }
         },
+        resetError($,_) {
+            _.executionQueuePromise = null
+            _.executionQueue = []
+            _.error = null
+        },
 
         then($, _, opt) {
             if (typeof opt == "function") {
-                _.executionQueuePromise.then(opt)
+                $.await(opt)
+            } else if (opt.onFulfilled) {
+                if (opt.onRejected) _.executionQueuePromise.catch(opt.onRejected)
+                $.await(opt.onFulfilled)
             } else {
-                _.executionQueuePromise.then(opt.onFulfilled, opt.onRejected)
+                throw new Error("No thennable function passed into `then`")
             }
         },
+        catch($,_,opt) {
+            if (typeof opt === "function") {
+                const f = () => opt($) // giving access to the Await composition (which has error)
+
+                _.executionQueuePromise.catch(f)
+            } else {
+                throw new Error('Catch (currently) takes only a function')
+            }
+        },
+
+        /**
+         * @param [opt] function that is applied in the `.then` block
+         * @return Promise that resolves once its place in queue comes up  */
+        getPromise($,_,opt) {
+            let onFulfilled, onRejected
+            const p = new Promise((_onFulfilled, _onRejected) => {
+                onFulfilled = _onFulfilled
+                onRejected = _onRejected
+            })
+
+            /* put in queue */
+            $.await(async () => {
+                try {
+                    let r
+                    if (typeof opt == "function") {
+                        r = await opt()
+                    }
+                    onFulfilled(r)
+                } catch (e) {
+                    onRejected(e)
+                }
+            })
+
+            // _.executionQueuePromise.catch(onRejected)
+
+            return p
+        }
     }
 )
 
@@ -69,6 +123,9 @@ export default layerCompose({
     },
     then($, _, opt) {
         return $.Await.then(opt.onFulfilled, opt.onRejected)
+    },
+    catch($, _, opt) {
+        return $.Await.catch(opt)
     },
 
     Await,
