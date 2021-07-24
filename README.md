@@ -40,3 +40,7 @@ in nested configurations
 ### learn
 
 Start with the `tutorial` folder
+
+## Caveats
+### Async
+1. Uncaught promises (this is a big one for tests!)

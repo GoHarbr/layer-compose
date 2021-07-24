@@ -19,5 +19,6 @@
 
 - composition
   ---- fix: double include of common layers/compositions
+  - Production mode per instantiation (useful for testing)
   - casting (when wrapping over itself)
   - test: services should not be reused between instances 
