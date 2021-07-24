@@ -33,9 +33,10 @@ const Await = layerCompose(
             }
         },
         executeAllAwaitables($, _) {
-            // todo. factor out for performance
-            function makePromise() {
-                return new Promise((onFulfilled, onRejected) => {
+            if (!_.isExecuting) {
+                _.isExecuting = true
+                // _.executionQueuePromise = _.executionQueuePromise ? _.executionQueuePromise.then(makePromise) : makePromise()
+                _.executionQueuePromise = new Promise((onFulfilled, onRejected) => {
                     const done = (e) => {
                         _.isExecuting = false
                         if (e) _.error = e
@@ -45,12 +46,6 @@ const Await = layerCompose(
                     }
                     executeAsyncQueue(_.executionQueue, done)
                 })
-            }
-
-            if (!_.isExecuting) {
-                _.isExecuting = true
-                // _.executionQueuePromise = _.executionQueuePromise ? _.executionQueuePromise.then(makePromise) : makePromise()
-                _.executionQueuePromise = makePromise()
             }
         },
         mustBeAwaited($, _) {
@@ -107,7 +102,7 @@ const Await = layerCompose(
                 }
             })
 
-            // _.executionQueuePromise.catch(onRejected)
+            _.executionQueuePromise.catch(onRejected)
 
             return p
         }
