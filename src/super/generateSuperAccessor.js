@@ -7,6 +7,8 @@ import generateCaller                  from "../compose/generateCaller"
 
 export function generateSuperAccessor(composedUpTo) {
     const serviceGenerator = (serviceRuntimeGenerator) => {
+
+        /* Executed on startup/initialization */
         const fn = function (instance) {
             let additions
             if (typeof serviceRuntimeGenerator == "function") {
