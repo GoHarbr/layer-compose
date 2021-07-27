@@ -9,7 +9,7 @@ describe("The $ and _", () => {
     *       Compositions are solely created to manage this "state"
     *
     * Note:
-    *   Using Compositions when there is no state/data to manage is silly
+    *   Using Compositions when there is no state/data to manage is silly (it's an unnecessary complication)
     * */
 
     test.each([
@@ -31,5 +31,29 @@ describe("The $ and _", () => {
         const c = C(core)
 
         c.showMeTheData()
+    })
+
+    test("$ gives access the outer interface (of the composition)", () => {
+        const core = {testKey: 'v'}
+        const testFn = jest.fn(($,_) => {
+            if (typeof $.aFunction !== "function") throw new Error("Outer interface is missing a function")
+            if (_.testKey !== core.testKey) throw new Error("Core object is missing key/value")
+        })
+
+        const C = layerCompose(
+            {
+                aFunction($, _) {
+                    testFn($,_)
+                }
+            }
+        )
+
+        // the core must always be an object, not a primitive
+        const c = C(core)
+
+        expect(testFn).not.toHaveBeenCalled()
+        c.aFunction()
+
+        expect(testFn).toHaveBeenCalledTimes(1)
     })
 })
