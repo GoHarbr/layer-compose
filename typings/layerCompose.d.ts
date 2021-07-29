@@ -7,7 +7,9 @@ type RT<L, R> = L extends (...args) => any ? ReturnType<L> : (R extends (...args
 type KEYS<L,R> = keyof L | keyof R
 type RemapFunction<L, R> = { [P in KEYS<L,R>]: (any?: any) => RT<P extends keyof L ? L[P] : never, P extends keyof R ? R[P] : never> }
 
-type Spread<A extends readonly [...any]> = A extends [infer L, ...infer R] ? RemapFunction<L, Spread<R>> : never
+type Spread<A extends readonly [...any]> = A extends [infer L, ...infer R] ? (
+        L extends lcConstructor<infer C> ? RemapFunction<C, Spread<R>> : RemapFunction<L, Spread<R>>
+    ): never
 
 // export default function layerCompose<T extends object[]>(...layers: [...T]): lcConstructor<Spread<T>>
 export default function layerCompose<T extends object[]>(...layers: [...T]): lcConstructor<Spread<T>>

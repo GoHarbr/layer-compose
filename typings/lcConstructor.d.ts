@@ -1,6 +1,6 @@
 export interface lcConstructor<M> {
-    withDefaults: (object: object) => lcConstructor<M>
-    transform: (object: object) => lcConstructor<M>
+    // withDefaults: (object: object) => lcConstructor<M>
+    // transform: (object: object) => lcConstructor<M>
     is: (c: lcConstructor<any>) => boolean
 
     (data: object | undefined): M
