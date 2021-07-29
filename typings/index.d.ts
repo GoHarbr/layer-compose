@@ -1,61 +1,32 @@
-// taken from https://github.com/voodoocreation/ts-deepmerge/blob/master/src/index.ts
+// adapted from https://github.com/voodoocreation/ts-deepmerge/blob/master/src/index.ts
+// https://stackoverflow.com/questions/49682569/typescript-merge-object-types
 
-// declare module "layer-compose" {
-    interface IObject {
-        [key: string]: any;
-    }
+import {lcConstructor, lcInstance} from "./lcConstructor";
+export {default as layerCompose} from './layerCompose'
 
-    type TUnionToIntersection<U> = (
-        U extends any ? (k: U) => void : never
-        ) extends (k: infer I) => void
-        ? I
-        : never;
+/* utils */
+export const Async: lcConstructor<any>
+export const Observable: lcConstructor<any>
+export const withJson: lcConstructor<any>
 
-    // export = layerCompose
+export function unbox(what: lcInstance<any>): object | undefined
 
-    export function layerCompose<T extends IObject[], R extends TUnionToIntersection<T[number]>>(...layers: T): lcConstructor<R> // layerCompose.lcConstructor<R>;
-// }
+export function getLayerId(what: any): Symbol | undefined
 
-// declare namespace layerCompose {
-    export interface lcSuperMethod<F extends (args: any) => any> {
-        (args: Parameters<F>): ReturnType<F>
-        lockOpt: (opt: {}) => void
-        defaultOpt: (opt: {}) => void
-    }
-    export type lcSuperAccessor<T extends object> = {
-        [key in keyof T]: T[key] extends (args: any) => any ? lcSuperMethod<T[key]> : T[key]
-    }
-    export type lcInstance<T> = {
-        [key in keyof T]: T[key]
-    }
-    export interface lcConstructor<M> {
-        (data: object | undefined) : lcInstance<M>
-        withDefaults: (object: object) => lcConstructor<M>
-        transform: (object: object) => lcConstructor<M>
-        is: (c: lcConstructor<any>) => boolean
-    }
+export function renameIntoGetter(name: string): string | undefined
 
-    // export default layerCompose
+export function getComposition(what: lcConstructor<any>): object | undefined
 
-    /* utils */
-	export const Async: lcConstructor<any>
-	export const Observable: lcConstructor<any>
-	export const withJson: lcConstructor<any>
+export function cleanData(data: object): object
 
-    export function unbox(what: lcInstance<any>): object | undefined
-    export function getLayerId(what: any): Symbol | undefined
-    export function renameIntoGetter(name: string): string | undefined
+export function transformGetters(data: object): object
 
-    export function getComposition(what: lcConstructor<any>): object | undefined
+export function transform(transformer: (object) => object): Function
 
-    export function cleanData(data: object): object
+export function defaults(defaultValues: object): Function
 
-    export function transformGetters(data: object): object
+export function detachSelf($: lcInstance<any>)
 
-    export function transform(transformer: (object) => object): Function
-    export function defaults(defaultValues: object): Function
+export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
 
-    export function withTransform(transformer: (object) => object, ...layers: object[]): lcConstructor<any>
-
-    export const IS_DEV_MODE: boolean
-// }
+export const IS_DEV_MODE: boolean
