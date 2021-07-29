@@ -11,6 +11,7 @@ import {getComposition, renameIntoGetter} from "./utils"
 import withTransform    from "./external/patterns/withTransform"
 import transform    from "./external/patterns/transform"
 import defaults    from "./external/patterns/defaults"
+import detachSelf    from "./external/patterns/detachSelf"
 
 import layerCompose from './layerCompose'
 
@@ -33,5 +34,6 @@ export {
 
     transform,
     defaults,
-    withTransform
+    withTransform,
+    detachSelf
 }
