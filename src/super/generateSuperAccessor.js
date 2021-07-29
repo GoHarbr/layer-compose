@@ -19,6 +19,7 @@ export function generateSuperAccessor(composedUpTo) {
 
             if (additions) {
                 if (typeof additions == 'object') {
+                    // fixme. USE storeUnder!!! as in seal.js
                     Object.assign(instance, additions)
                 } else {
                     throw new Error("Runtime instance modification must produce an object (named list) of services")

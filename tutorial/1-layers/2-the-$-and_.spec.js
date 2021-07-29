@@ -56,4 +56,9 @@ describe("The $ and _", () => {
 
         expect(testFn).toHaveBeenCalledTimes(1)
     })
+
+    /*
+    * Questions for the reader:
+    * 1. Can instances of a composition be passed in as core objects? [when instantiating a different composition]
+    * */
 })
