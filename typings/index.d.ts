@@ -1,6 +1,3 @@
-// adapted from https://github.com/voodoocreation/ts-deepmerge/blob/master/src/index.ts
-// https://stackoverflow.com/questions/49682569/typescript-merge-object-types
-
 import {lcConstructor, lcInstance} from "./lcConstructor";
 export {default as layerCompose} from './layerCompose'
 

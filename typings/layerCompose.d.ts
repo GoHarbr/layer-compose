@@ -1,6 +1,11 @@
 import {lcConstructor} from './lcConstructor'
 
-type RemapFunction<L, R> = { [P in (keyof L | keyof R)]: (any) => any }
+// adapted from https://github.com/voodoocreation/ts-deepmerge/blob/master/src/index.ts
+// https://stackoverflow.com/questions/49682569/typescript-merge-object-types
+
+type RT<L, R> = L extends (...args) => any ? ReturnType<L> : (R extends (...args) => any ? ReturnType<R> : any)
+type KEYS<L,R> = keyof L | keyof R
+type RemapFunction<L, R> = { [P in KEYS<L,R>]: (any?: any) => RT<P extends keyof L ? L[P] : never, P extends keyof R ? R[P] : never> }
 
 type Spread<A extends readonly [...any]> = A extends [infer L, ...infer R] ? RemapFunction<L, Spread<R>> : never
 
