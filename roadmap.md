@@ -22,3 +22,8 @@
   - Production mode per instantiation (useful for testing)
   - casting (when wrapping over itself)
   - test: services should not be reused between instances 
+    
+
+
+# Needs thought
+  - when exposing using boolean notation (eg {key: true}) check that there's not already a setter / getter.
