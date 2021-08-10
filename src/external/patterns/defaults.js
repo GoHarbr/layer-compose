@@ -14,7 +14,9 @@ export default function (presetValues, overwriteToPojo = false) {
 
             if (notIn || core[k] == null) {
                 if (IS_DEV_MODE) {
-                    if (core[$isCompositionInstance]) console.warn("Setting a default value on an inner interface that is a composition: " + k)
+                    if (core[$isCompositionInstance]) {
+                        console.warn("Setting a default value on an inner interface that is a composition: " + k)
+                    }
                 }
                 let v = presetValues[k]
                 if (typeof v == "function" && v.length === 0) {
