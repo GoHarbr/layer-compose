@@ -20,7 +20,7 @@ import defaults                   from "../external/patterns/defaults"
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
 
-    function constructor(coreObject, parentComposition) {
+    function constructor(coreObject, {initializer} = {}) {
         try {
             const compositionInstance = Object.create(composed)
             bindWith(compositionInstance) // direct mutation
@@ -39,7 +39,7 @@ export function createConstructor(composed) {
                 throw new Error('Data must be an object (not a primitive)')
             }
 
-            compositionInstance[$parentComposition] = parentComposition
+            // compositionInstance[$parentComposition] = parentComposition
             compositionInstance[$isCompositionInstance] = true
             compositionInstance[$initializedCalls] = []
             compositionInstance[$services] = {} // where initializes services are stored
@@ -53,6 +53,7 @@ export function createConstructor(composed) {
 
             wrapStandardMethods(compositionInstance) // for methods like .then
 
+            if (initializer) initializer(compositionInstance)
             composed[$initializer](compositionInstance)
 
             return compositionInstance
@@ -64,12 +65,14 @@ export function createConstructor(composed) {
 
     let _constructor
     if (IS_DEV_MODE) {
-        _constructor = (data, parentComposition) => {
+        _constructor = (data, ...args) => {
             data = unwrapProxy(data, /* unwrap composition */ false)
-            if (parentComposition !== undefined && !parentComposition[$isCompositionInstance]) {
+            const i = constructor(data, ...args)
+
+            const pc = i[$parentComposition]
+            if (pc !== undefined && !pc[$isCompositionInstance]) {
                 throw new Error("Parent composition must be an instance of a composition")
             }
-            const i = constructor(data, parentComposition)
             return wrapCompositionWithProxy(i)
         }
     } else {

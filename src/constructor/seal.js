@@ -38,19 +38,19 @@ export default function seal (composed) {
                     // coreObject can be generated dynamically by the parent
                     const coreGeneratorName = `get${serviceName}`
 
+                    // attaching service name // needs to be done bofere all other initializers, eg. for detaching self
+                    let parent = this
                     if (IS_DEV_MODE) {
-                        const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : wrapCompositionWithProxy(this)
-                        s = service(serviceCore, wrapCompositionWithProxy(this))
-                    } else {
-                        const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : this
-                        s = service(serviceCore, this)
+                        parent = wrapCompositionWithProxy(this)
                     }
-                    this[$services][storeUnder] = s
+                    const initializer = instance => {
+                        instance[$parentComposition] = parent
+                        parent[$services][storeUnder] = instance
+                        instance[$serviceName] = storeUnder
+                    }
 
-                    s[$serviceName] = serviceName
-                    if ('get' in s) {
-                        s.get()
-                    }
+                    const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : this
+                    s = service(serviceCore, {initializer})
                 }
                 return s
             }

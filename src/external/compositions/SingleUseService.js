@@ -2,8 +2,9 @@ import layerCompose                                  from '../../layerCompose'
 import detachSelf                                    from "../patterns/detachSelf"
 
 export default layerCompose(
+    $ => $._detachSelf(),
     {
-        get($, _) {
+        _detachSelf($, _) {
             detachSelf($)
         }
     },
