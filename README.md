@@ -5,9 +5,9 @@
 Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Mufid Majnun</a> on <a href="https://unsplash.com/t/textures-patterns?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 </p>
 
-<div style="font-size:2em; text-align: center">
+<p align="center" style="font-size:2em">
 Lenses meet OO
-</div>
+</p>
 
 --------
 
