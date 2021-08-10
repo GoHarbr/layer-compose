@@ -5,7 +5,7 @@ import {
     $dataPointer,
     $initializer,
     $isSealed,
-    $parentComposition,
+    $parentComposition, $serviceName, $services,
     $writableKeys,
     IS_DEV_MODE
 } from "../const"
@@ -30,11 +30,12 @@ export default function seal (composed) {
             const serviceName = name.slice(1) // services are stored with _ prefix inside compositions
             const service = methodOrService
 
-            const storeUnder = service[$composition][$compositionId]
+            // const storeUnder = service[$composition][$compositionId]
+            const storeUnder = serviceName
             const get = function () {
-                let s = this[storeUnder]
+                let s = this[$services][storeUnder]
                 if (!s) {
-                    // todo. coreObject should be the gotten by `core[lower case service name]`
+                    // coreObject can be generated dynamically by the parent
                     const coreGeneratorName = `get${serviceName}`
 
                     if (IS_DEV_MODE) {
@@ -44,9 +45,12 @@ export default function seal (composed) {
                         const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : this
                         s = service(serviceCore, this)
                     }
+                    this[$services][storeUnder] = s
 
-
-                    if (this[storeUnder] !== false) this[storeUnder] = s
+                    s[$serviceName] = serviceName
+                    if ('get' in s) {
+                        s.get()
+                    }
                 }
                 return s
             }

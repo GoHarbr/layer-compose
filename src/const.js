@@ -9,6 +9,9 @@ export const $compositionId = Symbol('compositionId')
 export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')
+export const $services = Symbol('services')
+export const $serviceName = Symbol('serviceName')
+
 export const $dataPointer = Symbol('dataPointer')
 export const $parentComposition = Symbol('parentComposition')
 export const $extendSuper = Symbol('extendSuper')

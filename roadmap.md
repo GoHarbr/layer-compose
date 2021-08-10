@@ -15,7 +15,8 @@
   
 - services
   - make runtime additions lazy
-  - core object should be `_.ServiceName` from parent
+  - disallow runtime additions to be a different Composition from pre-defined service   
+  <s>core object should be `_.ServiceName` from parent</s>
 
 - composition
   ---- fix: double include of common layers/compositions

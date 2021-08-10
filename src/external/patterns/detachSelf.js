@@ -1,8 +1,9 @@
-import {$compositionId, $parentComposition} from "../../const"
+import {$parentComposition, $serviceName, $services} from "../../const"
 
 export default function ($) {
     if ($[$parentComposition]) {
-        const selfId = $[$compositionId]
-        $[$parentComposition][selfId] = null
+        const serviceName = $[$serviceName]
+        const services = $[$parentComposition][$services]
+        services[serviceName] = null
     }
 }

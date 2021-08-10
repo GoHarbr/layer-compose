@@ -20,6 +20,7 @@ export function generateSuperAccessor(composedUpTo) {
             if (additions) {
                 if (typeof additions == 'object') {
                     // fixme. USE storeUnder!!! as in seal.js
+                    // todo. disallow overriding existing services if the pre-existing service is of different composition
                     Object.assign(instance, additions)
                 } else {
                     throw new Error("Runtime instance modification must produce an object (named list) of services")
@@ -43,7 +44,10 @@ const superFunctionProxy = (composition) => ({ // todo composition here is proba
             * todo. rewrite so that default opts are combined
             * */
             v = (givenOpts) => {
-            // v = () => {
+                if (givenOpts) {
+                    console.warn("A Composition should not be initialized with a function call that contains options. This leads to bugs, and will be completely disallowed in future versions.")
+                }
+
                 const fn = function (instance) {
 
                     /*

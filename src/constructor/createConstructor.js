@@ -6,7 +6,7 @@ import {
     $initializer,
     $isCompositionInstance,
     $isLc,
-    $layers, $parentComposition,
+    $layers, $parentComposition, $services,
     IS_DEV_MODE
 } from "../const"
 import {unwrapProxy}              from "../proxies/utils"
@@ -42,6 +42,8 @@ export function createConstructor(composed) {
             compositionInstance[$parentComposition] = parentComposition
             compositionInstance[$isCompositionInstance] = true
             compositionInstance[$initializedCalls] = []
+            compositionInstance[$services] = {} // where initializes services are stored
+
             // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
             // Object.create(coreObject || {})
             compositionInstance[$dataPointer] = core

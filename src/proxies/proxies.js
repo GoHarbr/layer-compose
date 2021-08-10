@@ -42,7 +42,7 @@ export const definedGetProxy = {
                 return v
             // }
         }
-        throw new Error('Property does not exist (or is `undefined`, eg. check that getter returns): ' + prop);
+        throw new Error(`Property [${prop}] does not exist (or is \`undefined\`, eg. check that getter returns)`);
     }
 }
 

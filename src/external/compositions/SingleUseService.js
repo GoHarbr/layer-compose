@@ -1,11 +1,10 @@
-import layerCompose                         from '../../layerCompose'
-import {$compositionId, $parentComposition} from "../../const"
+import layerCompose                                  from '../../layerCompose'
+import detachSelf                                    from "../patterns/detachSelf"
 
 export default layerCompose(
-    $ => $._asSingleUseService,
     {
-        _asSingleUseService($, _, opt) {
-            $[$parentComposition][$compositionId] = false
+        get($, _) {
+            detachSelf($)
         }
     },
 )
