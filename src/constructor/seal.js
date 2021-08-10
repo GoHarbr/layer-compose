@@ -34,12 +34,18 @@ export default function seal (composed) {
             const get = function () {
                 let s = this[storeUnder]
                 if (!s) {
-                    let core = this
-                    if (IS_DEV_MODE) {
-                        core = wrapCompositionWithProxy(core)
-                    }
                     // todo. coreObject should be the gotten by `core[lower case service name]`
-                    s = service(core, core)
+                    const coreGeneratorName = `get${serviceName}`
+
+                    if (IS_DEV_MODE) {
+                        const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : wrapCompositionWithProxy(this)
+                        s = service(serviceCore, wrapCompositionWithProxy(this))
+                    } else {
+                        const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : this
+                        s = service(serviceCore, this)
+                    }
+
+
                     if (this[storeUnder] !== false) this[storeUnder] = s
                 }
                 return s
