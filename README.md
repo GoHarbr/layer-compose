@@ -1,11 +1,11 @@
-<p style="height:50px; width: 100%; background-image: url('https://unsplash.com/photos/tYRqsndCbEw/download?force=true&w=640')">
-</p>
+![splash](./unsplash.jpg)
 
-<p align="center">
+<p align="right">
 Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Mufid Majnun</a> on <a href="https://unsplash.com/t/textures-patterns?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
 </p>
 
-<p align="center" style="font-size:2em">
+<p align="center" style="font-size:20px">
+<br/>
 Lenses meet OO
 </p>
 
