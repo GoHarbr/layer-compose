@@ -117,7 +117,7 @@ export default layerCompose({
         return $.Await.await(opt)
     },
     then($, _, opt) {
-        return $.Await.then(opt.onFulfilled, opt.onRejected)
+        setTimeout(() => $.Await.then(opt.onFulfilled, opt.onRejected), 0)
     },
     catch($, _, opt) {
         return $.Await.catch(opt)
