@@ -20,7 +20,7 @@ export default function (presetValues, overwriteToPojo = false) {
                 }
                 let v = presetValues[k]
                 if (typeof v == "function" && v.length === 0) {
-                    v = v()
+                    v = v(initialCore)
                     // truthy check for in case of null
                 } else if (!!v && typeof v == "object") {
                     throw new Error(`Raw objects are not allowed as defaults (key: ${k}). They will carry over to other instances. Use \`() => ...\` to generate them dynamically`)
