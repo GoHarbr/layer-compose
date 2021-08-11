@@ -5,11 +5,11 @@ import {$isCompositionInstance, IS_DEV_MODE} from "../../const"
  * @param overwriteToPojo if the inner interface is not a POJO, overwrite it to be
  * */
 export default function (presetValues, overwriteToPojo = false) {
-    if (typeof overwriteToPojo == "object") {
+    if (overwriteToPojo && typeof overwriteToPojo == "object") {
         return defaults(presetValues, overwriteToPojo)
     } else {
         console.warn("You're using legacy form of `defaults`. Switch to using an object as the second argument {[overwriteToPojo], [generate]}")
-        return defaults(presetValues, { overwriteToPojo, generate: false })
+        return defaults(presetValues, { overwriteToPojo, doGenerate: false })
     }
 }
 

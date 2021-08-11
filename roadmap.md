@@ -22,7 +22,7 @@
 - composition  
   - Production mode per instantiation (useful for testing)
   - casting (when wrapping over itself)
-    
+  - make sure setters cannot take undefined values (which automatically become {})    
 
 
 # Needs thought
