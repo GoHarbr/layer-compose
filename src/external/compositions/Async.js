@@ -61,10 +61,10 @@ const Await = layerCompose(
 
         then($, _, opt) {
             if (typeof opt == "function") {
-                $.await(opt)
+                setTimeout(() => $.await(opt), 0)
             } else if (opt.onFulfilled) {
                 if (opt.onRejected) _.executionQueuePromise.catch(opt.onRejected)
-                $.await(opt.onFulfilled)
+                setTimeout(() => $.await(opt.onFulfilled), 0)
             } else {
                 throw new Error("No thennable function passed into `then`")
             }
@@ -117,7 +117,7 @@ export default layerCompose({
         return $.Await.await(opt)
     },
     then($, _, opt) {
-        setTimeout(() => $.Await.then(opt.onFulfilled, opt.onRejected), 0)
+        $.Await.then(opt.onFulfilled, opt.onRejected)
     },
     catch($, _, opt) {
         return $.Await.catch(opt)
