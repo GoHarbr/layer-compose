@@ -49,7 +49,11 @@ export default function seal (composed) {
                         instance[$serviceName] = storeUnder
                     }
 
-                    const serviceCore = coreGeneratorName in this ? this[coreGeneratorName]() : this
+                    // first try searching for service name (which starts with a capital) in parent's core,
+                    // then try to find a dynamic getter on the parent's outer interface
+                    const serviceCore = serviceName in this[$dataPointer] ?
+                        this[$dataPointer][serviceName]
+                        : (coreGeneratorName in this ? this[coreGeneratorName]() : this)
                     s = service(serviceCore, {initializer})
                 }
                 return s
