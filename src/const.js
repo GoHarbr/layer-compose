@@ -36,5 +36,7 @@ export const $writableKeys = Symbol('writableKeys')
 export const $layerId = Symbol("layerId")
 export const $$ = Symbol('$$')
 
+export const $executionQueue = Symbol('executionQueue')
+
 // export const $isSetter = Symbol("isSetter")
 // export const $isGetter = Symbol("isGetter")

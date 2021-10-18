@@ -1,14 +1,14 @@
 import {
     $composition,
     $compositionId,
-    $dataPointer,
+    $dataPointer, $executionQueue,
     $initializedCalls,
     $initializer,
     $isCompositionInstance,
     $isLc,
     $layers, $parentComposition, $services,
     IS_DEV_MODE
-} from "../const"
+}                                 from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
@@ -16,6 +16,9 @@ import createBinder               from "./createBinder"
 import withTransform              from '../external/patterns/withTransform'
 import layerCompose               from '../layerCompose'
 import defaults                   from "../external/patterns/defaults"
+import {isPromise}                from "../utils"
+import {queueForExecution}        from "../compose/queueForExecution"
+import parseCoreObject            from "./parseCoreObject"
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
@@ -25,31 +28,30 @@ export function createConstructor(composed) {
             const compositionInstance = Object.create(composed)
             bindWith(compositionInstance) // direct mutation
 
-            /* allow core objects to get reference to wrapping composition */
-            let core
-            if (typeof coreObject === "function") {
-                core = coreObject(compositionInstance)
-            } else if (coreObject == null) {
-                core = {}
-            } else {
-                core = coreObject
-            }
-
-            if (typeof core !== "object") {
-                throw new Error('Data must be an object (not a primitive)')
-            }
-
-            // compositionInstance[$parentComposition] = parentComposition
             compositionInstance[$isCompositionInstance] = true
             compositionInstance[$initializedCalls] = []
             compositionInstance[$services] = {} // where initializes services are stored
+            compositionInstance[$executionQueue] = []
 
+            /* allow core objects to get reference to wrapping composition */
+            // compositionInstance[$parentComposition] = parentComposition
             // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
             // Object.create(coreObject || {})
+
+            const core = parseCoreObject(coreObject, compositionInstance)
             compositionInstance[$dataPointer] = core
 
-            // todo. think through if extensions should be kept.
-            // compositionInstance[$extendSuper] = $
+            /* Handling promises as core objects */
+            if (isPromise(core)) {
+                compositionInstance[$dataPointer] = null
+                queueForExecution(compositionInstance, () => core, res => {
+                    if (typeof core !== "object") {
+                        throw new Error('Data must be an object (not a primitive)')
+                    }
+
+                    compositionInstance[$dataPointer] = parseCoreObject(res, compositionInstance)
+                })
+            }
 
             wrapStandardMethods(compositionInstance) // for methods like .then
 

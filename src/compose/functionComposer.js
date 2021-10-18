@@ -1,4 +1,4 @@
-import {combineResult} from "./combineResult"
+import {queueForExecution} from "./queueForExecution"
 
 function wrapCall(fn) {
     return Object.isExtensible(fn) ?
@@ -7,21 +7,22 @@ function wrapCall(fn) {
 }
 
 export function functionComposer(existing, func) {
+    const nextCall = func && wrapCall(func)
 
-    // const isAsync = existing.isAsync || func.isAsync || func[Symbol.toStringTag] === 'AsyncFunction'
-    // todo. deprecated
-    const isAsync = false
+    // if no existing, queue just the current
+    if (!existing) {
+        return ($,_,opt) => queueForExecution($, () => nextCall($,_,opt))
 
-    const existingCall = wrapCall(existing)
-    const nextCall = wrapCall(func)
+    } else {
+        const existingCall = wrapCall(existing)
 
-    const composed = function ($, _, opt, compressionMethod) {
-        const acc = existingCall($, _, opt, compressionMethod)
-        const next = nextCall($, _, opt)
+        return function ($, _, opt, compressionMethod) {
 
-        return combineResult(acc, next, isAsync, compressionMethod)
+            // existing call should be already queued
+            existingCall($, _, opt, compressionMethod)
+
+            nextCall && queueForExecution($, () => nextCall($, _, opt))
+        }
     }
-
-    composed.isAsync = isAsync
-    return composed
 }
+

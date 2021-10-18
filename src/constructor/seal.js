@@ -50,10 +50,10 @@ export default function seal (composed) {
                     }
 
                     // first try searching for service name (which starts with a capital) in parent's core,
-                    // then try to find a dynamic getter on the parent's outer interface
+                    // or give the parent's core
                     const serviceCore = serviceName in this[$dataPointer] ?
                         this[$dataPointer][serviceName]
-                        : (coreGeneratorName in this ? this[coreGeneratorName]() : this)
+                        : this[$dataPointer]
                     s = service(serviceCore, {initializer})
                 }
                 return s
@@ -105,13 +105,13 @@ export default function seal (composed) {
                 Object.freeze(composed[name])
             }
 
-            const getterName = renameIntoGetter(name)
+            // const getterName = renameIntoGetter(name)
             const setterName = renameIntoSetter(name)
 
             // if these properties become iterable, move this block into extensible check above
-            if (getterName) {
-                Object.defineProperty(composed, getterName, { get: composed[name], configurable: true, })
-            }
+            // if (getterName) {
+            //     Object.defineProperty(composed, getterName, { get: composed[name], configurable: true, })
+            // }
 
             if (setterName) {
                 composed[$writableKeys].push(setterName)

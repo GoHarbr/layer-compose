@@ -1,29 +1,21 @@
-import {IS_DEV_MODE} from "../const"
+import {IS_DEV_MODE}       from "../const"
+import {queueForExecution} from "../compose/queueForExecution"
 
 function wrapThen(instance) {
-    if (instance.then) {
+    const then = instance.then
 
-        const then = instance.then
-        instance.then = (onFulfilled, onRejected) => {
-            if (IS_DEV_MODE && typeof onFulfilled != "function") {
-                throw new Error("Improper use of Async: `onFulfilled` must be a function")
-            }
-            then({
-                onFulfilled: () => {
-                    const restoreTo = instance.then
-                    instance.then = null
-                    onFulfilled(instance)
-                    instance.then = restoreTo
-                },
-                onRejected: onRejected || null
-            })
-
-            // return null
-            return instance
+    instance.then = (onFulfilled, onRejected) => {
+        if (IS_DEV_MODE && typeof onFulfilled != "function") {
+            throw new Error("Improper use of Async: `onFulfilled` must be a function")
         }
+        then && then({
+            onFulfilled: () => {},
+            onRejected: onRejected || null
+        })
 
-    } else {
-        instance.then = null
+        queueForExecution(instance, onFulfilled)
+
+        return instance
     }
 }
 

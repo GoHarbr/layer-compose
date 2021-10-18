@@ -15,21 +15,12 @@ export default function createBinder(composed) {
             const f = instance[prop]
 
             if (!f[$isCompositionInstance]) {
-                const isGetter = !!renameIntoGetter(prop)
-
-                /** Getters are the only way to escape out of the builder pattern */
-                if (isGetter) {
-                    instance[prop] = function (...args) {
-                        return f.apply(instance, args)
-                    }
-                } else {
                     instance[prop] = function (...args) {
                         f.apply(instance, args)
 
                         // to allow a builder pattern
                         return instance
                     }
-                }
             }
 
             if (_c) _c(instance)

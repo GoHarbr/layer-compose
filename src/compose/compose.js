@@ -158,12 +158,13 @@ function compose(layerLike, composed) {
                             composedEntry = functionComposer(existing, fn)
                         }
                     } else {
-                        composedEntry = fn
                         // todo, this is not always reliable
                         // composedEntry.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
 
                         if (IS_DEV_MODE && Object.isExtensible(composedEntry)) {
-                            composedEntry = wrapForDev(layerId, composedEntry)
+                            composedEntry = functionComposer(null, wrapForDev(layerId, composedEntry))
+                        } else {
+                            composedEntry = functionComposer(null, fn)
                         }
                     }
 
