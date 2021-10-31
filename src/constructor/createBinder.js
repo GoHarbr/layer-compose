@@ -2,7 +2,6 @@
 * Wraps instance into a builder pattern & autobinds
 * */
 
-import {isService, renameIntoGetter} from "../utils"
 import {$isCompositionInstance}      from "../const"
 
 export default function createBinder(composed) {

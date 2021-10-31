@@ -17,8 +17,8 @@ import withTransform              from '../external/patterns/withTransform'
 import layerCompose               from '../layerCompose'
 import defaults                   from "../external/patterns/defaults"
 import {isPromise}                from "../utils"
-import {queueForExecution}        from "../compose/queueForExecution"
-import parseCoreObject            from "./parseCoreObject"
+import {queueForExecution} from "../compose/queueForExecution"
+import constructCoreObject from "./constructCoreObject"
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
@@ -38,7 +38,7 @@ export function createConstructor(composed) {
             // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
             // Object.create(coreObject || {})
 
-            const core = parseCoreObject(coreObject, compositionInstance)
+            const core = constructCoreObject(coreObject, compositionInstance)
             compositionInstance[$dataPointer] = core
 
             /* Handling promises as core objects */
@@ -49,7 +49,7 @@ export function createConstructor(composed) {
                         throw new Error('Data must be an object (not a primitive)')
                     }
 
-                    compositionInstance[$dataPointer] = parseCoreObject(res, compositionInstance)
+                    compositionInstance[$dataPointer] = constructCoreObject(res, compositionInstance)
                 })
             }
 

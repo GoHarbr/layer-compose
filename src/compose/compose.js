@@ -69,7 +69,8 @@ function compose(layerLike, composed) {
 
         const _ = (transformer) => {
             composed[$runOnInitialize].unshift(instance => {
-                // fixme wrap the data into the proxy if DEV
+                // transformers are no subject to the borrow proxy (and thus the borrow checking)
+
                 instance[$dataPointer] = transformer(instance[$dataPointer]) || instance[$dataPointer]
             })
         }
@@ -112,31 +113,78 @@ function compose(layerLike, composed) {
                     } else {
                         return [getter]
                     }
-                } else if (typeof value === 'object' || isLcConstructor(value)) {
 
+                } else if (typeof value === 'object' || isLcConstructor(value)) {
                     // if this is a service definition then it starts with a capital letter
                     if (name[0] !== name[0].toUpperCase()) {
                         throw new Error("Service names should start with uppercase: " + name)
                     }
 
-                    let service
+                    let serviceContainer
                     const serviceName = name[0] === "_" ? name : "_" + name
 
                     if (serviceName in composed) {
                         // todo. make sure getters and setters aren't overwriting services/lenses
                         if (isService(composed[serviceName])) {
-                            service = layerCompose(value, composed[serviceName])
+                            // service might be an import
+                            serviceContainer = composed[serviceName]
+                            // result of the import, if there is an async import in the chain
+                            const completePromise = serviceContainer.completePromise ||
+                                (typeof value.then === 'function' && Promise.resolve())
+
+                            if (completePromise) {
+                                // chaining together all the async calls
+                                serviceContainer.completePromise =
+                                    completePromise.then(value).then(importRes => {
+                                        const isModule = importRes.__esModule
+                                        if (isModule && !importRes.default) throw new Error('Composition must be a default export')
+
+                                        const c =  importRes ? importRes.default : importRes
+                                        serviceContainer.composition = layerCompose(c, serviceContainer.composition)
+                                })
+                            } else {
+                                // nothing async yet
+                                serviceContainer.composition = layerCompose(value, serviceContainer.composition)
+                            }
                         } else {
                             throw new Error('Service cannot be merged with a non-service on key: ' + name)
                         }
-                    } else if (!isLcConstructor(value)) {
-                        service = layerCompose(value)
                     } else {
-                        service = value
-                    }
-                    service[$isService] = true
+                        // service might be an import
+                        const isAsyncCompiler = typeof value.then === 'function'
+                        serviceContainer = {
+                            [$isService] : true,
+                            completePromise: isAsyncCompiler ? value : null
+                        }
 
-                    return [[serviceName, service]]
+                        // async case
+                        if (isAsyncCompiler) {
+                            serviceContainer.completePromise.then(importRes => {
+                                const isModule = importRes.__esModule
+                                if (isModule && !importRes.default) throw new Error('Composition must be a default export')
+
+                                const c =  importRes ? importRes.default : importRes
+
+                                if (!isLcConstructor(c)) {
+                                    serviceContainer.composition = layerCompose()
+                                } else {
+                                    serviceContainer.composition = c
+                                }
+                            })
+
+                        } else {
+                            // sync case
+                            // fixme. factor this code out
+                            if (!isLcConstructor(value)) { // service could be a plain, non-compiled object
+                                serviceContainer.composition = layerCompose(value)
+                            } else {
+                                serviceContainer.composition = value
+                            }
+                        }
+
+                    }
+
+                    return [[serviceName, serviceContainer]]
                 } else if (typeof value == 'function') {
                     // if this is a function definition, compose
 

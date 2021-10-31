@@ -1,18 +1,19 @@
-import {getLayerId, isPromise, isService, renameIntoGetter, renameIntoSetter}                            from "../utils"
+import {isPromise, isService, renameIntoSetter} from "../utils"
 import {
-    $composition,
     $compositionId,
     $dataPointer,
     $initializer,
     $isSealed,
-    $parentComposition, $serviceName, $services,
+    $parentComposition,
+    $serviceName,
+    $services,
     $writableKeys,
     IS_DEV_MODE
-} from "../const"
-import buildInitializer
-                                                                                                         from "./buildInitializer"
-import {unwrapProxy}                                                                                     from "../proxies/utils"
-import {wrapCompositionWithProxy}                                                                        from "../proxies/wrapCompositionWithProxy"
+}                                 from "../const"
+import buildInitializer           from "./buildInitializer"
+import {unwrapProxy}              from "../proxies/utils"
+import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
+import {queueForExecution}        from "../compose/queueForExecution"
 
 let _compositionId = 0 // for debug purposes
 
@@ -28,16 +29,15 @@ export default function seal (composed) {
 
         if (isService(methodOrService)) {
             const serviceName = name.slice(1) // services are stored with _ prefix inside compositions
-            const service = methodOrService
+            const serviceContainer = methodOrService
 
             // const storeUnder = service[$composition][$compositionId]
             const storeUnder = serviceName
-            const get = function () {
-                let s = this[$services][storeUnder]
-                if (!s) {
-                    // coreObject can be generated dynamically by the parent
-                    const coreGeneratorName = `get${serviceName}`
+            composed[serviceName] = function (cbWithService) {
+                if (!cbWithService) throw new Error("Callback must be present to access the service")
 
+                let s = this[$services][storeUnder] // no need to re-initialize if there's an alive instance
+                if (!s) {
                     // attaching service name // needs to be done bofere all other initializers, eg. for detaching self
                     let parent = this
                     if (IS_DEV_MODE) {
@@ -45,7 +45,7 @@ export default function seal (composed) {
                     }
                     const initializer = instance => {
                         instance[$parentComposition] = parent
-                        parent[$services][storeUnder] = instance
+                        parent[$services][storeUnder] = instance // storing for reuse
                         instance[$serviceName] = storeUnder
                     }
 
@@ -53,13 +53,23 @@ export default function seal (composed) {
                     // or give the parent's core
                     const serviceCore = serviceName in this[$dataPointer] ?
                         this[$dataPointer][serviceName]
-                        : this[$dataPointer]
-                    s = service(serviceCore, {initializer})
-                }
-                return s
-            }
+                        : null
 
-            Object.defineProperty(composed, serviceName, { get })
+                    // now going to deal with sync/async cases
+                    if (serviceContainer.completePromise) {
+                        queueForExecution(parent,
+                            () => serviceContainer.completePromise,
+                            () => {
+                                cbWithService(
+                                    serviceContainer.composition(serviceCore, { initializer })
+                                )
+                            })
+                    } else {
+                        const s = serviceContainer.composition(serviceCore, { initializer })
+                        cbWithService(s)
+                    }
+                }
+            }
         } else {
 
             /*

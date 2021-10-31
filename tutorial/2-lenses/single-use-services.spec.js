@@ -1,4 +1,4 @@
-import {layerCompose, defaults}   from '../../src'
+import {layerCompose, defaults, IS_DEV_MODE}   from '../../src'
 import SingleUseService from "../../src/external/compositions/SingleUseService"
 
 describe("Services can be re-initialized", () => {
@@ -9,13 +9,14 @@ describe("Services can be re-initialized", () => {
 
     test("Single use service should be re-initialized each time it's accessed", () => {
         // let's start out with a regular service
+        // which is persisted across separate occurrences of access
         const WithRegularService = layerCompose({
             Service: [
                 defaults({val: 1}, /* use an empty {} as the core */true),
                 {
-                    val: false,
-                },
-                {
+                    test($,_,opt) {
+                        expect(_.val).toBe(opt)
+                    },
                     inc($,_) {
                         _.val += 1
                     }
@@ -25,11 +26,17 @@ describe("Services can be re-initialized", () => {
 
         // each time we access it, we do NOT re-initialize it
         const r = WithRegularService()
-        expect(r.Service.val).toBe(1)
-        r.Service.inc()
-        expect(r.Service.val).toBe(2)
-        r.Service.inc()
-        expect(r.Service.val).toBe(3)
+        r.Service(s => {
+            s.test(1)
+        })
+        r.Service(s => {
+            s.inc()
+            s.test(2)
+        })
+        r.Service(s => {
+            s.inc()
+            s.test(3)
+        })
 
         // now, let's make it single-use
         const WithSingleUseService = layerCompose({
@@ -42,15 +49,50 @@ describe("Services can be re-initialized", () => {
 
         // each time we access it, we DO re-initialize it
         const su = WithSingleUseService()
-        expect(su.Service.val).toBe(1)
 
-        const referenceToService = su.Service
-        referenceToService.inc()
+        let referenceToOldService
+        su.Service(s => {
+            s.test(1)
+            s.inc()
+            s.test(2)
+            referenceToOldService = s
+        })
 
-        expect(su.Service.val).toBe(1) // each access re-initializes the service, so we start from scratch
-        expect(referenceToService.val).toBe(2) // we kept the reference here, so we see the result of `inc`
+        su.Service(s => {
+            // each access re-initializes the service, so we start from scratch
+            s.test(1)
+            s.inc()
+            s.inc()
+            s.test(3)
+        })
 
-        su.Service.inc()
-        expect(su.Service.val).toBe(1)
+        referenceToOldService.test(2) // we kept the reference here, so we see the result of `inc`
+    })
+
+    /*
+    * More detailed tests are here.
+    * They are important for code coverage.
+    * */
+
+    test("Single use service take only null cores", () => {
+        if (!IS_DEV_MODE) {
+            return // this check only happens in DEV mode
+        }
+
+        const WithSingleUseService = layerCompose({
+            Service: [
+                SingleUseService
+            ]
+        })
+
+        expect(() => {
+            WithSingleUseService({
+                Service: {key: 'val'}
+            }).Service(s => {
+
+            })
+        }).toThrow()
     })
 })
+
+
