@@ -99,9 +99,6 @@ function compose(layerLike, composed) {
                 // todo. what if not a function, but a primitive?
 
                 if (typeof value === 'boolean') {
-                    // if this is a shape definition
-                    // add getter
-                    const getter = [renameWithPrefix('get', name), ($, _) => _[name]]
                     if (value === true) {
                         // add a setter as well
                         const setter = [renameWithPrefix('set', name), ($, _, opt) => {
@@ -109,9 +106,9 @@ function compose(layerLike, composed) {
                             return true
                         }]
 
-                        return [getter, setter]
+                        return [setter]
                     } else {
-                        return [getter]
+                        return []
                     }
 
                 } else if (typeof value === 'object' || isLcConstructor(value)) {
