@@ -15,6 +15,7 @@ import transformToStandardArgs
 import {functionComposer}         from "./functionComposer"
 import {getDataProxy}             from "../data/getDataProxy"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
+import {queueForExecution}        from "./queueForExecution"
 
 /*
 * todo.
@@ -63,23 +64,14 @@ function compose(layerLike, composed) {
 
     } else if (isInitializer(layerLike)) {
         /* todo. make sure that initializers don't depend on other services having been initialized */
-        /* todo. make sure $ accessor can not be used once initialized */
 
-        const $ = generateSuperAccessor(composed)
-
-        const _ = (transformer) => {
             composed[$runOnInitialize].unshift(instance => {
-                // transformers are no subject to the borrow proxy (and thus the borrow checking)
+                const _ = instance[$dataPointer]
+                queueForExecution(instance, () => layerLike(instance, _))
 
-                instance[$dataPointer] = transformer(instance[$dataPointer]) || instance[$dataPointer]
+                // todo. add Dev check that the function is not async and calls async methods on the composition instance
+                // todo. add DEV checks that the same method isn't called during initialization twice.
             })
-        }
-
-        // const fn = layerLike($, _) // adds items into initialization + other utilities
-        layerLike($, _)
-
-        // fn is to be ran on initialization
-        // if (typeof fn == "function") composed[$runOnInitialize].push(fn)
 
         return composed
 
