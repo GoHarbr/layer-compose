@@ -83,4 +83,52 @@ describe("The basics of Layers", () => {
         expect(log).toHaveBeenCalledTimes(3)
     })
 
+    test("Multi-layer composition with initializer", () => {
+        const log = jest.fn((...args) => console.log(...args))
+
+        /**
+        * Here we define 3 layers, each could live in a separate file
+        * */
+
+        const initializerLayer = [
+            ($,_) => {
+                _.key = 'Initializer'
+                $.print()
+            }
+        ]
+
+        const topLayer = {
+            print($,_) {
+                log(_.key + '-top')
+            }
+        }
+
+        const baseLayer = {
+            print($,_) {
+                log(_.key + '-base')
+            }
+        }
+
+        /*
+        * Compiling all 3 Layers into a Composition
+        * */
+
+        const C = layerCompose(
+            initializerLayer,
+            topLayer,
+            baseLayer
+        )
+
+        /*
+        * Then we create an instance
+        * and notice that we rely on the initilizer to make the calls
+        * */
+
+        const instance = C()
+
+        expect(log).toHaveBeenCalledTimes(2)
+        expect(log).toHaveBeenNthCalledWith(1, 'Initializer-base')
+        expect(log).toHaveBeenNthCalledWith(2, 'Initializer-top')
+    })
+
 })

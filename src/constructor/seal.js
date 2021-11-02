@@ -68,6 +68,9 @@ export default function seal (composed) {
                         const s = serviceContainer.composition(serviceCore, { initializer })
                         cbWithService(s)
                     }
+                } else {
+                    // todo. should this call be queued on the parent??? why not use `await`
+                    cbWithService(s)
                 }
             }
         } else {
@@ -117,11 +120,6 @@ export default function seal (composed) {
 
             // const getterName = renameIntoGetter(name)
             const setterName = renameIntoSetter(name)
-
-            // if these properties become iterable, move this block into extensible check above
-            // if (getterName) {
-            //     Object.defineProperty(composed, getterName, { get: composed[name], configurable: true, })
-            // }
 
             if (setterName) {
                 composed[$writableKeys].push(setterName)
