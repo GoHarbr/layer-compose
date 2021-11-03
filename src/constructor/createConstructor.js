@@ -23,20 +23,17 @@ import constructCoreObject from "./constructCoreObject"
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
 
-    function constructor(coreObject, {initializer} = {}) {
+    const constructor = function (coreObject, {initializer} = {}) {
         try {
             const compositionInstance = Object.create(composed)
+            // binding `this` into each function
             bindWith(compositionInstance) // direct mutation
 
             compositionInstance[$isCompositionInstance] = true
+            // @deprecated
             compositionInstance[$initializedCalls] = []
             compositionInstance[$services] = {} // where initializes services are stored
             compositionInstance[$executionQueue] = []
-
-            /* allow core objects to get reference to wrapping composition */
-            // compositionInstance[$parentComposition] = parentComposition
-            // compositionInstance[$dataPointer] = coreObject[$isCompositionInstance] ? coreObject :
-            // Object.create(coreObject || {})
 
             const core = constructCoreObject(coreObject, compositionInstance)
             compositionInstance[$dataPointer] = core
