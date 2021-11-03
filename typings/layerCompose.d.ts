@@ -20,12 +20,11 @@ type Spread<A extends readonly [...any]> = A extends [infer L, ...infer R] ? (
             )
     ): never
 
-// export default function layerCompose<T extends object[]>(...layers: [...T]): lcConstructor<Spread<T>>
-export default function layerCompose<T extends object[]>(...layers: [...T]): lcConstructor<Spread<T>>
+/*
+* Exports
+* */
 
-
-
-
+export function layerCompose<T extends object[]>(...layers: [...T]): lcConstructor<Spread<T>>
 
 export interface lcSuperMethod<F extends (args: any) => any> {
     lockOpt: (opt: {}) => void

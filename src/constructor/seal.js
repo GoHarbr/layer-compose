@@ -4,21 +4,21 @@ import {
     $dataPointer,
     $initializer,
     $isSealed,
-    $parentComposition,
-    $serviceName,
+    $parentInstance,
+    $lensName,
     $services,
     $writableKeys,
-    IS_DEV_MODE
-}                                 from "../const"
-import buildInitializer           from "./buildInitializer"
-import {unwrapProxy}              from "../proxies/utils"
-import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import {queueForExecution}        from "../compose/queueForExecution"
+    IS_DEV_MODE, $isCompositionInstance
+} from "../const"
+import buildInitializer                         from "./buildInitializer"
+import {unwrapProxy}                            from "../proxies/utils"
+import {wrapCompositionWithProxy}               from "../proxies/wrapCompositionWithProxy"
+import {queueForExecution}                      from "../compose/queueForExecution"
 
 let _compositionId = 0 // for debug purposes
 
 // noinspection FunctionTooLongJS
-export default function seal (composed) {
+export default function seal(composed) {
     _compositionId++
     composed[$compositionId] = composed[$compositionId] || Symbol(_compositionId + '::composition-id')
 
@@ -28,48 +28,39 @@ export default function seal (composed) {
 
 
         if (isService(methodOrService)) {
-            const serviceName = name.slice(1) // services are stored with _ prefix inside compositions
-            const serviceContainer = methodOrService
+            const lensName = name.slice(1) // services are stored with _ prefix inside compositions
 
-            // const storeUnder = service[$composition][$compositionId]
-            const storeUnder = serviceName
-            composed[serviceName] = function (cbWithService) {
+            composed[lensName] = function (cbWithService) {
                 if (!cbWithService) throw new Error("Callback must be present to access the service")
 
-                let s = this[$services][storeUnder] // no need to re-initialize if there's an alive instance
-                if (!s) {
-                    // attaching service name // needs to be done bofere all other initializers, eg. for detaching self
-                    let parent = this
-                    if (IS_DEV_MODE) {
-                        parent = wrapCompositionWithProxy(this)
-                    }
-                    const initializer = instance => {
-                        instance[$parentComposition] = parent
-                        parent[$services][storeUnder] = instance // storing for reuse
-                        instance[$serviceName] = storeUnder
-                    }
+                const serviceContainer = composed[name]
 
-                    // first try searching for service name (which starts with a capital) in parent's core,
-                    // or give the parent's core
-                    const serviceCore = serviceName in this[$dataPointer] ?
-                        this[$dataPointer][serviceName]
-                        : null
+                // first try searching for service name (which starts with a capital) in parent's core,
+                // or give the parent's core
+                // const serviceCore = lensName in this[$dataPointer] ?
+                //     this[$dataPointer][lensName]
+                //     : null
 
-                    // now going to deal with sync/async cases
-                    if (serviceContainer.completePromise) {
-                        queueForExecution(parent,
-                            () => serviceContainer.completePromise,
-                            () => {
-                                cbWithService(
-                                    serviceContainer.composition(serviceCore, { initializer })
-                                )
-                            })
-                    } else {
-                        const s = serviceContainer.composition(serviceCore, { initializer })
-                        cbWithService(s)
-                    }
+                const parent = IS_DEV_MODE ? wrapCompositionWithProxy(this) : this
+                const serviceCore = null
+
+                const initializer = instance => {
+                    instance[$lensName] = lensName // todo. This functionality should live in `compose.js`
+                    instance[$parentInstance] = parent
+                }
+
+                // now going to deal with sync/async cases
+                if (!serviceContainer.isComplete && serviceContainer.completePromise) {
+                    queueForExecution(parent,
+                        () => serviceContainer.completePromise,
+                        () => {
+                            serviceContainer.isComplete = true
+                            cbWithService(
+                                serviceContainer.composition(serviceCore, { initializer })
+                            )
+                        })
                 } else {
-                    // todo. should this call be queued on the parent??? why not use `await`
+                    const s = serviceContainer.composition(serviceCore, { initializer })
                     cbWithService(s)
                 }
             }

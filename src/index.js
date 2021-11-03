@@ -1,39 +1,16 @@
 import {IS_DEV_MODE} from "./const"
 
-import cleanData        from './external/utils/cleanData'
-import transformGetters from "./external/utils/transformGetters"
+export layerCompose from './layerCompose'
 
-import Async            from "./external/compositions/Async"
-import Observable            from "./external/compositions/Observable"
-import withJson            from "./external/compositions/withJson"
-
-import {getComposition, renameIntoGetter} from "./utils"
-import withTransform    from "./external/patterns/withTransform"
-import transform    from "./external/patterns/transform"
-import defaults    from "./external/patterns/defaults"
-import detachSelf    from "./external/patterns/detachSelf"
-
-import layerCompose from './layerCompose'
-
-export default layerCompose
-
+export assign       from "./external/patterns/assign"
+export defaults       from "./external/patterns/defaults"
+export generate       from "./external/patterns/generate"
+export coreLens       from "./external/patterns/coreLens"
+export lens     from "./external/patterns/lens"
+export memo       from "./external/patterns/memo"
+export transform       from "./external/patterns/transform"
+export attach     from "./external/patterns/attach"
+export replace     from "./external/patterns/replace"
 
 export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
 export {unwrapProxy} from './proxies/utils'
-export {
-    layerCompose,
-
-    IS_DEV_MODE,
-
-    cleanData,
-    transformGetters,
-
-    Async,
-    Observable,
-    withJson,
-
-    transform,
-    defaults,
-    withTransform,
-    detachSelf
-}

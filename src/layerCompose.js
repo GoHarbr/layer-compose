@@ -3,7 +3,7 @@ import {
     $extendSuper,
     $layerOrder,
     $layers,
-    $parentComposition,
+    $parentInstance,
     $runOnInitialize,
     $writableKeys,
     IS_DEV_MODE
@@ -24,7 +24,7 @@ export default function layerCompose(...layers) {
             [$runOnInitialize]: [],
             [$extendSuper]: undefined,
             [$dataPointer]: undefined,
-            [$writableKeys]: [$parentComposition],
+            [$writableKeys]: [$parentInstance],
             toJSON: ($, _, opt) => {
                 return _
             }
@@ -34,10 +34,6 @@ export default function layerCompose(...layers) {
         composed = seal(composed)
 
         const constructor = createConstructor(composed)
-
-        // constructor[$isLc] = true
-        // constructor[$spec] = layers
-        // constructor[$composition] = composed
 
         return constructor
     } catch (e) {

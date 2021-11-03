@@ -1,7 +1,9 @@
-import layerCompose from "../../layerCompose"
-
 export default function (transformer) {
-    return ($, _) => _(core => {
-                return transformer(core)
-            })
+    return ($, _) => {
+        const res = transformer(_)
+        if (!res) {
+            throw new Error("Transformer must return a new core object")
+        }
+        return res
+    }
 }

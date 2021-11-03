@@ -1,5 +1,6 @@
 import {layerCompose} from '../../../src'
 import keyLayer       from "./keyLayer"
+import consoleLayer   from "./consoleLayer"
 
 export default layerCompose(
     {
@@ -9,6 +10,8 @@ export default layerCompose(
     },
 
     keyLayer,
+    consoleLayer,
+
     {
         A: import('./A.js')
     }

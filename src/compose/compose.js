@@ -124,13 +124,15 @@ function compose(layerLike, composed) {
                             if (completePromise) {
                                 // chaining together all the async calls
                                 serviceContainer.completePromise =
-                                    completePromise.then(value).then(importRes => {
+                                    completePromise.then(() => value).then(importRes => {
                                         const isModule = importRes.__esModule
                                         if (isModule && !importRes.default) throw new Error('Composition must be a default export')
 
-                                        const c =  importRes ? importRes.default : importRes
+                                        const c =  importRes.__esModule ? importRes.default : importRes
                                         serviceContainer.composition = layerCompose(c, serviceContainer.composition)
                                 })
+                                // todo. remove
+                                // serviceContainer.completePromise.layers = [...(completePromise.layers || []), value]
                             } else {
                                 // nothing async yet
                                 serviceContainer.composition = layerCompose(value, serviceContainer.composition)
@@ -152,7 +154,7 @@ function compose(layerLike, composed) {
                                 const isModule = importRes.__esModule
                                 if (isModule && !importRes.default) throw new Error('Composition must be a default export')
 
-                                const c =  importRes ? importRes.default : importRes
+                                const c =  importRes.__esModule ? importRes.default : importRes
 
                                 if (!isLcConstructor(c)) {
                                     serviceContainer.composition = layerCompose()

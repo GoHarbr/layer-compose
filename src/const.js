@@ -10,11 +10,11 @@ export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')
 export const $services = Symbol('services')
-export const $serviceName = Symbol('serviceName')
+export const $lensName = Symbol('lensName')
 
 export const $dataPointer = Symbol('dataPointer')
 export const $isNullCore = Symbol('nullCore')
-export const $parentComposition = Symbol('parentComposition')
+export const $parentInstance = Symbol('parentComposition')
 export const $extendSuper = Symbol('extendSuper')
 export const $runOnInitialize = Symbol('runOnInitialize')
 export const $initializedCalls = Symbol('initializedCalls')

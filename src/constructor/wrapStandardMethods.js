@@ -1,5 +1,5 @@
-import {IS_DEV_MODE}       from "../const"
-import {queueForExecution} from "../compose/queueForExecution"
+import {$dataPointer, IS_DEV_MODE} from "../const"
+import {queueForExecution}         from "../compose/queueForExecution"
 
 function wrapThen(instance) {
     const then = instance.then
@@ -21,7 +21,7 @@ function wrapThen(instance) {
 
 function wrapJson(instance) {
     if ("json" in instance) {
-        instance.toJSON = () => instance.json
+        instance.toJSON = () => instance[$dataPointer]
     }
 }
 

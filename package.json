@@ -7,22 +7,20 @@
   "license": "MIT",
   "keywords": [],
   "author": "Anton Kats",
-
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
   "repository": "git@github.com:GoHarbr/layer-compose.git",
-
   "scripts": {
     "test": "jest",
     "package": "tar --exclude='.[^/]*' --exclude='layerCompose.tar.gz' --exclude='node_modules' -czvf layerCompose.tar.gz ./",
     "build": "babel src -d lib && yarn run package && if ! [ -x \"command -v yalc\" ]; then yalc push --private; fi ",
     "watch": "nodemon -i lib -x 'yarn build'"
   },
-
   "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
+    "@babel/plugin-proposal-export-default-from": "^7.16.0",
     "@babel/plugin-proposal-throw-expressions": "^7.12.1",
     "@babel/preset-env": "^7.12.11",
     "benchmark": "^2.1.4",

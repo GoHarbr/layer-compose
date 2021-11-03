@@ -1,6 +1,6 @@
-import {isFunction}                                                                         from "../utils"
-import {$dataPointer, $initializedCalls, $parentComposition, $runOnInitialize, IS_DEV_MODE} from "../const"
-import {definedGetProxy}                                                                    from "../proxies/proxies"
+import {isFunction}                                                                      from "../utils"
+import {$dataPointer, $initializedCalls, $parentInstance, $runOnInitialize, IS_DEV_MODE} from "../const"
+import {definedGetProxy}                                                                 from "../proxies/proxies"
 import {TaggedProxy}                   from "../proxies/utils"
 import {noSetAccessProxy}              from "../proxies/noSetAccessProxy"
 import generateCaller                  from "../compose/generateCaller"
@@ -12,7 +12,7 @@ export function generateSuperAccessor(composedUpTo) {
         const fn = function (instance) {
             let additions
             if (typeof serviceRuntimeGenerator == "function") {
-                additions = serviceRuntimeGenerator(instance[$parentComposition], instance[$dataPointer])
+                additions = serviceRuntimeGenerator(instance[$parentInstance], instance[$dataPointer])
             } else {
                 additions = serviceRuntimeGenerator
             }

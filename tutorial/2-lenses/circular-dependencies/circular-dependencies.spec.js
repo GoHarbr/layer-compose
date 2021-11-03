@@ -1,7 +1,6 @@
-import A              from './A'
-import B              from './B'
-import {layerCompose} from "../../../src"
-import {transform}    from "../../../src"
+import A                                                         from './A'
+import B                                                                               from './B'
+import {memo, coreLens, defaults, transform, layerCompose, assign, attach, lens} from "../../../src/index"
 
 describe("Circular dependencies, where a Composition mutually rilies on one another are possible", () => {
     // This is achieved through async `import`
@@ -28,7 +27,17 @@ describe("Circular dependencies, where a Composition mutually rilies on one anot
     test("A should be able to access B", (done) => {
         const testConsole = jest.fn((...v) => console.log(...v))
 
-        const a = A({ key: 'A', console: testConsole })
+        const _A = layerCompose(
+            {
+                B: [
+                    assign(coreLens(coreOfA => {
+                        return {console: coreOfA.console}
+                    }))
+                ]
+            },
+            A
+        )
+        const a = _A({ key: 'A', console: testConsole })
         a.B(serviceB => {
             serviceB.sayB()
 
@@ -41,13 +50,17 @@ describe("Circular dependencies, where a Composition mutually rilies on one anot
         const testConsole = jest.fn((...v) => console.log(...v))
 
         const a = A({ key: 'A', console: testConsole })
+
         a.B(serviceB => {
+            serviceB.console = testConsole
             serviceB.sayB()
 
             expect(testConsole).toHaveBeenCalledWith('B')
 
             serviceB.A(serviceA => {
+                serviceA.console = testConsole
                 serviceA.sayA()
+
                 expect(testConsole).toHaveBeenCalledWith('A')
                 done()
             })
@@ -62,15 +75,11 @@ describe("Circular dependencies, where a Composition mutually rilies on one anot
                 B: [
                     // taking the parent (which is A)
                     // and assigning it at runtime to instance of B
-                    $ => $(parent => ({ A: parent })),
+                    attach(lens(A => {
+                        return {A}
+                    })),
                 ]
             },
-            // for test purposes
-            // making sure that the `key` is not passed along
-            transform(core => {
-                // when service `B` instantiates, it will read it's core from A's core through `_.B`
-                core.B = { console: core.console }
-            }),
 
             A
         )
@@ -81,11 +90,13 @@ describe("Circular dependencies, where a Composition mutually rilies on one anot
 
 
         a.B(serviceB => {
+            serviceB.console = testConsole
             serviceB.sayKey()
 
             expect(testConsole).toHaveBeenCalledWith(undefined)
 
             serviceB.A(serviceA => {
+                // no need to set console here, should be referencing the orignal A
                 serviceA.sayKey()
 
                 expect(testConsole).toHaveBeenCalledWith('A')

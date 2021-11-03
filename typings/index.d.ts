@@ -1,10 +1,6 @@
 import {lcConstructor, lcInstance} from "./lcConstructor";
-export {default as layerCompose} from './layerCompose'
 
-/* utils */
-export const Async: lcConstructor<any>
-export const Observable: lcConstructor<any>
-export const withJson: lcConstructor<any>
+export { layerCompose } from './layerCompose'
 
 export function unbox(what: lcInstance<any>): object | undefined
 

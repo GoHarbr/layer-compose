@@ -11,6 +11,7 @@
     ]
   ],
   "plugins": [
+    "@babel/plugin-proposal-export-default-from",
     "@babel/plugin-proposal-throw-expressions",
     "@babel/plugin-proposal-optional-chaining"
   ]

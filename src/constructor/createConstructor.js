@@ -6,24 +6,21 @@ import {
     $initializer,
     $isCompositionInstance,
     $isLc,
-    $layers, $parentComposition, $services,
+    $layers, $parentInstance, $services,
     IS_DEV_MODE
 }                                 from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
 import createBinder               from "./createBinder"
-import withTransform              from '../external/patterns/withTransform'
-import layerCompose               from '../layerCompose'
-import defaults                   from "../external/patterns/defaults"
 import {isPromise}                from "../utils"
-import {queueForExecution} from "../compose/queueForExecution"
-import constructCoreObject from "./constructCoreObject"
+import {queueForExecution}        from "../compose/queueForExecution"
+import constructCoreObject        from "./constructCoreObject"
 
 export function createConstructor(composed) {
     const bindWith = createBinder(composed)
 
-    const constructor = function (coreObject, {initializer} = {}) {
+    const constructor = function (coreObject, { initializer } = {}) {
         try {
             const compositionInstance = Object.create(composed)
             // binding `this` into each function
@@ -68,10 +65,6 @@ export function createConstructor(composed) {
             data = unwrapProxy(data, /* unwrap composition */ false)
             const i = constructor(data, ...args)
 
-            const pc = i[$parentComposition]
-            if (pc !== undefined && !pc[$isCompositionInstance]) {
-                throw new Error("Parent composition must be an instance of a composition")
-            }
             return wrapCompositionWithProxy(i)
         }
     } else {
@@ -80,25 +73,6 @@ export function createConstructor(composed) {
 
     _constructor[$isLc] = true
     _constructor[$composition] = composed
-
-
-    /*
-    * Partial can be re-implemented through hidden methods `_...`
-    * or data proxy for initialization (and so can transform then)
-    * */
-
-    _constructor.partial = _constructor.withDefaults = function (presetValues) {
-
-        return layerCompose(
-            defaults(presetValues),
-            _constructor
-        )
-    }
-
-    /** Change the shape of the internal interface */
-    _constructor.transform = function (transformer) {
-        return withTransform(transformer, _constructor)
-    }
 
     _constructor.is = function (what) {
         let layers
