@@ -8,8 +8,11 @@ export default function (transformer) {
         const p = $[$parentInstance]
         let parentCore = p?.[$dataPointer]
         if (IS_DEV_MODE && parentCore) {
-            parentCore = Object.create(parentCore)
-            Object.freeze(parentCore)
+            parentCore = new Proxy(parentCore, {
+                set() {
+                    throw new Error("Lenses must not affect objects that they are reading from")
+                }
+            })
         }
         return transformer(parentCore)
     }

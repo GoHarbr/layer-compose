@@ -13,12 +13,14 @@ type RemapFunction<L, R> = {
     }
 
 type Spread<A extends readonly [...any]> = A extends [infer L, ...infer R] ? (
-        L extends lcConstructor<infer C> ? RemapFunction<C, Spread<R>> : ( // is constructor?
+        L extends Function ? ( // is initializer or is it a Composition
+                L extends {is: () => any} ? (L extends lcConstructor<infer C> ? RemapFunction<C, Spread<R>> : Spread<R>) : Spread<R>
+            ) : ( // is constructor?
                 L extends {} ? RemapFunction<L, Spread<R>> : ( // is object?
-                        L extends [] ? RemapFunction<Spread<L>, Spread<R>> : RemapFunction<{}, Spread<R>> // is array?
+                        L extends [] ? RemapFunction<Spread<L>, Spread<R>> : Spread<R> // is array?
                     )
             )
-    ): never
+    ): {}
 
 /*
 * Exports

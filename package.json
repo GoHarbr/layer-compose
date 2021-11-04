@@ -1,6 +1,6 @@
 {
   "name": "@GoHarbr/layer-compose",
-  "version": "0.4.0-rc4",
+  "version": "0.4.0-rc6",
   "main": "lib/index.js",
   "types": "typings/index.d.ts",
   "description": "",
