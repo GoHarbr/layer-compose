@@ -30,7 +30,17 @@ export default function seal(composed) {
         if (isService(methodOrService)) {
             const lensName = name.slice(1) // services are stored with _ prefix inside compositions
 
-            composed[lensName] = function (cbWithService) {
+            composed[lensName] = function (cbOrCore, cb) {
+                let lensCore = null
+                let cbWithService
+
+                if (typeof cbOrCore === 'object') {
+                    lensCore = cbOrCore
+                    cbWithService = cb
+                } else {
+                    cbWithService = cbOrCore
+                }
+
                 if (!cbWithService) throw new Error("Callback must be present to access the service")
 
                 const serviceContainer = composed[name]
@@ -42,7 +52,6 @@ export default function seal(composed) {
                 //     : null
 
                 const parent = IS_DEV_MODE ? wrapCompositionWithProxy(this) : this
-                const serviceCore = null
 
                 const initializer = instance => {
                     instance[$lensName] = lensName // todo. This functionality should live in `compose.js`
@@ -56,11 +65,11 @@ export default function seal(composed) {
                         () => {
                             serviceContainer.isComplete = true
                             cbWithService(
-                                serviceContainer.composition(serviceCore, { initializer })
+                                serviceContainer.composition(lensCore, { initializer })
                             )
                         })
                 } else {
-                    const s = serviceContainer.composition(serviceCore, { initializer })
+                    const s = serviceContainer.composition(lensCore, { initializer })
                     cbWithService(s)
                 }
             }
