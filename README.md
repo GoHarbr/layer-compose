@@ -9,16 +9,23 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 Lenses meet OO
 </p>
 
+<p align="center" style="font-size:20px">
+<br/>
+Or, look! Dependency injection meets Lenses, and Mixes-in with classic Object-oriented to form the backbone of data flow in your applications. 
+</p>
+
+
 --------
 
-How do we write software that _**grows**_ easily, and how do we write it as a _**team**_?  
+How do we write software that _**grows**_ easily, and how do we write that software in a _**team**_?  
 
 --------
 
 *layerCompose* is a **safe** state management tool, with built in automatic safety checks  
-*layerCompose* is a class composer: traditional classes meet **mixins**
+*layerCompose* is a class composer: traditional classes through **mixins**
   
-*layerCompose* is a subset of JavaScript (opposite of a superset!): it **constrains** you (making it easier to work as a team) and counterintuitively gives you more **power** -- at Harbr, we've built a full UI rendering framework in <100 lines of code using *layerCompose + uhtml*  
+*layerCompose* is a subset of JavaScript (opposite of a superset!): it **constrains** you (making it easier to work as a team) and 
+counterintuitively gives you more **power** by letting you focus on the implementation and worry less about the architectural choices.  
 
 ## layerCompose
 
