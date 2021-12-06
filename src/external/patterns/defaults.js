@@ -16,11 +16,13 @@ export default function defaults(valuesOrGenerator) {
                 }
                 let v = defaultValues[k]
                 if (!!v && typeof v == "object") {
-                    // throw new Error(`Raw objects are not allowed as defaults (key: ${k}). They will carry over to other instances. Use \`() => ...\` to generate them dynamically`)
+                    if (!isGenerated) {
+                        throw new Error(`Raw objects are not allowed as defaults (key: ${k}). They will carry over to other instances. Use \`() => ...\` to generate them dynamically`)
+                    }
                     if (IS_DEV_MODE && Object.keys(v).length) {
                         console.warn("")
                     }
-                    v = Object.create(v)
+                    // v = Object.create(v)
                 }
 
                 if (v === undefined) throw new Error(`Default value for key ${k} cannot be 'undefined'`)
