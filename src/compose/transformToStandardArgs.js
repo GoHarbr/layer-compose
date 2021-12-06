@@ -25,7 +25,7 @@ export default function (fn) {
     if (matches) {
         const paramDefinition = matches[0]
         if (paramDefinition.match(decompositionRe)) {
-            throw new Error('Decomposition is (currently) not allowed in layer methods')
+            // throw new Error('Decomposition is (currently) not allowed in layer methods')
         }
         const argOrder = ArgOrder(paramDefinition, fn.length)
 
@@ -92,11 +92,11 @@ function ArgOrder(paramDefinition, paramCount) {
 
         isValidFunction() {
             if ($.has('$') && $.has("_")) {
-                if (paramCount > 2) {
-                    return $.has('opt') // all 3: $,_,opt
-                } else {
-                    return true // $,_
-                }
+                // if (paramCount > 2) {
+                //     return $.has('opt') // all 3: $,_,opt
+                // } else {
+                    return paramCount < 4 // $,_
+                // }
             } else if ($.has('$')) {
                 return paramCount === 1 // a single $
             }
