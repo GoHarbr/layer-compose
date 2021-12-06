@@ -64,13 +64,15 @@ export default function seal(composed) {
                         () => serviceContainer.completePromise,
                         () => {
                             serviceContainer.isComplete = true
-                            cbWithService(
+                            return cbWithService(
                                 serviceContainer.composition(lensCore, { initializer })
                             )
                         })
                 } else {
-                    const s = serviceContainer.composition(lensCore, { initializer })
-                    cbWithService(s)
+                    queueForExecution(parent, () => {
+                        const s = serviceContainer.composition(lensCore, { initializer })
+                        return cbWithService(s)
+                    })
                 }
             }
         } else {
