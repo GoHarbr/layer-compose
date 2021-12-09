@@ -30,7 +30,7 @@ function processFragmentOfLayers(layerLike, composed, inGivenOrder = false) {
     for (let i = layerLike.length; i--; i >= 0) {
         const l = layerLike[i]
         composed = compose(l, composed)
-        composed[$runOnInitialize] = [...composed[$runOnInitialize], ...(l[$runOnInitialize] || [])]
+        composed[$runOnInitialize] = [...(l[$runOnInitialize] || []), ...composed[$runOnInitialize]]
     }
     return composed
 }
@@ -177,8 +177,11 @@ function compose(layerLike, composed) {
 
                     return [[serviceName, serviceContainer]]
                 } else if (typeof value == 'function') {
-                    // if this is a function definition, compose
 
+                    // reversing in case of the foreground initializer function
+                    const fnC = name === '_' ? (existing, next) => functionComposer(next, existing) : functionComposer
+
+                    // if this is a function definition, compose
                     let composedEntry
                     const fn = value[$isSealed] ? value : transformToStandardArgs(value)
 
@@ -191,19 +194,17 @@ function compose(layerLike, composed) {
                     const existing = composed[name]
                     if (existing /*&& !isGetter*/) {
                         if (IS_DEV_MODE && !fn[$isSealed]) {
-                            // composedFunction = functionComposer(existing, fn)
-                            composedEntry = functionComposer(existing, wrapForDev(layerId, fn))
+                            composedEntry = fnC(existing, wrapForDev(layerId, fn))
                         } else {
-                            composedEntry = functionComposer(existing, fn)
+                            composedEntry = fnC(existing, fn)
                         }
                     } else {
                         // todo, this is not always reliable
-                        // composedEntry.isAsync = fn[Symbol.toStringTag] === 'AsyncFunction'
 
-                        if (IS_DEV_MODE && Object.isExtensible(composedEntry)) {
-                            composedEntry = functionComposer(null, wrapForDev(layerId, composedEntry))
+                        if (IS_DEV_MODE && Object.isExtensible(fn)) {
+                            composedEntry = fnC(null, wrapForDev(layerId, fn))
                         } else {
-                            composedEntry = functionComposer(null, fn)
+                            composedEntry = fnC(null, fn)
                         }
                     }
 

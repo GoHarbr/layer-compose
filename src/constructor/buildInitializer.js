@@ -18,6 +18,8 @@ export default function buildInitializer(composed) {
             }
         })
 
+    const has$initializer = typeof composed.$ == 'function'
+    const has_initializer = typeof composed._ == 'function'
 
     if (IS_DEV_MODE) {
         return function initialize(instance) {
@@ -25,12 +27,16 @@ export default function buildInitializer(composed) {
                 throw new Error()
             }
 
+            has_initializer && instance._()
             composedInitializers(instance)
+            has$initializer && instance.$()
             instance[$isInitialized] = true
         }
     } else {
         return function initialize(instance) {
+            has_initializer && instance._()
             composedInitializers(instance)
+            has$initializer && instance.$()
         }
     }
 }
