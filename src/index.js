@@ -12,5 +12,8 @@ export transform       from "./external/patterns/transform"
 export attach     from "./external/patterns/attach"
 export replace     from "./external/patterns/replace"
 
+export parent     from "./external/patterns/parent"
+export core     from "./external/patterns/core"
+
 export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
 export {unwrapProxy} from './proxies/utils'
