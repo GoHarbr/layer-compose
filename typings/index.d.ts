@@ -12,6 +12,9 @@ export function lens(transform: (parent, parentCore) => object): ($, _) => objec
 export function memo(generator: (($,_) => object) | object): ($, _) => object
 export function attach(generator: (($,_) => object) | object): ($, _) => object
 
+export function parent($: lcInstance<any>): lcInstance<any>
+export function core($: lcInstance<any>): lcInstance<any>
+
 /**
 * Copies (generated) value into the core
 * */
