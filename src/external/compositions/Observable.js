@@ -1,5 +1,4 @@
 import layerCompose from '../../layerCompose'
-import Async        from "./Async"
 import defaults     from "../patterns/defaults"
 
 const $owner = Symbol()
@@ -11,9 +10,8 @@ const $assign = Symbol()
  * */
 
 export default layerCompose(
-    Async,
-
     ($, _) => {
+        throw new Error('Not implemented fully yet')
         _(makeProxy)
         $._attachObservable()
     },
@@ -44,13 +42,6 @@ export default layerCompose(
                 _[$owner] = $
             }
         },
-        then($, _) {
-            /* check if has `then` */
-            if ("then" in _ && typeof _.then == "function") {
-                // wrapping in a function is important, to preserve order of execution
-                $.await(() => new Promise((res, rej) => _.then(() => res(), rej)))
-            }
-        }
     },
 )
 
