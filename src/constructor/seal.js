@@ -30,7 +30,11 @@ export default function seal(composed) {
         if (isService(methodOrService)) {
             const lensName = name.slice(1) // services are stored with _ prefix inside compositions
 
-            composed[lensName] = function (cbOrCore, cb) {
+
+            // composed[lensName] = (cbOrCore, cb) => queueForExecution(this, makeLens)
+            composed[lensName] = makeLens
+
+            function makeLens (cbOrCore, cb) {
                 let lensCore = null
                 let cbWithService
 
@@ -64,14 +68,13 @@ export default function seal(composed) {
                         () => serviceContainer.completePromise,
                         () => {
                             serviceContainer.isComplete = true
-                            return cbWithService(
-                                serviceContainer.composition(lensCore, { initializer })
-                            )
+                            const s = serviceContainer.composition(lensCore, { initializer })
+                            queueForExecution(parent, () => cbWithService(s))
                         })
                 } else {
                     queueForExecution(parent, () => {
                         const s = serviceContainer.composition(lensCore, { initializer })
-                        return cbWithService(s)
+                        queueForExecution(parent, () => cbWithService(s))
                     })
                 }
             }
