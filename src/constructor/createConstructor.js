@@ -30,7 +30,6 @@ export function createConstructor(composed) {
             // @deprecated
             compositionInstance[$initializedCalls] = []
             compositionInstance[$services] = {} // where initializes services are stored
-            compositionInstance[$executionQueue] = []
 
             const core = constructCoreObject(coreObject, compositionInstance)
             compositionInstance[$dataPointer] = core

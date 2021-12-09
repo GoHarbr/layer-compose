@@ -1,19 +1,24 @@
 import {$executionQueue} from "../const"
 import {isPromise}       from "../utils"
+import core              from "../external/patterns/core"
 
 export function queueForExecution($, fn, cb) {
-    $[$executionQueue].push({ fn, cb })
+    getQueue($).push({ fn, cb })
 
-    if (!$[$executionQueue].isExecuting) {
-        $[$executionQueue].isExecuting = true
+    if (!getQueue($).isExecuting) {
+        getQueue($).isExecuting = true
         execute($)
     }
 }
 
+function getQueue($) {
+    return core($)[$executionQueue] || (core($)[$executionQueue] = [])
+}
+
 function execute($) {
-        const next = $[$executionQueue].shift()
+        const next = getQueue($).shift()
         if (!next){
-            $[$executionQueue].isExecuting = false
+            getQueue($).isExecuting = false
 
             return
         }
