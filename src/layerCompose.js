@@ -1,6 +1,6 @@
 import {
     $dataPointer,
-    $extendSuper,
+    $extendSuper, $importsComplete,
     $layerOrder,
     $layers,
     $parentInstance,
@@ -18,26 +18,11 @@ export default function layerCompose(...layers) {
     }
 
     try {
-        let composed = {
-            [$layers]: new Map(),
-            [$layerOrder]: [],
-            [$runOnInitialize]: [],
-            [$extendSuper]: undefined,
-            [$dataPointer]: undefined,
-            [$writableKeys]: [$parentInstance],
-            toJSON: ($, _, opt) => {
-                return _
-            }
-        }
 
-        composed = compose(layers, composed)
-        composed = seal(composed)
+        return createConstructor(layers)
 
-        const constructor = createConstructor(composed)
-
-        return constructor
     } catch (e) {
-        console.error("layerCompose encountered an error while compiling a composition:", e, e.stack)
+        console.error("layerCompose encountered an error while creating a constructor for a composition:", e, e.stack)
         if (IS_DEV_MODE) throw e
     }
 }

@@ -1,27 +1,21 @@
 import {queueForExecution} from "./queueForExecution"
 
-function wrapCall(fn) {
-    return Object.isExtensible(fn) ?
-        ($, _, opt, compressionMethod) => fn($, _, opt, compressionMethod)
-        : ($, _, opt, compressionMethod) => fn.call($, opt)
-}
-
-export function functionComposer(existing, func) {
-    const nextCall = func && wrapCall(func)
+export function functionComposer(existing, next) {
+    /*
+    * Queueing happens around each individual call (eg. what if it returns a promise / is async)
+    * */
 
     // if no existing, queue just the current
     if (!existing) {
-        return ($,_,opt) => queueForExecution($, () => nextCall($,_,opt))
+        return ($,_,opt) => queueForExecution($, () => next($,_,opt))
 
     } else {
-        const existingCall = wrapCall(existing)
-
         return function ($, _, opt, compressionMethod) {
 
             // existing call should be already queued
-            existingCall($, _, opt, compressionMethod)
+            existing($, _, opt, compressionMethod)
 
-            nextCall && queueForExecution($, () => nextCall($, _, opt))
+            next && queueForExecution($, () => next($, _, opt))
         }
     }
 }

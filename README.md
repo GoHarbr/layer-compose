@@ -11,18 +11,17 @@ Lenses meet OO
 
 <p align="center" style="font-size:20px">
 <br/>
-Or, look! Dependency injection meets Lenses, and Mixes-in with classic Object-oriented to form the backbone of data flow in your applications. 
+Or, look! Dependency injection meets Lenses and Mixins to form the backbone of data flow in your applications. 
 </p>
 
 
 --------
 
-How do we write software that _**grows**_ easily, and how do we write that software in a _**team**_?  
+How does a _**team**_ write software that _**grows**_?  
 
 --------
 
-*layerCompose* is a **safe** state management tool, with built in automatic safety checks  
-*layerCompose* is a class composer: traditional classes through **mixins**
+*layerCompose* is a **safe** state management / data flow builder with safety checks  
   
 *layerCompose* is a subset of JavaScript (opposite of a superset!): it **constrains** you (making it easier to work as a team) and 
 counterintuitively gives you more **power** by letting you focus on the implementation and worry less about the architectural choices.  
@@ -36,11 +35,12 @@ In a nutshell, *layerCompose* assembles numerous functions in the form:
 in nested configurations
 ```javascript
 /* Referred to as Composition */
-const Class  = layerCompose(
+const Apple  = layerCompose(
         // top layer
     {
-        generateConfig($,_) { console.log("top is generating") },
-        
+        generateConfig($,_) { console.log(_.name + " top is generating") },
+
+        /* this is a lens */        
         Remote: [
             {
                 send($,_,opt) { /* eg. if (opt.optKey === 1) ... */ }
@@ -53,31 +53,28 @@ const Class  = layerCompose(
         
     // bottom layer
     {
-        generateConfig($,_) { console.log("bottom is generating") },
+        generateConfig($,_) { console.log(_.name + " bottom is generating") },
     }    
 )
 ```
 into a _Composition_ that can be instantiated
 ```javascript
-    const c = Class({})
-    c.generateConfig() 
+    const a = Apple({name: 'honey-crisp'})
+    a.generateConfig() 
     // prints:
-    // bottom is generating
-    // top is generating
+    // "honey-crisp bottom is generating"
+    // "honey-crisp top is generating"
     
-    c.Remote.send({optKey: optVal})
-    c.Remote.receive()
+    a.Remote(r => r.send({optKey: optVal}))
+    a.Remote(r => r.receive())
 ```
 
 ### Why?
 
 1. Mutable state management is notoriously prone to bugs.  
-2. Writing code with multiple authors is notoriously prone to inconsistencies.  
+2. Async is difficult.
+3. Writing code with multiple authors is notoriously prone to inconsistencies.  
 
 ## Learn
 
-Start with the `tutorial` folder 
-
-## Caveats
-### Async
-1. Uncaught promises (this is a big one for tests!)
+Start with the `tutorial` folder

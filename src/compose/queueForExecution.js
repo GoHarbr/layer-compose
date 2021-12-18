@@ -1,25 +1,19 @@
-import {$executionQueue} from "../const"
-import {isPromise}       from "../utils"
+import {$executionQueue, IS_DEV_MODE} from "../const"
+import {isPromise}                    from "../utils"
 import core              from "../external/patterns/core"
 
 export function queueForExecution($, fn, cb) {
     const queue = getQueue($)
 
-    if (queue.current != null) {
-        if (queue.current === 0) {
-            queue.unshift({ fn, cb })
-        } else {
-            queue.splice(queue.current - 1, 0, { fn, cb })
-        }
+    if (queue.buffer != null) {
+        queue.buffer.push({ fn, cb })
     } else {
         queue.push({ fn, cb })
     }
 
-    if (queue.current != null) queue.current++
-
     if (!queue.isExecuting) {
         queue.isExecuting = true
-        execute($)
+        new Promise(resolve => resolve(execute($)))
     }
 }
 
@@ -39,22 +33,28 @@ function execute($) {
 
     const { fn, cb } = next
 
-    if (queue.current == null) queue.current = 0
+    if (queue.buffer == null) queue.buffer = []
 
     const fnReturn = fn()
 
     if (isPromise(fnReturn)) {
+        if (IS_DEV_MODE) {
+            fnReturn.catch(e => {
+                console.error('Promise rejected:', e)
+                throw e
+            })
+        }
         fnReturn.then(res => {
-            queue.current--
-            queue.current = queue.current < 0 ? null : queue.current
+            queue.unshift(...queue.buffer)
+            queue.buffer = null
 
             cb && cb(res)
 
             execute($)
         })
     } else {
-        queue.current--
-        queue.current = queue.current < 0 ? null : queue.current
+        queue.unshift(...queue.buffer)
+        queue.buffer = null
 
         cb && cb(fnReturn)
 

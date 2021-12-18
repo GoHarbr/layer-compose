@@ -22,6 +22,7 @@ export const $initializedCalls = Symbol('initializedCalls')
 export const $initializer = Symbol()
 export const $isInitialized = Symbol()
 export const $setData = Symbol()
+export const $importsComplete = Symbol('importComplete')
 export const $functionSymbolIds = Symbol('array-of-function-symbol-ids')
 
 export const $isSealed = Symbol("isSealed")

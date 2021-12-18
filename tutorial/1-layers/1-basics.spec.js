@@ -1,4 +1,4 @@
-import layerCompose from "../../src"
+import {layerCompose} from "../../src"
 
 describe("The basics of Layers", () => {
 
@@ -15,7 +15,7 @@ describe("The basics of Layers", () => {
     * More realistic use cases follow in this Tutorial series
     * */
 
-    test("Creating a single layer composition", () => {
+    test("Creating a single layer composition", done => {
         const log = jest.fn((...args) => console.log(...args))
 
         /**
@@ -36,10 +36,13 @@ describe("The basics of Layers", () => {
         * Then we create an instance and call our method
         * */
 
-        const instance = C()
-        instance.print() // prints Bye, bye, world
+        C({}, instance => {
+            instance.print() // prints Bye, bye, world
+            expect(log).toHaveBeenCalledTimes(1)
 
-        expect(log).toHaveBeenCalledTimes(1)
+            done()
+        })
+
     })
 
     test("Multi-layer composition contains functions from all 3 layers", () => {
