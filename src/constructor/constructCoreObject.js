@@ -1,12 +1,13 @@
-import {$dataPointer, $isNullCore, IS_DEV_MODE} from "../const"
-import {isPromise}                              from "../utils"
-import {queueForExecution}                      from "../compose/queueForExecution"
+import {$isNullCore, IS_DEV_MODE} from "../const"
+import {isPromise}                from "../utils"
 
 export default async function constructCoreObject(proposed) {
     let core
 
     if (isPromise(proposed)) {
         core = await proposed
+    } else {
+        core = proposed
     }
 
 

@@ -1,5 +1,5 @@
-import {$dataPointer, IS_DEV_MODE} from "../const"
-import {queueForExecution}         from "../compose/queueForExecution"
+import {$dataPointer, IS_DEV_MODE}            from "../const"
+import {getExecutionQueue, queueForExecution} from "../compose/queueForExecution"
 
 function wrapThen(instance) {
     const then = instance.then
@@ -14,6 +14,9 @@ function wrapThen(instance) {
         })
 
         queueForExecution(instance, onFulfilled)
+
+        onRejected && getExecutionQueue(instance).currentExecutor?.catch(onRejected)
+
 
         return instance
     }

@@ -18,7 +18,7 @@ export const borrowProxy = (layerId) => ({
             if (!target.hasOwnProperty($borrowedKeys)) {
                 target[$borrowedKeys] = {}
             } else if (!!target[$borrowedKeys][prop] && target[$borrowedKeys][prop] !== layerId) {
-                throw new Error('Must borrow to be able to set a prop\'s value on: ' + prop)
+                throw new Error('Must borrow to be able to set a prop\'s value on: ' + prop + ` [${layerId[Symbol.toStringTag]}]`)
             }
 
             target[$borrowedKeys][prop] = layerId

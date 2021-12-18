@@ -26,7 +26,7 @@ describe("The basics of Layers", () => {
             // you might be wondering what $,_ are -- more on that later
             print($,_) {
                 // ah, the classic
-                log("Bye, bye, world")
+                log(_.message)
             }
         }
 
@@ -36,9 +36,10 @@ describe("The basics of Layers", () => {
         * Then we create an instance and call our method
         * */
 
-        C({}, instance => {
+        C({message: 'Bye, bye'}, instance => {
             instance.print() // prints Bye, bye, world
             expect(log).toHaveBeenCalledTimes(1)
+            expect(log).toHaveBeenCalledWith('Bye, bye')
 
             done()
         })

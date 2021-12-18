@@ -3,7 +3,7 @@ import {isPromise}                    from "../utils"
 import core              from "../external/patterns/core"
 
 export function queueForExecution($, fn, cb) {
-    const queue = getQueue($)
+    const queue = getExecutionQueue($)
 
     if (queue.buffer != null) {
         queue.buffer.push({ fn, cb })
@@ -11,22 +11,28 @@ export function queueForExecution($, fn, cb) {
         queue.push({ fn, cb })
     }
 
-    if (!queue.isExecuting) {
-        queue.isExecuting = true
-        new Promise(resolve => resolve(execute($)))
+    if (!queue.currentExecutor) {
+        queue.currentExecutor = new Promise((resolve, reject) => {
+            try {
+                execute($)
+                resolve()
+            } catch (e) {
+                reject(e)
+            }
+        })
     }
 }
 
-function getQueue($) {
+export function getExecutionQueue($) {
     return core($)[$executionQueue] || (core($)[$executionQueue] = [])
 }
 
 function execute($) {
-    const queue = getQueue($)
+    const queue = getExecutionQueue($)
 
     const next = queue.shift()
     if (!next) {
-        queue.isExecuting = false
+        queue.currentExecutor = null
 
         return
     }
