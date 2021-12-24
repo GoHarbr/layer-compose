@@ -17,3 +17,5 @@ export core     from "./external/patterns/core"
 
 export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
 export {unwrapProxy} from './proxies/utils'
+
+export {enableDebug} from './external/utils/enableDebug'

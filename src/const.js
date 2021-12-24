@@ -9,24 +9,18 @@ export const $compositionId = Symbol('compositionId')
 export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')
-export const $services = Symbol('services')
 export const $lensName = Symbol('lensName')
+export const $fullyQualifiedName = Symbol("at")
 
 export const $dataPointer = Symbol('dataPointer')
 export const $isNullCore = Symbol('nullCore')
 export const $parentInstance = Symbol('parentComposition')
 export const $extendSuper = Symbol('extendSuper')
 export const $runOnInitialize = Symbol('runOnInitialize')
-export const $initializedCalls = Symbol('initializedCalls')
 
-export const $initializer = Symbol()
 export const $isInitialized = Symbol()
-export const $setData = Symbol()
 export const $importsComplete = Symbol('importComplete')
-export const $functionSymbolIds = Symbol('array-of-function-symbol-ids')
 
-export const $isSealed = Symbol("isSealed")
-// export const $spec = Symbol()
 export const $composition = Symbol('composition')
 export const $layers = Symbol("layers")
 export const $layerOrder = Symbol("layerOrder")
@@ -36,9 +30,11 @@ export const $borrowedKeys = Symbol('borrowedKeys')
 export const $writableKeys = Symbol('writableKeys')
 
 export const $layerId = Symbol("layerId")
-export const $$ = Symbol('$$')
+export const $at = Symbol("at")
+
 
 export const $executionQueue = Symbol('executionQueue')
+export const $currentExecutor = Symbol('currentExecutor')
 
 // export const $isSetter = Symbol("isSetter")
 // export const $isGetter = Symbol("isGetter")

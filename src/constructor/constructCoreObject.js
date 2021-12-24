@@ -1,9 +1,11 @@
 import {$isNullCore, IS_DEV_MODE} from "../const"
 import {isPromise}                from "../utils"
+import {unwrapCompositionAsCore}  from "./unwrapCompositionAsCore"
 
 export default async function constructCoreObject(proposed) {
     let core
 
+    proposed = unwrapCompositionAsCore(proposed)
     if (isPromise(proposed)) {
         core = await proposed
     } else {

@@ -1,21 +1,28 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor,}                                       from "../utils"
-import {$composition, $compositionId, $isService, $layerOrder, $layers, $lensName, IS_DEV_MODE} from "../const"
-import transformToStandardArgs                                                                  from "./transformToStandardArgs"
-import {functionComposer}                                                            from "./functionComposer"
-import {getDataProxy}                                                                from "../data/getDataProxy"
-import {wrapCompositionWithProxy}                                                    from "../proxies/wrapCompositionWithProxy"
-import makeBaseComposition                                                           from "./makeBaseComposition"
+import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                                 from "../utils"
+import {$at, $composition, $compositionId, $isService, $layerOrder, $layers, $lensName, IS_DEV_MODE} from "../const"
+import transformToStandardArgs                                                                       from "./transformToStandardArgs"
+import {functionComposer}                                                                            from "./functionComposer"
+import {getDataProxy}                                                                                from "../data/getDataProxy"
+import {wrapCompositionWithProxy}                                                                    from "../proxies/wrapCompositionWithProxy"
+import makeBaseComposition                                                                           from "./makeBaseComposition"
+import {createConstructor}                                                                           from "../constructor/createConstructor"
+import {printLocationFromError}                                                                      from "../external/utils/printLocationFromError"
+import {GLOBAL_DEBUG}                                                                                from "../external/utils/enableDebug"
+import {isProxy}                                                                                     from "../proxies/utils"
 
 async function compose(layerLike, composed) {
     if (!composed) composed = makeBaseComposition()
     const layerId = getLayerId(layerLike) // can also return compositionId
 
-    if (composed[$layers].has(layerId)) {
+    const existingLayers = composed[$layers] || (composed[$layers] = (isService(composed) && new Map()))
+    if (existingLayers.has(layerId)) {
         // console.debug("Layer is already present in the composition", Object.keys(layerLike))
         return composed
     } else {
-        composed[$layers].set(layerId, layerLike)
-        composed[$layerOrder].push(layerId)
+        existingLayers.set(layerId, layerLike)
+
+        const order = composed[$layerOrder] || (composed[$layerOrder] = [])
+        order.push(layerId)
     }
 
     if (isLcConstructor(layerLike)) {
@@ -24,8 +31,16 @@ async function compose(layerLike, composed) {
         * Processing an existing composition as a layer (taking it apart essentially and composing into this composition)
         * */
 
-        const layers = layerLike[$layers]
-        return await processFragmentOfLayers(layers, composed, /* in given order */ true)
+        const existingComposition = layerLike[$composition]
+        let composition
+        if (existingComposition) {
+            composition = existingComposition
+        } else {
+            composition = (layerLike[$composition] = await compose(layerLike[$layers], null))
+            composition[$at] = layerLike[$at] || layerLike[$layers][$at]
+        }
+        // return await compose(composition, composed)
+        return composition
 
     } else if (isFragmentOfLayers(layerLike)) {
         /*
@@ -57,6 +72,7 @@ async function compose(layerLike, composed) {
 
                 const serviceName = name
                 const serviceLayers = [value]
+                serviceLayers[$at] = value[$at] || layerLike[$at]
 
                 if (serviceName in composed) {
                     /*
@@ -65,16 +81,17 @@ async function compose(layerLike, composed) {
                     serviceLayers.push(composed[serviceName])
                 }
 
-                next[serviceName] = await compose(serviceLayers,
-                    {
-                        [$isService]: true,
-                        [$lensName]: name
-                    })
+                const s = createConstructor(serviceLayers)
+                s[$isService] = true
+
+                if (IS_DEV_MODE && !s[$layers]?.[$at]) debugger
+
+                next[serviceName] = s
 
             } else if (typeof value == 'function') {
 
                 // reversing in case of the foreground initializer function
-                const fnC = name === '_' ? (existing, next) => functionComposer(next, existing) : functionComposer
+                const isReverse = name === '_'
 
                 // if this is a function definition, compose
                 let composedEntry
@@ -82,9 +99,17 @@ async function compose(layerLike, composed) {
 
                 const existing = composed[name] || null
                 if (IS_DEV_MODE) {
-                    composedEntry = fnC(existing, wrapFunctionForDev(layerId, fn))
+                    const at = value[$at] || layerLike[$at]
+                    if (!at) debugger
+
+                    composedEntry = functionComposer(existing,
+                        wrapFunctionForDev(layerId, fn, {
+                            name,
+                            at
+                        }),
+                        {isReverse})
                 } else {
-                    composedEntry = fnC(existing, fn)
+                    composedEntry = functionComposer(existing, fn,{isReverse})
                 }
 
                 next[name] = composedEntry
@@ -93,6 +118,8 @@ async function compose(layerLike, composed) {
             }
         }
 
+        composed[$at] = layerLike[$at]
+        if (IS_DEV_MODE && !composed[$at]) debugger
         return markWithId(Object.assign(composed, next))
     }
 }
@@ -111,15 +138,31 @@ async function processFragmentOfLayers(layerLike, composed, inGivenOrder = false
 
     for (let i = layerLike.length; i--; i >= 0) {
         const l = layerLike[i]
+        if (!l[$at]) l[$at] = layerLike[$at]
+
         composed = await compose(l, composed)
+        if (IS_DEV_MODE && !composed[$at]) debugger
     }
+    composed[$at] = layerLike[$at]
+
     return composed
 }
 
-function wrapFunctionForDev(layerId, fn) {
+function wrapFunctionForDev(layerId, fn, {name, at}) {
     return function ($, _, opt) {
         const __ = getDataProxy(layerId, _)
         const $$ = wrapCompositionWithProxy($)
+
+        if (isProxy(_)) debugger
+        try {
+            _.__debug
+        } catch (e) {
+            debugger
+        }
+        if (GLOBAL_DEBUG.enabled || 'debug' in _ && _.__debug) {
+            const header = `.    ${$$[$lensName] || ''}.${name}`
+            console.debug(`${header.padEnd(50)} :: ${printLocationFromError(at)}`)
+        }
 
         // todo. wrap opt in proxy as well
 

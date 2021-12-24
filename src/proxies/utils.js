@@ -19,8 +19,8 @@ export function isIncompatibleWithProxy(target, prop) {
 
 const proxyTargetMap = new WeakMap()
 export function TaggedProxy(target, definition) {
-    const p = new Proxy(target, definition)
     const t = unwrapProxy(target)
+    const p = new Proxy(t, definition)
     if (!t) {
         throw new Error("Proxy target must be defined")
     }
@@ -29,7 +29,7 @@ export function TaggedProxy(target, definition) {
     return p
 }
 
-function isProxy(p) {
+export function isProxy(p) {
     return proxyTargetMap.has(p)
 }
 

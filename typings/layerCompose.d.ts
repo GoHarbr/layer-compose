@@ -41,7 +41,7 @@ export interface lcConstructor<M> {
     // transform: (object: object) => lcConstructor<M>
     is: (c: lcConstructor<any>) => boolean
 
-    (data: object | undefined): M
+    (data: object | undefined, cb: Function): M
 
     // (data: object | undefined): lcInstance<M>
 }

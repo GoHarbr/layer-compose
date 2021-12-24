@@ -1,25 +1,38 @@
-import {$executionQueue, IS_DEV_MODE} from "../const"
-import {isPromise}                    from "../utils"
-import core              from "../external/patterns/core"
+import {$currentExecutor, $executionQueue, IS_DEV_MODE} from "../const"
+import {isPromise}                                      from "../utils"
+import core                                             from "../external/patterns/core"
+import asap                                             from "asap/raw"
 
+let id = 0
 export function queueForExecution($, fn, cb) {
     const queue = getExecutionQueue($)
 
     if (queue.buffer != null) {
-        queue.buffer.push({ fn, cb })
+        queue.buffer.push({ fn, cb, id: id++ })
     } else {
-        queue.push({ fn, cb })
+        queue.push({ fn, cb, id: id++})
     }
 
-    if (!queue.currentExecutor) {
-        queue.currentExecutor = new Promise((resolve, reject) => {
-            try {
-                execute($)
-                resolve()
-            } catch (e) {
-                reject(e)
+    if (!queue[$currentExecutor]) {
+        const catchWith = []
+        if (IS_DEV_MODE) {
+            catchWith.push(e => console.error(e))
+        }
+        queue[$currentExecutor] = {
+            catch(cb) {
+                catchWith.push(cb)
             }
-        })
+        }
+
+        asap(() => _execute(queue, catchWith))
+    }
+}
+
+async function _execute(queue, catchWith) {
+    try {
+        await execute(queue)
+    } catch (e) {
+        catchWith.forEach(cb => cb(e))
     }
 }
 
@@ -27,14 +40,11 @@ export function getExecutionQueue($) {
     return core($)[$executionQueue] || (core($)[$executionQueue] = [])
 }
 
-function execute($) {
-    const queue = getExecutionQueue($)
-
+async function execute(queue) {
     const next = queue.shift()
     if (!next) {
-        queue.currentExecutor = null
-
-        return
+        queue[$currentExecutor] = null
+        return null
     }
 
     const { fn, cb } = next
@@ -50,20 +60,20 @@ function execute($) {
                 throw e
             })
         }
-        fnReturn.then(res => {
-            queue.unshift(...queue.buffer)
-            queue.buffer = null
+        const res = await fnReturn
 
-            cb && cb(res)
+        queue.unshift(...queue.buffer)
+        queue.buffer = null
 
-            execute($)
-        })
+        cb && cb(res)
+
+        await execute(queue)
     } else {
         queue.unshift(...queue.buffer)
         queue.buffer = null
 
         cb && cb(fnReturn)
 
-        execute($)
+        await execute(queue)
     }
 }

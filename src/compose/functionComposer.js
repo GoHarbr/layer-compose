@@ -1,6 +1,6 @@
 import {queueForExecution} from "./queueForExecution"
 
-export function functionComposer(existing, next) {
+export function functionComposer(existing, next, {isReverse} = {}) {
     /*
     * Queueing happens around each individual call (eg. what if it returns a promise / is async)
     * */
@@ -10,12 +10,18 @@ export function functionComposer(existing, next) {
         return ($,_,opt) => queueForExecution($, () => next($,_,opt))
 
     } else {
-        return function ($, _, opt, compressionMethod) {
-
-            // existing call should be already queued
-            existing($, _, opt, compressionMethod)
-
-            next && queueForExecution($, () => next($, _, opt))
+        if (isReverse) {
+            return function ($, _, opt) {
+                next && queueForExecution($, () => next($, _, opt))
+                // existing call should be already queued
+                existing($, _, opt)
+            }
+        } else {
+            return function ($, _, opt) {
+                // existing call should be already queued
+                existing($, _, opt)
+                next && queueForExecution($, () => next($, _, opt))
+            }
         }
     }
 }

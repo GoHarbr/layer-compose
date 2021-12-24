@@ -1,6 +1,7 @@
-import {$borrowedKeys} from "../const"
-import {definedGetProxy}               from "./proxies"
-import {unwrapProxy}                   from "./utils"
+import {$borrowedKeys}   from "../const"
+import {definedGetProxy} from "./proxies"
+import {unwrapProxy}     from "./utils"
+import {GLOBAL_DEBUG}    from "../external/utils/enableDebug"
 
 export const borrowProxy = (layerId) => ({
     get(target, prop) {
@@ -18,10 +19,18 @@ export const borrowProxy = (layerId) => ({
             if (!target.hasOwnProperty($borrowedKeys)) {
                 target[$borrowedKeys] = {}
             } else if (!!target[$borrowedKeys][prop] && target[$borrowedKeys][prop] !== layerId) {
+                console.error('Already borrowed : ' + prop, target[$borrowedKeys][prop + '_stack'])
                 throw new Error('Must borrow to be able to set a prop\'s value on: ' + prop + ` [${layerId[Symbol.toStringTag]}]`)
             }
 
             target[$borrowedKeys][prop] = layerId
+
+            if (target.__debug || GLOBAL_DEBUG.enabled) {
+                const at = new Error()
+                const header = `*    '${prop}' set`
+                console.debug(`${header.padEnd(50)} :: ${at.stack.split('\n').find(line => !line.includes('layer-compose')  && line.trim() !== 'Error')}`)
+                target[$borrowedKeys][prop + '_stack'] = at
+            }
         }
 
         target[prop] = value

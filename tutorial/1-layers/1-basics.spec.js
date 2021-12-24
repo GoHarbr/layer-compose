@@ -36,15 +36,17 @@ describe("The basics of Layers", () => {
         * Then we create an instance and call our method
         * */
 
-        C({message: 'Bye, bye'}, instance => {
+        C({message: 'Bye, bye'}, async instance => {
             instance.print() // prints Bye, bye, world
+            await instance
+
             expect(log).toHaveBeenCalledTimes(1)
             expect(log).toHaveBeenCalledWith('Bye, bye')
 
             done()
         })
 
-    })
+    }, 60000 * 10)
 
     test("Multi-layer composition contains functions from all 3 layers", () => {
         const log = jest.fn((...args) => console.log(...args))

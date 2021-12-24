@@ -1,4 +1,5 @@
 import {
+    $at,
     $dataPointer,
     $extendSuper, $importsComplete,
     $layerOrder,
@@ -18,6 +19,11 @@ export default function layerCompose(...layers) {
     }
 
     try {
+
+        const at = new Error()
+        if (!layers[$at]) {
+            layers[$at] = at
+        }
 
         return createConstructor(layers)
 

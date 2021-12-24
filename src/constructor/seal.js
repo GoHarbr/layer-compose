@@ -1,20 +1,34 @@
-import {isService}                                  from "../utils"
-import {$dataPointer, $parentInstance, IS_DEV_MODE} from "../const"
-import {unwrapProxy}                                from "../proxies/utils"
-import {wrapCompositionWithProxy}                   from "../proxies/wrapCompositionWithProxy"
-import {queueForExecution}                          from "../compose/queueForExecution"
-import {constructFromComposition}                   from "./createConstructor"
+import {isService}                                                                                from "../utils"
+import {
+    $at,
+    $borrowedKeys,
+    $dataPointer, $fullyQualifiedName,
+    $layers,
+    $lensName,
+    $parentInstance,
+    $writableKeys,
+    IS_DEV_MODE
+} from "../const"
+import {unwrapProxy}                                                                              from "../proxies/utils"
+import {wrapCompositionWithProxy}                                                                 from "../proxies/wrapCompositionWithProxy"
+import {queueForExecution}                                                                        from "../compose/queueForExecution"
+import {GLOBAL_DEBUG}                                                                             from "../external/utils/enableDebug"
+import {printLocationFromError}                                                                   from "../external/utils/printLocationFromError"
 
 
 // noinspection FunctionTooLongJS
 export default function seal(composition, $) {
+    $[$writableKeys] = [$parentInstance, $lensName]
+    $[$dataPointer] = null
 
     for (const name in composition) {
         const methodOrLens = composition[name]
         if (typeof name == "symbol") continue
 
+
         if (isService(methodOrLens)) {
-            $[name] = sealService(methodOrLens, $)
+            const at = methodOrLens[$layers][$at]
+            $[name] = sealService(methodOrLens, $, {name, at})
         } else {
             $[name] = sealMethod(methodOrLens, $)
         }
@@ -24,8 +38,7 @@ export default function seal(composition, $) {
 }
 
 
-function sealService(lensComposition, parent) {
-
+function sealService(lensConstructor, parent, {name, at}) {
     return function makeLens(cbOrCore, cb) {
         let lensCore = null
         let cbWithService
@@ -34,6 +47,7 @@ function sealService(lensComposition, parent) {
             lensCore = cbOrCore
             cbWithService = cb
         } else {
+            lensCore = {}
             cbWithService = cbOrCore
         }
 
@@ -41,14 +55,26 @@ function sealService(lensComposition, parent) {
 
         parent = IS_DEV_MODE ? wrapCompositionWithProxy(parent) : parent
 
-        queueForExecution(parent, async () => {
-            const [$] = await constructFromComposition(lensComposition, lensCore)
+        const fullyQualifiedName = (parent[$fullyQualifiedName] || '') + `.${name}`
+        const diagnostics = !IS_DEV_MODE ? null : () => {
+            if (lensCore.__debug || GLOBAL_DEBUG.enabled) {
+                const header = `>>   ${fullyQualifiedName} () lens`
+                console.debug(`${header.padEnd(50)} :: ${printLocationFromError(at)}`)
+            }
+        }
 
-            $[$parentInstance] = parent
+        queueForExecution(parent, () => new Promise((resolve, reject) => {
+            diagnostics && diagnostics()
+            if (lensCore[$parentInstance]) {
+                console.warn('Object already has a parent instance reference')
+            }
 
-            return cbWithService($)
-        })
-
+            lensCore[$parentInstance] = parent
+            lensConstructor(lensCore, $ => {
+                cbWithService($)
+                $.then(resolve, reject)
+            }, {lensName: name, fullyQualifiedName})
+        }))
     }
 
 }
@@ -64,7 +90,10 @@ function sealMethod(method, $) {
 
         const _ = IS_DEV_MODE ? unwrapProxy($[$dataPointer]) : $[$dataPointer]
 
-        queueForExecution($, () => method($, _, optOrEmpty(opt)))
+        method($, _, optOrEmpty(opt))
+        // queueForExecution($, () => method($, _, optOrEmpty(opt)))
+
+        return $
     }
 
 }

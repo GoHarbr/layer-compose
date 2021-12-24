@@ -1,5 +1,6 @@
 import {$parentInstance} from "../../const"
+import core              from "./core"
 
 export default function ($) {
-    return $[$parentInstance]
+    return core($)[$parentInstance]
 }
