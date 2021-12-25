@@ -1,4 +1,6 @@
-import {layerCompose} from "../../src"
+// @flow
+
+import {layerCompose, $} from "../../src"
 
 describe("The basics of Layers", () => {
 
@@ -22,15 +24,13 @@ describe("The basics of Layers", () => {
         * Here we define a single layer, and create a Composition
         * */
 
-        const layer = {
+        const C = $({
             // you might be wondering what $,_ are -- more on that later
-            print($,_) {
+            print($ ,_ /*: {message: string} */) {
                 // ah, the classic
                 log(_.message)
             }
-        }
-
-        const C = layerCompose(layer)
+        })
 
         /*
         * Then we create an instance and call our method
