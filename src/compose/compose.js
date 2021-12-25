@@ -1,14 +1,11 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                                 from "../utils"
-import {$at, $composition, $compositionId, $isService, $layerOrder, $layers, $lensName, IS_DEV_MODE} from "../const"
-import transformToStandardArgs                                                                       from "./transformToStandardArgs"
-import {functionComposer}                                                                            from "./functionComposer"
-import {getDataProxy}                                                                                from "../data/getDataProxy"
-import {wrapCompositionWithProxy}                                                                    from "../proxies/wrapCompositionWithProxy"
-import makeBaseComposition                                                                           from "./makeBaseComposition"
-import {createConstructor}                                                                           from "../constructor/createConstructor"
-import {printLocationFromError}                                                                      from "../external/utils/printLocationFromError"
-import {GLOBAL_DEBUG}                                                                                from "../external/utils/enableDebug"
-import {isProxy}                                                                                     from "../proxies/utils"
+import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                      from "../utils"
+import {$at, $composition, $compositionId, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
+import transformToStandardArgs
+                                                                                          from "./transformToStandardArgs"
+import {functionComposer}                                                                 from "./functionComposer"
+import makeBaseComposition                                                                from "./makeBaseComposition"
+import {createConstructor}                                                                from "../constructor/createConstructor"
+import {wrapFunctionForDev}                                                               from "./wrapFunctionForDev"
 
 async function compose(layerLike, composed) {
     if (!composed) composed = makeBaseComposition()
@@ -37,7 +34,7 @@ async function compose(layerLike, composed) {
             composition = existingComposition
         } else {
             composition = (layerLike[$composition] = await compose(layerLike[$layers], null))
-            composition[$at] = layerLike[$at] || layerLike[$layers][$at]
+            composition[$at] = layerLike[$layers][$at] || layerLike[$at]
         }
         // return await compose(composition, composed)
         return composition
@@ -146,28 +143,6 @@ async function processFragmentOfLayers(layerLike, composed, inGivenOrder = false
     composed[$at] = layerLike[$at]
 
     return composed
-}
-
-function wrapFunctionForDev(layerId, fn, {name, at}) {
-    return function ($, _, opt) {
-        const __ = getDataProxy(layerId, _)
-        const $$ = wrapCompositionWithProxy($)
-
-        if (isProxy(_)) debugger
-        try {
-            _.__debug
-        } catch (e) {
-            debugger
-        }
-        if (GLOBAL_DEBUG.enabled || 'debug' in _ && _.__debug) {
-            const header = `.    ${$$[$lensName] || ''}.${name}`
-            console.debug(`${header.padEnd(50)} :: ${printLocationFromError(at)}`)
-        }
-
-        // todo. wrap opt in proxy as well
-
-        return fn($$, __, opt)
-    }
 }
 
 export default compose

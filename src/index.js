@@ -1,6 +1,7 @@
 import {IS_DEV_MODE} from "./const"
 
 export layerCompose from './layerCompose'
+export {$} from './layerCompose'
 
 export assign       from "./external/patterns/assign"
 export defaults       from "./external/patterns/defaults"

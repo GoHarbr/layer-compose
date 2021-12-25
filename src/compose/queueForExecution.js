@@ -2,6 +2,7 @@ import {$currentExecutor, $executionQueue, IS_DEV_MODE} from "../const"
 import {isPromise}                                      from "../utils"
 import core                                             from "../external/patterns/core"
 import asap                                             from "asap/raw"
+import {writeTypesToDisk}                               from "../auto-type/trackTypes"
 
 let id = 0
 export function queueForExecution($, fn, cb) {
@@ -24,13 +25,18 @@ export function queueForExecution($, fn, cb) {
             }
         }
 
-        asap(() => _execute(queue, catchWith))
+        asap(() => _execute($, queue, catchWith))
     }
 }
 
-async function _execute(queue, catchWith) {
+async function _execute($, queue, catchWith) {
     try {
         await execute(queue)
+
+        if (IS_DEV_MODE) {
+            writeTypesToDisk()
+        }
+
     } catch (e) {
         catchWith.forEach(cb => cb(e))
     }
@@ -44,6 +50,7 @@ async function execute(queue) {
     const next = queue.shift()
     if (!next) {
         queue[$currentExecutor] = null
+
         return null
     }
 

@@ -12,8 +12,8 @@ import {
 import {unwrapProxy}                                                                              from "../proxies/utils"
 import {wrapCompositionWithProxy}                                                                 from "../proxies/wrapCompositionWithProxy"
 import {queueForExecution}                                                                        from "../compose/queueForExecution"
-import {GLOBAL_DEBUG}                                                                             from "../external/utils/enableDebug"
-import {printLocationFromError}                                                                   from "../external/utils/printLocationFromError"
+import {GLOBAL_DEBUG}          from "../external/utils/enableDebug"
+import {findLocationFromError} from "../external/utils/findLocationFromError"
 
 
 // noinspection FunctionTooLongJS
@@ -59,7 +59,7 @@ function sealService(lensConstructor, parent, {name, at}) {
         const diagnostics = !IS_DEV_MODE ? null : () => {
             if (lensCore.__debug || GLOBAL_DEBUG.enabled) {
                 const header = `>>   ${fullyQualifiedName} () lens`
-                console.debug(`${header.padEnd(50)} :: ${printLocationFromError(at)}`)
+                console.debug(`${header.padEnd(50)} :: ${findLocationFromError(at)}`)
             }
         }
 

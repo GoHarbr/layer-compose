@@ -1,17 +1,5 @@
-import {
-    $at,
-    $dataPointer,
-    $extendSuper, $importsComplete,
-    $layerOrder,
-    $layers,
-    $parentInstance,
-    $runOnInitialize,
-    $writableKeys,
-    IS_DEV_MODE
-} from "./const"
-import compose                                                                                          from "./compose/compose"
-import seal                                                                              from "./constructor/seal"
-import {createConstructor}                                                               from "./constructor/createConstructor"
+import {$at, IS_DEV_MODE}  from "./const"
+import {createConstructor} from "./constructor/createConstructor"
 
 export default function layerCompose(...layers) {
     if (layers.some(_ => !_)) {
@@ -20,9 +8,8 @@ export default function layerCompose(...layers) {
 
     try {
 
-        const at = new Error()
         if (!layers[$at]) {
-            layers[$at] = at
+            layers[$at] = new Error()
         }
 
         return createConstructor(layers)
@@ -31,4 +18,16 @@ export default function layerCompose(...layers) {
         console.error("layerCompose encountered an error while creating a constructor for a composition:", e, e.stack)
         if (IS_DEV_MODE) throw e
     }
+}
+
+
+export function $ (layer) {
+    if (typeof layer != 'object' || Array.isArray(layer) || layer == null) {
+        throw new Error('A layer must be an object')
+    }
+
+    const c = layerCompose(layer)
+
+    c.$ = layer => layerCompose(layer, c)
+    return c
 }
