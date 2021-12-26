@@ -125,11 +125,11 @@ describe("The basics of Layers", () => {
     const C = $(
     // initializerLayer
     {
-      _($ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */, _ /*: {  } */, o /*: ?any */) {
+      _($ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */, _ /*: {-[string]: any } */, o /*: ?any */) {
         _.key = 'KEY';
         $.print();
       },
-      print($ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */, _ /*: { key : string } */, o /*: ?any */) {
+      print($ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */, _ /*: { key : string , -[string]: any } */, o /*: ?any */) {
         log(_.key + '-initializer');
       } }).
 

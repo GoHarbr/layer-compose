@@ -2,6 +2,13 @@ import {lcConstructor, lcInstance} from "./lcConstructor";
 
 export { layerCompose } from './layerCompose';
 
+type $<T> = (layer: T) => {
+    (core: {}, cb: ($: (T extends {} ? T : {})) => void) : void,
+    $: <T2>(layer: T2) => $<T | T2>
+}
+
+export const $: $<any>
+
 export function coreLens(transform: (parentCore) => object): ($, _) => object
 
 export function defaults(_:object, values: object): void

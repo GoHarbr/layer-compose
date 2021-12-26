@@ -1,6 +1,4 @@
-import {findLocationFromError}     from "../external/utils/findLocationFromError"
-import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
-import {parse}                     from "@babel/parser"
+import * as parser                     from "@babel/parser"
 import traverse                    from "@babel/traverse"
 import generate                    from "@babel/generator"
 
@@ -8,6 +6,8 @@ import fs            from 'fs'
 import path            from 'path'
 import process            from 'process'
 import {IS_DEV_MODE} from "../const"
+
+const {parse} = parser
 
 export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
     // todo make sure it works in browsers
