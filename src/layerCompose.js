@@ -1,5 +1,5 @@
-import {$at, IS_DEV_MODE}  from "./const"
-import {createConstructor} from "./constructor/createConstructor"
+import {$at, $isLc, IS_DEV_MODE} from "./const"
+import {createConstructor}       from "./constructor/createConstructor"
 
 export default function layerCompose(...layers) {
     if (layers.some(_ => !_)) {
@@ -21,13 +21,14 @@ export default function layerCompose(...layers) {
 }
 
 
-export function $ (layer) {
-    if (typeof layer != 'object' || Array.isArray(layer) || layer == null) {
+export function $ (layer, baseLayer) {
+    if (!layer?.[$isLc] && typeof layer != 'object' || Array.isArray(layer) || layer == null) {
         throw new Error('A layer must be an object')
     }
 
-    const c = layerCompose(layer)
+    const c = baseLayer ? layerCompose(layer, baseLayer) : layerCompose(layer)
 
-    c.$ = layer => layerCompose(layer, c)
+    c.$ = layer => $(c, layer)
+
     return c
 }

@@ -1,5 +1,5 @@
 // @flow
-import { layerCompose, $ } from "../../src";
+import { $, layerCompose } from "../../src";
 
 describe("The basics of Layers", () => {
 
@@ -20,8 +20,8 @@ describe("The basics of Layers", () => {
     const log = jest.fn((...args) => console.log(...args));
 
     /**
-    * Here we define a single layer, and create a Composition
-    * */
+     * Here we define a single layer, and create a Composition
+     * */
 
     /*
       */
@@ -32,9 +32,6 @@ describe("The basics of Layers", () => {
         // ah, the classic
         log(_.message);
       } });
-
-
-
 
 
 
@@ -58,23 +55,26 @@ describe("The basics of Layers", () => {
     const log = jest.fn((...args) => console.log(...args));
 
     /**
-    * Here we define 3 layers, each could live in a separate file
-    * */
+     * Here we define 3 layers, each could live in a separate file
+     * */
 
     const layer1 = {
       print1($, _) {
         log("L1");
       } };
 
+
     const layer2 = {
       print2($, _) {
         log("L2");
       } };
 
+
     const layer3 = {
       print3($, _) {
         log("L3");
       } };
+
 
 
     /*
@@ -95,18 +95,13 @@ describe("The basics of Layers", () => {
     expect(log).toHaveBeenCalledTimes(3);
   });
 
-  test("Multi-layer composition with initializer", () => {
+  test("Multi-layer composition with initializer", (done) => {
     const log = jest.fn((...args) => console.log(...args));
 
     /**
-    * Here we define 3 layers, each could live in a separate file
-    * */
+     * Here we define 3 layers, each could live in a separate file
+     * */
 
-    const initializerLayer = [
-    ($, _) => {
-      _.key = 'Initializer';
-      $.print();
-    }];
 
 
     const topLayer = {
@@ -115,20 +110,32 @@ describe("The basics of Layers", () => {
       } };
 
 
+
     const baseLayer = {
       print($, _) {
         log(_.key + '-base');
       } };
 
 
+
     /*
     * Compiling all 3 Layers into a Composition
     * */
 
-    const C = layerCompose(
-    initializerLayer,
-    topLayer,
-    baseLayer);
+    const C = $(
+    // initializerLayer
+    {
+      _($ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */, _ /*: {  } */, o /*: ?any */) {
+        _.key = 'KEY';
+        $.print();
+      },
+      print($ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */, _ /*: { key : string } */, o /*: ?any */) {
+        log(_.key + '-initializer');
+      } }).
+
+    $(topLayer).
+    $(baseLayer);
+
 
 
     /*
@@ -136,11 +143,17 @@ describe("The basics of Layers", () => {
     * and notice that we rely on the initilizer to make the calls
     * */
 
-    const instance = C();
+    C({}, (instanceOfC) => {
+      instanceOfC.then(() => {
 
-    expect(log).toHaveBeenCalledTimes(2);
-    expect(log).toHaveBeenNthCalledWith(1, 'Initializer-base');
-    expect(log).toHaveBeenNthCalledWith(2, 'Initializer-top');
+        expect(log).toHaveBeenCalledTimes(3);
+        expect(log).toHaveBeenNthCalledWith(1, 'KEY-base');
+        expect(log).toHaveBeenNthCalledWith(2, 'KEY-top');
+
+        done();
+      });
+    });
+
   });
 
 });

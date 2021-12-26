@@ -1,7 +1,5 @@
 import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                      from "../utils"
 import {$at, $composition, $compositionId, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
-import transformToStandardArgs
-                                                                                          from "./transformToStandardArgs"
 import {functionComposer}                                                                 from "./functionComposer"
 import makeBaseComposition                                                                from "./makeBaseComposition"
 import {createConstructor}                                                                from "../constructor/createConstructor"
@@ -33,7 +31,7 @@ async function compose(layerLike, composed) {
         if (existingComposition) {
             composition = existingComposition
         } else {
-            composition = (layerLike[$composition] = await compose(layerLike[$layers], null))
+            composition = (layerLike[$composition] = await compose(layerLike[$layers], composed))
             composition[$at] = layerLike[$layers][$at] || layerLike[$at]
         }
         // return await compose(composition, composed)
@@ -92,7 +90,7 @@ async function compose(layerLike, composed) {
 
                 // if this is a function definition, compose
                 let composedEntry
-                const fn = transformToStandardArgs(value)
+                const fn = value
 
                 const existing = composed[name] || null
                 if (IS_DEV_MODE) {

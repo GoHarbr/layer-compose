@@ -2,11 +2,18 @@
 * Takes a function with variable arguments and transforms it into a function with shape ($, _, opt)
 * */
 
+/*
+*
+* @DEPRECATED
+*
+* */
+
+
 import {functionAsString} from "../utils"
 import {IS_DEV_MODE} from '../const'
 
 const symbols = ['$', '_', 'opt']
-const paramsExtractorRe = new RegExp('(\\(.+?\\))|([^)(]+?=>)', 'i')
+const paramsExtractorRe = new RegExp('(\\(.+?\\))|([^)(]+?=>)', 'im')
 // const decompositionRe = new RegExp('\(^\{.+\})|(\\$,\{.+\})', 'i')
 const decompositionRe = new RegExp('\{.+\}', 'i')
 
@@ -24,9 +31,9 @@ export default function (fn) {
     let matches = str.match(paramsExtractorRe)
     if (matches) {
         const paramDefinition = matches[0]
-        if (paramDefinition.match(decompositionRe)) {
+        // if (paramDefinition.match(decompositionRe)) {
             // throw new Error('Decomposition is (currently) not allowed in layer methods')
-        }
+        // }
         const argOrder = ArgOrder(paramDefinition, fn.length)
 
         if (compilerArgsScrambleCheck(paramDefinition, argOrder)) {
