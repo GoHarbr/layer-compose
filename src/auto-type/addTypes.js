@@ -77,9 +77,6 @@ function modifyFunctionAstWithType({ ast, types, startingLine }) {
 
 // let layerId = 0
 function modifyLayerAstWithType(ast, functionArgTypes) {
-    // traverse(ast, {
-    //     enter() {
-
             ast.properties.forEach(prop => {
                 if (prop.type === 'ObjectMethod' && prop.key.type === "Identifier") {
                     const types = functionArgTypes[prop.key.name]
@@ -125,6 +122,4 @@ function modifyLayerAstWithType(ast, functionArgTypes) {
                     }
                 }
             })
-        // }
-    // })
 }
