@@ -6,7 +6,12 @@ import {createConstructor}                                                      
 import {wrapFunctionForDev}                                                               from "./wrapFunctionForDev"
 
 async function compose(layerLike, composed) {
-    if (!composed) composed = makeBaseComposition()
+    if (!composed) {
+        composed = makeBaseComposition()
+    } else {
+        composed = Object.create(composed)
+    }
+
     const layerId = getLayerId(layerLike) // can also return compositionId
 
     const existingLayers = composed[$layers] || (composed[$layers] = (isService(composed) && new Map()))
@@ -26,12 +31,12 @@ async function compose(layerLike, composed) {
         * Processing an existing composition as a layer (taking it apart essentially and composing into this composition)
         * */
 
-        const existingComposition = layerLike[$composition]
+        const existingComposition = await layerLike[$composition]
         let composition
         if (existingComposition) {
             composition = existingComposition
         } else {
-            composition = (layerLike[$composition] = await compose(layerLike[$layers], composed))
+            composition = (layerLike[$composition] = compose(layerLike[$layers], composed))
             composition[$at] = layerLike[$layers][$at] || layerLike[$at]
         }
         // return await compose(composition, composed)
@@ -56,9 +61,15 @@ async function compose(layerLike, composed) {
 
         // todo. make sure getters and setters aren't overwriting services
 
+        // const _loc = splitLocationIntoComponents(findLocationFromError(layerLike[$at]))
+        // console.debug(`MM ${_loc.filename}:${_loc.line}`)
+
         const next = {}
 
-        for (const [name, value] of Object.entries(layerLike)) {
+        for (const name in layerLike) {
+            // console.log('\t', name)
+            const value = layerLike[name]
+
             if (typeof value === 'object' || isLcConstructor(value)) {
                 // if this is a service definition then it starts with a capital letter
                 if (name[0] !== name[0].toUpperCase()) {

@@ -63,9 +63,9 @@ export async function constructFromComposition(composition, coreObject, {lensNam
 const _constructor = (layers) => async function (coreObject, cb, {lensName, fullyQualifiedName} = {}) {
     try {
         // taking stored or composing for the first time
-        const composition = this[$composition] = (this[$composition] || await compose(layers, null))
+        const composition = this[$composition] = (this[$composition] || compose(layers, null))
 
-        const [$] = await constructFromComposition(composition, coreObject, {lensName, fullyQualifiedName})
+        const [$] = await constructFromComposition(await composition, coreObject, {lensName, fullyQualifiedName})
 
         // await new Promise(resolve => queueForExecution($, () => cb($), resolve))
         // await cb($)
