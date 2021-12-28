@@ -12,6 +12,7 @@ export memo       from "./external/patterns/memo"
 export transform       from "./external/patterns/transform"
 export attach     from "./external/patterns/attach"
 export replace     from "./external/patterns/replace"
+export defer     from "./external/patterns/defer"
 
 export parent     from "./external/patterns/parent"
 export core     from "./external/patterns/core"

@@ -5,10 +5,10 @@ import asap                                             from "asap/raw"
 import {writeTypesToDisk}                               from "../auto-type/trackTypes"
 
 let id = 0
-export function queueForExecution($, fn, cb) {
+export function queueForExecution($, fn, cb, {push = false} = {}) {
     const queue = getExecutionQueue($)
 
-    if (queue.buffer != null) {
+    if (queue.buffer != null && !push) {
         queue.buffer.push({ fn, cb, id: id++ })
     } else {
         queue.push({ fn, cb, id: id++})
