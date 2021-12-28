@@ -82,7 +82,7 @@ function objectTypeToFlow(definitions) {
         // }
 
 
-    } else if (typeof definitions == 'object') {
+    } else if (typeof definitions == 'object' && !!definitions) {
         const props = Object.entries(definitions).map(([k, t]) => {
             return `${k} : ${objectTypeToFlow(t)}`
         }).join(', ')
