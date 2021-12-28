@@ -10,7 +10,7 @@ export const $isCompositionInstance = Symbol("isCompositionInstance")
 
 export const $isService = Symbol('isService')
 export const $lensName = Symbol('lensName')
-export const $fullyQualifiedName = Symbol("at")
+export const $fullyQualifiedName = Symbol("fullyQualifiedName")
 
 export const $dataPointer = Symbol('dataPointer')
 export const $isNullCore = Symbol('nullCore')
