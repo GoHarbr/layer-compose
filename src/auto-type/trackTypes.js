@@ -21,13 +21,15 @@ export function writeTypesToDisk() {
             }
         }
 
-        if (!rewriteFileWithTypes) {
+        if (rewriteFileWithTypes == null) {
             import('fs').catch(() => null).then(fs => {
                 if (fs) {
                     return import("./addTypes").then(({rewriteFileWithTypes: fn}) => {
                         rewriteFileWithTypes = fn
                         rewriteFileWithTypes({ ...locComponents, types: flowTypesByFn })
                     })
+                } else {
+                    rewriteFileWithTypes = false
                 }
             })
         } else {

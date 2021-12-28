@@ -1,6 +1,6 @@
 {
   "name": "@goharbr/layer-compose",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "main": "lib/index.js",
   "types": "typings/index.d.ts",
   "description": "",
@@ -33,6 +33,7 @@
     "@babel/parser": "^7.16.6",
     "@babel/traverse": "^7.16.5",
     "@babel/types": "^7.16.0",
-    "asap": "^2.0.6"
+    "asap": "^2.0.6",
+    "prettier": "^2.5.1"
   }
 }

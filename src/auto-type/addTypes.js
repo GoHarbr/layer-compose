@@ -1,13 +1,14 @@
-import * as parser                     from "@babel/parser"
-import traverse                    from "@babel/traverse"
-import generate                    from "@babel/generator"
+import * as parser from "@babel/parser"
+import traverse    from "@babel/traverse"
+import generate    from "@babel/generator"
 
 import fs            from 'fs'
-import path            from 'path'
-import process            from 'process'
+import path          from 'path'
+import process       from 'process'
 import {IS_DEV_MODE} from "../const"
+import prettier from "prettier"
 
-const {parse} = parser
+const { parse } = parser
 
 export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
     // todo make sure it works in browsers
@@ -30,13 +31,13 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
         const updatedSource = prependFlowComment(output.code)
         const tmpDir = path.join(process.cwd(), 'tmp')
 
-        if (!fs.existsSync(tmpDir)){
-            fs.mkdirSync(tmpDir);
+        if (!fs.existsSync(tmpDir)) {
+            fs.mkdirSync(tmpDir)
         }
 
-        const backupFilename = path.join(tmpDir, filename.replaceAll('/','_').replaceAll('\\', '_') )
+        const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
         fs.writeFileSync(backupFilename, source)
-        fs.writeFileSync(filename, updatedSource)
+        fs.writeFileSync(filename, prettier.format(updatedSource))
     }
 }
 
@@ -77,49 +78,49 @@ function modifyFunctionAstWithType({ ast, types, startingLine }) {
 
 // let layerId = 0
 function modifyLayerAstWithType(ast, functionArgTypes) {
-            ast.properties.forEach(prop => {
-                if (prop.type === 'ObjectMethod' && prop.key.type === "Identifier") {
-                    const types = functionArgTypes[prop.key.name]
-                    if (types) {
-                        const fnParams = {}
-                            const sourceParams = prop.params
-                        fnParams['$'] = sourceParams[0] || (sourceParams[0] = {
-                            type: 'Identifier', name: '$'
-                        })
-                        fnParams['_'] = sourceParams[1] || (sourceParams[1] = {
-                            type: 'Identifier', name: '_'
-                        })
-                        fnParams['o'] = sourceParams[2] || (sourceParams[2] = {
-                            type: 'Identifier', name: 'o'
-                        })
+    ast.properties.forEach(prop => {
+        if (prop.type === 'ObjectMethod' && prop.key.type === "Identifier") {
+            const types = functionArgTypes[prop.key.name]
+            if (types) {
+                const fnParams = {}
+                const sourceParams = prop.params
+                fnParams['$'] = sourceParams[0] || (sourceParams[0] = {
+                    type: 'Identifier', name: '$'
+                })
+                fnParams['_'] = sourceParams[1] || (sourceParams[1] = {
+                    type: 'Identifier', name: '_'
+                })
+                fnParams['o'] = sourceParams[2] || (sourceParams[2] = {
+                    type: 'Identifier', name: 'o'
+                })
 
-                        for (const [name, type] of Object.entries(types)) {
-                            const param = fnParams[name]
-                            if (param) {
-                                const line = param?.loc?.end?.line
-                                const columnStart = param?.loc?.end?.column + 1
-                                param.trailingComments = [
-                                    {
-                                        type: 'CommentBlock',
-                                        value: type + ' ',
-                                        start: param.start && param.start + 1,
-                                        end: param.start && param.start + 1 + 4 + type.length + 1,
-                                        loc: {
-                                            start: {
-                                                line,
-                                                column: columnStart,
-                                            },
-                                            end:  {
-                                                line,
-                                                column: columnStart + 4 + type.length,
-                                            },
-                                        }
+                for (const [name, type] of Object.entries(types)) {
+                    const param = fnParams[name]
+                    if (param) {
+                        const line = param?.loc?.end?.line
+                        const columnStart = param?.loc?.end?.column + 1
+                        param.trailingComments = [
+                            {
+                                type: 'CommentBlock',
+                                value: type + ' ',
+                                start: param.start && param.start + 1,
+                                end: param.start && param.start + 1 + 4 + type.length + 1,
+                                loc: {
+                                    start: {
+                                        line,
+                                        column: columnStart,
+                                    },
+                                    end: {
+                                        line,
+                                        column: columnStart + 4 + type.length,
+                                    },
+                                }
 
-                                    }
-                                ]
                             }
-                        }
+                        ]
                     }
                 }
-            })
+            }
+        }
+    })
 }
