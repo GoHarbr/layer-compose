@@ -83,7 +83,7 @@ function sealMethod(method, $) {
 
     return function (opt, ...rest) {
         if (IS_DEV_MODE) {
-            if (!!opt && (Array.isArray(opt) || rest.length)) {
+            if (!!opt && rest.length) {
                 throw new Error("Layer methods can take only named parameters/options or a single argument")
             }
         }
