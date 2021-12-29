@@ -4,6 +4,8 @@ import {functionComposer}                                                       
 import makeBaseComposition                                                                from "./makeBaseComposition"
 import {createConstructor}                                                                from "../constructor/createConstructor"
 import {wrapFunctionForDev}                                                               from "./wrapFunctionForDev"
+                                                                                          from "../external/utils/splitLocationIntoComponents"
+import {findLocationFromError}                                                            from "../external/utils/findLocationFromError"
 
 async function compose(layerLike, composed) {
     if (!composed) {
@@ -34,13 +36,12 @@ async function compose(layerLike, composed) {
         const existingComposition = await layerLike[$composition]
         let composition
         if (existingComposition) {
-            composition = existingComposition
+            composition = compose(existingComposition, composed)
         } else {
             composition = (layerLike[$composition] = compose(layerLike[$layers], composed))
             composition[$at] = layerLike[$layers][$at] || layerLike[$at]
         }
-        // return await compose(composition, composed)
-        return composition
+        return await composition
 
     } else if (isFragmentOfLayers(layerLike)) {
         /*
@@ -56,7 +57,16 @@ async function compose(layerLike, composed) {
         const asyncRes = await layerLike
         const isModule = asyncRes.__esModule || asyncRes[Symbol.toStringTag] === 'Module'
 
-        return await compose(isModule ? asyncRes.default : asyncRes, composed)
+        const defaultExport = isModule && asyncRes.default
+        if (isModule && !defaultExport) {
+            let at = ''
+            if (layerLike[$at]) {
+                at = findLocationFromError(layerLike[$at])
+            }
+            throw new Error('Layer import() must have a default export: ' + at)
+        }
+
+        return await compose(defaultExport || asyncRes, composed)
     } else {
 
         // todo. make sure getters and setters aren't overwriting services
