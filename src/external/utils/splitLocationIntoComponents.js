@@ -1,4 +1,4 @@
-const re = /((\/?[\w.-]+)+):([0-9]+):([0-9]+)/
+const re = /((\/?[\w.\-$_ ]+)+):([0-9]+):([0-9]+)/
 export default function (errorLocationLine) {
     const match = re.exec(errorLocationLine)
     if (match.length) {
