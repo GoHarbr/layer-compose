@@ -19,6 +19,9 @@ export function writeTypesToDisk() {
             if (is_Empty) _type = '{ '
 
             // const _otype = objectTypeToFlow(types.o)
+
+            // todo. sort (consistent) by key length
+
             flowTypesByFn[name] = {
                 $: `: { [key : ${types.$.map(k => `'${k}'`).join('|')}] : (o: ?any) => void }`,
                 _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ', ' || ''}-[string]: any }`,
@@ -80,7 +83,11 @@ function typeObj(obj, {existing, depth = 0}) {
 
         return Object.fromEntries(
             Object.entries(obj).map(([k, v]) => {
-                return [k, typeObj(v, {depth: depth + 1})]
+                if (depth < 2) {
+                    return [k, typeObj(v, { depth: depth + 1 })]
+                } else {
+                    return [k, obj ? typeof obj : null]
+                }
             })
         )
 

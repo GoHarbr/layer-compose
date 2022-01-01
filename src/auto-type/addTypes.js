@@ -37,7 +37,7 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
 
         const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
         fs.writeFileSync(backupFilename, source)
-        fs.writeFileSync(filename, prettier.format(updatedSource))
+        fs.writeFileSync(filename, prettier.format(updatedSource, {parser: "babel"}))
     }
 }
 
