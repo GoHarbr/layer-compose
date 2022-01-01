@@ -21,6 +21,9 @@ export default layerCompose(
             $ => $(Owner => ({ Owner })),
             defaults({ paused: false }, true),
             {
+                _($,_) {
+
+                },
                 pause($, _) {
                     _.paused = true
                 },
