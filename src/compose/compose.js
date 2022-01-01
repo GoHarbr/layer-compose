@@ -1,10 +1,9 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                      from "../utils"
-import {$at, $composition, $compositionId, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
-import {functionComposer}                                                                 from "./functionComposer"
+import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                                   from "../utils"
+import {$at, $composition, $compositionId, $isComposed, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
+import {functionComposer}                                                                              from "./functionComposer"
 import makeBaseComposition                                                                from "./makeBaseComposition"
 import {createConstructor}                                                                from "../constructor/createConstructor"
 import {wrapFunctionForDev}                                                               from "./wrapFunctionForDev"
-                                                                                          from "../external/utils/splitLocationIntoComponents"
 import {findLocationFromError}                                                            from "../external/utils/findLocationFromError"
 
 async function compose(layerLike, composed) {
@@ -96,6 +95,10 @@ async function compose(layerLike, composed) {
                     * */
                     serviceLayers.push(composed[serviceName])
                 }
+                // todo. no need to re-wrap in a constructor again (but keep the isService flag off the original)
+                // else if (isLcConstructor(value)) {
+                //     return value
+                // }
 
                 const s = createConstructor(serviceLayers)
                 s[$isService] = true
@@ -114,18 +117,25 @@ async function compose(layerLike, composed) {
                 const fn = value
 
                 const existing = composed[name] || null
-                if (IS_DEV_MODE) {
-                    const at = value[$at] || layerLike[$at]
-                    if (!at) debugger
 
-                    composedEntry = functionComposer(existing,
-                        wrapFunctionForDev(layerId, fn, {
-                            name,
-                            at
-                        }),
-                        {isReverse})
+                if (existing || !fn[$isComposed]) { // do not recompose!
+                    if (IS_DEV_MODE) {
+                        const at = value[$at] || layerLike[$at]
+                        if (!at) debugger
+
+                        composedEntry = functionComposer(existing,
+                            wrapFunctionForDev(layerId, fn, {
+                                name,
+                                at
+                            }),
+                            { isReverse })
+                    } else {
+                        composedEntry = functionComposer(existing, fn, { isReverse })
+                    }
+
+                    composedEntry[$isComposed] = true
                 } else {
-                    composedEntry = functionComposer(existing, fn,{isReverse})
+                    composedEntry = fn
                 }
 
                 next[name] = composedEntry
