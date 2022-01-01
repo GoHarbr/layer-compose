@@ -8,9 +8,9 @@ import {
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
-} from "../const"
-import {unwrapProxy}                                                                              from "../proxies/utils"
-import {wrapCompositionWithProxy}                                                                 from "../proxies/wrapCompositionWithProxy"
+}                                 from "../const"
+import {isProxy, unwrapProxy}     from "../proxies/utils"
+import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import {queueForExecution}                                                                        from "../compose/queueForExecution"
 import {GLOBAL_DEBUG}          from "../external/utils/enableDebug"
 import {findLocationFromError} from "../external/utils/findLocationFromError"
@@ -63,7 +63,7 @@ function sealService(lensConstructor, parent, {name, at}) {
             }
         }
 
-        queueForExecution(parent, () => new Promise((resolve, reject) => {
+        queueForExecution(parent, () => {
             diagnostics && diagnostics()
             if (lensCore[$parentInstance]) {
                 console.warn('Object already has a parent instance reference')
@@ -72,9 +72,8 @@ function sealService(lensConstructor, parent, {name, at}) {
             lensCore[$parentInstance] = parent
             lensConstructor(lensCore, $ => {
                 cbWithService($)
-                $.then(resolve, reject)
             }, {lensName: name, fullyQualifiedName})
-        }))
+        })
     }
 
 }
