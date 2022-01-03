@@ -1,19 +1,19 @@
-import {isService}                                                                                from "../utils"
+import {isService}                from "../utils"
 import {
     $at,
-    $borrowedKeys,
-    $dataPointer, $fullyQualifiedName,
+    $dataPointer,
+    $fullyQualifiedName,
     $layers,
     $lensName,
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
 }                                 from "../const"
-import {isProxy, unwrapProxy}     from "../proxies/utils"
+import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import {queueForExecution}                                                                        from "../compose/queueForExecution"
-import {GLOBAL_DEBUG}          from "../external/utils/enableDebug"
-import {findLocationFromError} from "../external/utils/findLocationFromError"
+import {queueForExecution}        from "../compose/queueForExecution"
+import {GLOBAL_DEBUG}             from "../external/utils/enableDebug"
+import {findLocationFromError}    from "../external/utils/findLocationFromError"
 
 
 // noinspection FunctionTooLongJS
@@ -28,7 +28,7 @@ export default function seal(composition, $) {
 
         if (isService(methodOrLens)) {
             const at = methodOrLens[$layers][$at]
-            $[name] = sealService(methodOrLens, $, {name, at})
+            $[name] = sealService(methodOrLens, $, { name, at })
         } else {
             $[name] = sealMethod(methodOrLens, $)
         }
@@ -38,7 +38,7 @@ export default function seal(composition, $) {
 }
 
 
-function sealService(lensConstructor, parent, {name, at}) {
+function sealService(lensConstructor, parent, { name, at }) {
     return function makeLens(cbOrCore, cb) {
         let lensCore = null
         let cbWithService
@@ -72,7 +72,13 @@ function sealService(lensConstructor, parent, {name, at}) {
             lensCore[$parentInstance] = parent
             lensConstructor(lensCore, $ => {
                 cbWithService($)
-            }, {lensName: name, fullyQualifiedName})
+            }, {
+                lensName: name, fullyQualifiedName,
+                preinitializer: async ($) => {
+                    const initializerName = `_${name}`
+                    if (initializerName in parent) await parent[initializerName]($)
+                }
+            })
         })
     }
 

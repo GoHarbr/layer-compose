@@ -1,25 +1,20 @@
 import {
-    $at,
     $composition,
-    $compositionId,
-    $dataPointer, $fullyQualifiedName,
+    $dataPointer,
+    $fullyQualifiedName,
     $isCompositionInstance,
     $isLc,
-    $layers, $lensName,
+    $layers,
+    $lensName,
     IS_DEV_MODE
 } from "../const"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods
-                                  from "./wrapStandardMethods"
-import constructCoreObject
-                                  from "./constructCoreObject"
-import compose
-                                  from "../compose/compose"
-import seal                       from "./seal"
-import initialize
-                                  from "./initialize"
-import {isPromise}                from "../utils"
-import {queueForExecution}        from "../compose/queueForExecution"
+import wrapStandardMethods from "./wrapStandardMethods"
+import constructCoreObject from "./constructCoreObject"
+import compose from "../compose/compose"
+import seal from "./seal"
+import initialize from "./initialize"
+import {queueForExecution} from "../compose/queueForExecution"
 
 export function createConstructor(layers) {
 
@@ -31,7 +26,11 @@ export function createConstructor(layers) {
     return constructor
 }
 
-export async function constructFromComposition(composition, coreObject, {lensName, fullyQualifiedName}) {
+export async function constructFromComposition(composition, coreObject, {
+    lensName,
+    fullyQualifiedName,
+    preinitializer
+}) {
     const compositionInstance = seal(composition, Object.create(null))
     compositionInstance[$isCompositionInstance] = true
 
@@ -40,6 +39,7 @@ export async function constructFromComposition(composition, coreObject, {lensNam
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName
     compositionInstance[$dataPointer] = await constructCoreObject(coreObject, compositionInstance)
 
+    preinitializer && await preinitializer(compositionInstance)
     wrapStandardMethods(compositionInstance) // for methods like .then
     initialize(compositionInstance) // no need to wrap in queueForExecution
 
@@ -60,12 +60,18 @@ export async function constructFromComposition(composition, coreObject, {lensNam
     // }
 }
 
-const _constructor = (layers) => async function (coreObject, cb, {lensName, fullyQualifiedName} = {}) {
+const _constructor = (layers) => async function (coreObject, cb, {
+    lensName,
+    fullyQualifiedName,
+    preinitializer
+} = {}) {
     try {
         // taking stored or composing for the first time
         const composition = this[$composition] = (this[$composition] || compose(layers, null))
 
-        const [$] = await constructFromComposition(await composition, coreObject, {lensName, fullyQualifiedName})
+        const [$] = await constructFromComposition(
+            await composition, coreObject,
+            { lensName, fullyQualifiedName, preinitializer })
 
         // await new Promise(resolve => queueForExecution($, () => cb($), resolve))
         // await cb($)

@@ -111,12 +111,17 @@ async function compose(layerLike, composed) {
 
                 // reversing in case of the foreground initializer function
                 const isReverse = name === '_'
+                const isLensInitializer = name[0] === name[0].toUpperCase()
+
+                let fnName = name
+                // change name if not already prefixed
+                if (isLensInitializer && !['_', '$'].includes(name[0])) fnName = '_' + fnName
 
                 // if this is a function definition, compose
                 let composedEntry
                 const fn = value
 
-                const existing = composed[name] || null
+                const existing = composed[fnName] || null
 
                 if (existing || !fn[$isComposed]) { // do not recompose!
                     if (IS_DEV_MODE) {
@@ -125,7 +130,7 @@ async function compose(layerLike, composed) {
 
                         composedEntry = functionComposer(existing,
                             wrapFunctionForDev(layerId, fn, {
-                                name,
+                                name: fnName,
                                 at
                             }),
                             { isReverse })
@@ -138,7 +143,7 @@ async function compose(layerLike, composed) {
                     composedEntry = fn
                 }
 
-                next[name] = composedEntry
+                next[fnName] = composedEntry
             } else {
                 throw new Error('Only functions or lenses are allowed')
             }
