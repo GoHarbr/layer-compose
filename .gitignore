@@ -7,3 +7,5 @@ lib/
 layerCompose.tar.gz
 
 .npmrc
+
+**/tmp/

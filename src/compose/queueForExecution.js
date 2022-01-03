@@ -5,13 +5,16 @@ import asap                                             from "asap/raw"
 import {writeTypesToDisk}                               from "../auto-type/trackTypes"
 
 let id = 0
-export function queueForExecution($, fn, cb, {push = false} = {}) {
+export function queueForExecution($, fn, cb, {push = false, next = false} = {}) {
     const queue = getExecutionQueue($)
 
-    if (queue.buffer != null && !push) {
-        queue.buffer.push({ fn, cb, id: id++ })
+    const item = { fn, cb, id: id++}
+    if (next) {
+        queue.unshift(item)
+    } else if (queue.buffer != null && !push) {
+        queue.buffer.push(item)
     } else {
-        queue.push({ fn, cb, id: id++})
+        queue.push(item)
     }
 
     if (!queue[$currentExecutor]) {
