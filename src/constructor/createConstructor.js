@@ -39,7 +39,7 @@ export async function constructFromComposition(composition, coreObject, {
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName
     compositionInstance[$dataPointer] = await constructCoreObject(coreObject, compositionInstance)
 
-    preinitializer && await preinitializer(compositionInstance)
+    preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance))
     wrapStandardMethods(compositionInstance) // for methods like .then
     initialize(compositionInstance) // no need to wrap in queueForExecution
 
