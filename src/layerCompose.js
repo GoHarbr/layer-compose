@@ -38,6 +38,6 @@ export function $ (layer, baseLayer, {unsafe = true} = {}) {
 
 export const o = {
     $(layer) {
-        return $(layer, {unsafe: false})
+        return $(layer, null,{unsafe: false})
     }
 }
