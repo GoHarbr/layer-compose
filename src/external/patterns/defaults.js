@@ -8,11 +8,8 @@ export default function defaults(_, defaultValues) {
 
             let v = defaultValues[k]
 
-            if (!!v && typeof v == "object") {
-                if (IS_DEV_MODE && Object.keys(v).length) {
-                    console.warn("")
-                }
-            }
+            // no need to re-set to the same value
+            if (v === null && !notIn && _[k] === null) continue;
 
             if (v === undefined) throw new Error(`Default value for key ${k} cannot be 'undefined'`)
             _[k] = v
