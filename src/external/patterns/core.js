@@ -8,3 +8,7 @@ export default function (instance) {
         return wrapDataWithProxy(null, instance[$dataPointer])
     }
 }
+
+export function core_unsafe(instance) {
+    return instance[$dataPointer]
+}
