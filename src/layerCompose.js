@@ -21,9 +21,12 @@ export default function layerCompose(...layers) {
 }
 
 
-export function $ (layer, baseLayer) {
+export function $ (layer, baseLayer, {unsafe = true} = {}) {
     if (!layer?.[$isLc] && typeof layer != 'object' || Array.isArray(layer) || layer == null) {
         throw new Error('A layer must be an object')
+    }
+    if (unsafe) {
+        console.warn('Unsafe use of $ to compose. Used tethered form (prevents bugs) : `o.$().$() ... `')
     }
 
     const c = baseLayer ? layerCompose(layer, baseLayer) : layerCompose(layer)
@@ -31,4 +34,10 @@ export function $ (layer, baseLayer) {
     c.$ = layer => $(c, layer)
 
     return c
+}
+
+export const o = {
+    $(layer) {
+        return $(layer, {unsafe: false})
+    }
 }

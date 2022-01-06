@@ -11,6 +11,7 @@ export const $: <T>(layer: T) => {
     (core: {}, cb: ($: T) => void) : void,
     $: <T2>(layer: T2) => $<T | T2>
 }
+export const o: {$: typeof $}
 
 export function coreLens(transform: (parentCore) => object): ($, _) => object
 
