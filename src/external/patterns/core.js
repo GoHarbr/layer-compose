@@ -1,5 +1,10 @@
-import {$dataPointer} from "../../const"
+import {$dataPointer, IS_DEV_MODE} from "../../const"
+import {wrapDataWithProxy}         from "../../data/wrapDataWithProxy"
 
 export default function (instance) {
-    return instance[$dataPointer]
+    if (IS_DEV_MODE) {
+        return instance[$dataPointer]
+    } else {
+        return wrapDataWithProxy(null, instance[$dataPointer])
+    }
 }
