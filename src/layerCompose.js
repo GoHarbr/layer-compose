@@ -36,8 +36,9 @@ export function $ (layer, baseLayer, {unsafe = true} = {}) {
     return c
 }
 
-export const o = {
-    $(layer) {
-        return $(layer, null,{unsafe: false})
-    }
+export const o = (name) => {
+    if (name) throw new Error('Naming of layers and compositions is not yet supported')
+}
+o.$ = (layer) => {
+    return $(layer, null,{unsafe: false})
 }
