@@ -1,4 +1,5 @@
 import {
+    $getComposition,
     $composition,
     $dataPointer,
     $fullyQualifiedName,
@@ -19,7 +20,12 @@ import {queueForExecution} from "../compose/queueForExecution"
 export function createConstructor(layers) {
 
     const _c = _constructor(layers)
+    _c[$getComposition] = () => {
+        return constructor[$composition] || (constructor[$composition] = compose(layers, null))
+    }
+
     const constructor = _c.bind(_c)
+
     constructor[$isLc] = true
     constructor[$layers] = layers
 
@@ -37,7 +43,7 @@ export async function constructFromComposition(composition, coreObject, {
     // compositionInstance[$composition] = composition
     compositionInstance[$lensName] = lensName
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName
-    compositionInstance[$dataPointer] = await constructCoreObject(coreObject, compositionInstance)
+    compositionInstance[$dataPointer] = await constructCoreObject(coreObject, composition)
 
     preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance))
     wrapStandardMethods(compositionInstance) // for methods like .then
@@ -48,16 +54,6 @@ export async function constructFromComposition(composition, coreObject, {
     } else {
         return [compositionInstance]
     }
-
-    // function extendedBy(what) {
-    //     let layers
-    //     if (what[$composition]) {
-    //         layers = what[$composition][$layers]
-    //     } else if (what[$layers]) {
-    //         layers = what[$layers]
-    //     }
-    //     return layers && layers.has(composition[$compositionId])
-    // }
 }
 
 const _constructor = (layers) => async function (coreObject, cb, {
@@ -66,17 +62,10 @@ const _constructor = (layers) => async function (coreObject, cb, {
     preinitializer
 } = {}) {
     try {
-        // taking stored or composing for the first time
-        const composition = this[$composition] = (this[$composition] || compose(layers, null))
-
         const [$] = await constructFromComposition(
-            await composition, coreObject,
+            await this[$getComposition](),
+            coreObject,
             { lensName, fullyQualifiedName, preinitializer })
-
-        // await new Promise(resolve => queueForExecution($, () => cb($), resolve))
-        // await cb($)
-        // cb($)
-        // await $
 
         queueForExecution($, () => {
             cb($)

@@ -1,6 +1,6 @@
 import {isService}                from "../utils"
 import {
-    $at,
+    $at, $compositionId,
     $dataPointer,
     $fullyQualifiedName,
     $layers,
@@ -8,7 +8,7 @@ import {
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
-}                                 from "../const"
+} from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import {queueForExecution}        from "../compose/queueForExecution"
@@ -20,6 +20,7 @@ import {findLocationFromError}    from "../external/utils/findLocationFromError"
 export default function seal(composition, $) {
     $[$writableKeys] = [$parentInstance, $lensName]
     $[$dataPointer] = null
+    $[$compositionId] = composition[$compositionId]
 
     for (const name in composition) {
         const methodOrLens = composition[name]

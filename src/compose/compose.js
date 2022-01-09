@@ -1,10 +1,11 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                                   from "../utils"
-import {$at, $composition, $compositionId, $isComposed, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
-import {functionComposer}                                                                              from "./functionComposer"
-import makeBaseComposition                                                                from "./makeBaseComposition"
-import {createConstructor}                                                                from "../constructor/createConstructor"
-import {wrapFunctionForDev}                                                               from "./wrapFunctionForDev"
-import {findLocationFromError}                                                            from "../external/utils/findLocationFromError"
+import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                   from "../utils"
+import {$at, $composition, $isComposed, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
+import {functionComposer}                                                              from "./functionComposer"
+import makeBaseComposition                                                             from "./makeBaseComposition"
+import {createConstructor}                                                             from "../constructor/createConstructor"
+import {wrapFunctionForDev}                                                            from "./wrapFunctionForDev"
+import {findLocationFromError}                                                         from "../external/utils/findLocationFromError"
+import {markWithId}                                                                    from "./markWithId"
 
 async function compose(layerLike, composed) {
     if (!composed) {
@@ -15,6 +16,7 @@ async function compose(layerLike, composed) {
 
     const layerId = getLayerId(layerLike) // can also return compositionId
 
+    // todo. why is there a isService check here
     const existingLayers = composed[$layers] || (composed[$layers] = (isService(composed) && new Map()))
     if (existingLayers.has(layerId)) {
         // console.debug("Layer is already present in the composition", Object.keys(layerLike))
@@ -35,10 +37,14 @@ async function compose(layerLike, composed) {
         const existingComposition = await layerLike[$composition]
         let composition
         if (existingComposition) {
-            composition = compose(existingComposition, composed)
+            composition = await compose(existingComposition, composed)
         } else {
-            composition = (layerLike[$composition] = compose(layerLike[$layers], composed))
+            composition = (layerLike[$composition] = await compose(layerLike[$layers], composed))
             composition[$at] = layerLike[$layers][$at] || layerLike[$at]
+
+            const layerIdOfComposed = getLayerId(composition)
+            existingLayers.set(layerIdOfComposed, composition)
+            composed[$layerOrder].push(layerIdOfComposed)
         }
         return await composition
 
@@ -153,13 +159,6 @@ async function compose(layerLike, composed) {
         if (IS_DEV_MODE && !composed[$at]) debugger
         return markWithId(Object.assign(composed, next))
     }
-}
-
-let _compositionId = 0 // for debug purposes
-function markWithId(composition) {
-    _compositionId++
-    composition[$compositionId] = Symbol(_compositionId + '::composition-id')
-    return composition
 }
 
 async function processFragmentOfLayers(layerLike, composed, inGivenOrder = false) {

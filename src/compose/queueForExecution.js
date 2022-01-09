@@ -64,13 +64,11 @@ async function execute(queue) {
     const fnReturn = fn()
 
     if (isPromise(fnReturn)) {
-        if (IS_DEV_MODE) {
-            fnReturn.catch(e => {
-                console.error('Promise rejected:', e)
-                throw e
-            })
-        }
-        const res = await fnReturn
+
+        const res = await fnReturn.catch(e => {
+            console.error('Queue task: Promise rejected:', e)
+            throw e
+        })
 
         queue.unshift(...queue.buffer)
         queue.buffer = null
