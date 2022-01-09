@@ -57,14 +57,22 @@ function prependFlowComment(source) {
     }
 }
 
+function is$notation(callee) {
+    return callee.type === 'Identifier' && callee.name === '$'
+}
+
+function isOnotation(callee) {
+    return callee.type === 'MemberExpression' && callee.object?.name === 'o' && callee.property?.name === '$'
+}
+
 function modifyFunctionAstWithType({ ast, types, startingLine }) {
     return traverse(ast, {
         enter(path) {
             if (path.node.type === 'CallExpression') {
                 const callee = path.node.callee
-                if (callee.type === 'Identifier'
-                    && callee.name === '$'
-                    && path.node.loc.start.line === startingLine) {
+                const is$ = is$notation(callee)
+                const isO = !is$ && isOnotation(callee)
+                if ((is$ || isO) && path.node.loc.start.line === startingLine) {
 
                     const arg = path.node.arguments[0]
                     if (arg && arg.type === "ObjectExpression") {
