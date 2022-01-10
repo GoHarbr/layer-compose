@@ -39,8 +39,9 @@ export async function constructFromComposition(composition, coreObject, {
     parent
 }) {
     const compositionInstance = seal(composition, Object.create(null))
-    compositionInstance[$isCompositionInstance] = true
+    wrapStandardMethods(compositionInstance) // for methods like .then
 
+    compositionInstance[$isCompositionInstance] = true
     // compositionInstance[$composition] = composition
     compositionInstance[$lensName] = lensName
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName
@@ -49,7 +50,6 @@ export async function constructFromComposition(composition, coreObject, {
     compositionInstance[$dataPointer] = core
 
     preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance))
-    wrapStandardMethods(compositionInstance) // for methods like .then
     initialize(compositionInstance) // no need to wrap in queueForExecution
 
     if (IS_DEV_MODE) {
@@ -71,7 +71,7 @@ const _constructor = (layers) => async function (coreObject, cb, {
             coreObject,
             { lensName, fullyQualifiedName, preinitializer, parent })
 
-        // todo. why not call CB right away?
+        // todo. why not call CB right away? might not make much of a difference
         queueForExecution($, () => {
             cb($)
         })

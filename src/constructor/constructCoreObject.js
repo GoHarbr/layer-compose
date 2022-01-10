@@ -1,6 +1,7 @@
-import {$isNullCore, IS_DEV_MODE} from "../const"
-import {isPromise}                from "../utils"
+import {$executionQueue, $isNullCore, $parentInstance, IS_DEV_MODE} from "../const"
+import {isPromise}                                                  from "../utils"
 import {unwrapCompositionAsCore}  from "./unwrapCompositionAsCore"
+import {unwrapProxy}              from "../proxies/utils"
 
 export default async function constructCoreObject(proposed, composition) {
     let core
@@ -12,6 +13,15 @@ export default async function constructCoreObject(proposed, composition) {
         core = proposed
     }
 
+    if (IS_DEV_MODE) {
+        core = unwrapProxy(core)
+    }
+
+    if (core[$executionQueue]) {
+        core = Object.assign({}, core)
+        core[$parentInstance] = null
+        core[$executionQueue] = null
+    }
 
     if (core == null) {
         core = {}

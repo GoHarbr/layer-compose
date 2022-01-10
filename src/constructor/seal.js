@@ -80,7 +80,7 @@ function sealService(lensConstructor, parent, { name, at }) {
                     lensName: name, fullyQualifiedName,
                     preinitializer: ($) => new Promise(resolveChild => {
                         const _ = core_unsafe($)
-                        if ([$parentInstance]) {
+                        if (_[$parentInstance]) {
                             console.warn('Object already has a parent instance reference')
                         }
                         _[$parentInstance] = parent
@@ -88,14 +88,20 @@ function sealService(lensConstructor, parent, { name, at }) {
                         const initializerName = `_${name}`
                         if (initializerName in parent) {
                             parent[initializerName]($)
-                            queueForExecution(parent, async () => await $, null, {next: true})
-                            queueForExecution(parent, resolveChild, null, {next: true})
-                                 // but not continuing child execution until parent is complete
-                            resolveParent() // letting parent go on executing
-                        } else {
-                            resolveParent() // letting parent go on executing
-                            resolveChild()
                         }
+
+                        queueForExecution(parent, resolveChild, () => {
+
+                            queueForExecution(parent, () => {
+                                return new Promise(res => {
+                                    queueForExecution($, () => res(), null, {push: true})
+                                })
+                            }, null, {next: true})
+
+                        }, {next: true})
+
+
+                        resolveParent()
 
                     }),
                     parent,
