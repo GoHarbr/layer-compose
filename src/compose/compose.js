@@ -27,17 +27,16 @@ async function compose(layerLike, composed) {
     if (composed) {
         // todo. why is there a isService check here
 
-        const order = composed[$layerOrder] = [...composed[$layerOrder]]
-        if (order.includes(layerId)) {
+        if (composed[$layerOrder].includes(layerId)) {
             // console.debug("Layer is already present in the composition", Object.keys(layerLike))
             return composed
+        } else if (layerLike[$layerOrder]) {
+            for (const _lid of layerLike[$layerOrder]) {
+                if (composed[$layerOrder].includes(_lid)) debugger
+            }
+            composed[$layerOrder] = [...composed[$layerOrder], ...layerLike[$layerOrder]]
         } else {
-
-            // if (composed[$compositionId]) {
-            //     order.push(composed[$compositionId])
-            // }
-
-            order.push(layerId)
+            composed[$layerOrder] = [...composed[$layerOrder], layerId]
         }
     }
 
