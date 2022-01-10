@@ -1,5 +1,6 @@
 import {$at, $isLc, IS_DEV_MODE} from "./const"
 import {createConstructor}       from "./constructor/createConstructor"
+import {findLocationFromError}   from "./external/utils/findLocationFromError"
 
 export default function layerCompose(...layers) {
     if (layers.some(_ => !_)) {
@@ -27,6 +28,7 @@ export function $ (layer, baseLayer, {unsafe = true} = {}) {
     }
     if (unsafe) {
         console.warn('Unsafe use of $ to compose. Used tethered form (prevents bugs) : `o.$().$() ... `')
+        console.warn(findLocationFromError(new Error()))
     }
 
     const c = baseLayer ? layerCompose(layer, baseLayer) : layerCompose(layer)
