@@ -1,4 +1,4 @@
-import {$compositionId} from "../const"
+import {$compositionId, $layerOrder} from "../const"
 
 const compositionsById = {}
 
@@ -7,6 +7,8 @@ export function markWithId(composition) {
     _compositionId++
     const id = composition[$compositionId] = Symbol(_compositionId + '::composition-id')
     compositionsById[id] = composition
+
+    composition[$layerOrder].push(id)
 
     return composition
 }

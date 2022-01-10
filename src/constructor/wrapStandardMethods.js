@@ -15,9 +15,9 @@ function wrapThen(instance) {
 
         onRejected && queueForExecution(instance, () => {
             getExecutionQueue(instance)[$currentExecutor].catch(onRejected)
-        })
+        }, null, {next: true})
 
-        queueForExecution(instance, onFulfilled)
+        queueForExecution(instance, onFulfilled, null, {push: true})
 
         return instance
     }

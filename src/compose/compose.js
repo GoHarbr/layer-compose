@@ -1,6 +1,16 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                   from "../utils"
-import {$at, $composition, $isComposed, $isService, $layerOrder, $layers, IS_DEV_MODE} from "../const"
-import {functionComposer}                                                              from "./functionComposer"
+import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                                    from "../utils"
+import {
+    $at,
+    $composition,
+    $compositionId,
+    $getComposition,
+    $isComposed,
+    $isService,
+    $layerOrder,
+    $layers,
+    IS_DEV_MODE
+} from "../const"
+import {functionComposer}                                                                               from "./functionComposer"
 import makeBaseComposition                                                             from "./makeBaseComposition"
 import {createConstructor}                                                             from "../constructor/createConstructor"
 import {wrapFunctionForDev}                                                            from "./wrapFunctionForDev"
@@ -8,24 +18,27 @@ import {findLocationFromError}                                                  
 import {markWithId}                                                                    from "./markWithId"
 
 async function compose(layerLike, composed) {
-    if (!composed) {
-        composed = makeBaseComposition()
-    } else {
+    if (composed) {
         composed = Object.create(composed)
     }
 
     const layerId = getLayerId(layerLike) // can also return compositionId
 
-    // todo. why is there a isService check here
-    const existingLayers = composed[$layers] || (composed[$layers] = (isService(composed) && new Map()))
-    if (existingLayers.has(layerId)) {
-        // console.debug("Layer is already present in the composition", Object.keys(layerLike))
-        return composed
-    } else {
-        existingLayers.set(layerId, layerLike)
+    if (composed) {
+        // todo. why is there a isService check here
 
-        const order = composed[$layerOrder] || (composed[$layerOrder] = [])
-        order.push(layerId)
+        const order = composed[$layerOrder] = [...composed[$layerOrder]]
+        if (order.includes(layerId)) {
+            // console.debug("Layer is already present in the composition", Object.keys(layerLike))
+            return composed
+        } else {
+
+            // if (composed[$compositionId]) {
+            //     order.push(composed[$compositionId])
+            // }
+
+            order.push(layerId)
+        }
     }
 
     if (isLcConstructor(layerLike)) {
@@ -34,19 +47,22 @@ async function compose(layerLike, composed) {
         * Processing an existing composition as a layer (taking it apart essentially and composing into this composition)
         * */
 
-        const existingComposition = await layerLike[$composition]
-        let composition
-        if (existingComposition) {
-            composition = await compose(existingComposition, composed)
-        } else {
-            composition = (layerLike[$composition] = await compose(layerLike[$layers], composed))
-            composition[$at] = layerLike[$layers][$at] || layerLike[$at]
-
-            const layerIdOfComposed = getLayerId(composition)
-            existingLayers.set(layerIdOfComposed, composition)
-            composed[$layerOrder].push(layerIdOfComposed)
+        const existingComposition = await layerLike[$getComposition]()
+        if (!composed) {
+            return existingComposition
         }
-        return await composition
+
+        return await compose(existingComposition, composed)
+
+        // } else {
+        //     composition = (layerLike[$composition] = await compose(layerLike[$layers], composed))
+        //     composition[$at] = layerLike[$layers][$at] || layerLike[$at]
+        //
+        //     const layerIdOfComposed = getLayerId(composition)
+        //     existingLayers.set(layerIdOfComposed, composition)
+        //     composed[$layerOrder].push(layerIdOfComposed)
+        // }
+        // return await composition
 
     } else if (isFragmentOfLayers(layerLike)) {
         /*
@@ -80,6 +96,9 @@ async function compose(layerLike, composed) {
         // console.debug(`MM ${_loc.filename}:${_loc.line}`)
 
         const next = {}
+        if (!composed) {
+            composed = makeBaseComposition(layerId)
+        }
 
         for (const name in layerLike) {
             // console.log('\t', name)
@@ -124,30 +143,28 @@ async function compose(layerLike, composed) {
                 if (isLensInitializer && !['_', '$'].includes(name[0])) fnName = '_' + fnName
 
                 // if this is a function definition, compose
+                const at = value[$at] || layerLike[$at]
+                if (!at) debugger
+
                 let composedEntry
-                const fn = value
+                let fn = value
+                if (IS_DEV_MODE && !fn[$isComposed]) {
+                    fn = wrapFunctionForDev(layerId, fn, {
+                            name: fnName,
+                            at
+                        })
+                }
 
                 const existing = composed[fnName] || null
 
                 if (existing || !fn[$isComposed]) { // do not recompose!
-                    if (IS_DEV_MODE) {
-                        const at = value[$at] || layerLike[$at]
-                        if (!at) debugger
-
-                        composedEntry = functionComposer(existing,
-                            wrapFunctionForDev(layerId, fn, {
-                                name: fnName,
-                                at
-                            }),
-                            { isReverse })
-                    } else {
-                        composedEntry = functionComposer(existing, fn, { isReverse })
-                    }
-
-                    composedEntry[$isComposed] = true
+                    composedEntry = functionComposer(existing, fn, { isReverse })
                 } else {
                     composedEntry = fn
                 }
+
+                composedEntry[$isComposed] = true
+
 
                 next[fnName] = composedEntry
             } else {

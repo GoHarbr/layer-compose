@@ -18,7 +18,8 @@ export pause     from "./external/patterns/pause"
 export parent     from "./external/patterns/parent"
 export core     from "./external/patterns/core"
 
-export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
+export {unbox} from "./utils"
+// export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
 export {unwrapProxy} from './proxies/utils'
 
 export {enableDebug} from './external/utils/enableDebug'

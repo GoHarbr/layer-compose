@@ -8,12 +8,13 @@ import {
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
-} from "../const"
+}                                 from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import {queueForExecution}        from "../compose/queueForExecution"
 import {GLOBAL_DEBUG}             from "../external/utils/enableDebug"
 import {findLocationFromError}    from "../external/utils/findLocationFromError"
+import {core_unsafe}              from "../external/patterns/core"
 
 
 // noinspection FunctionTooLongJS
@@ -58,7 +59,7 @@ function sealService(lensConstructor, parent, { name, at }) {
 
         const fullyQualifiedName = (parent[$fullyQualifiedName] || '') + `.${name}`
         const diagnostics = !IS_DEV_MODE ? null : () => {
-            if (lensCore.__debug || GLOBAL_DEBUG.enabled) {
+            if (GLOBAL_DEBUG.enabled) {
                 const header = `>>   ${fullyQualifiedName} () lens`
                 console.debug(`${header.padEnd(50)} :: ${findLocationFromError(at)}`)
             }
@@ -67,28 +68,37 @@ function sealService(lensConstructor, parent, { name, at }) {
         queueForExecution(parent, () => {
             return new Promise(resolveParent => {
                 diagnostics && diagnostics()
-                if (lensCore[$parentInstance]) {
-                    console.warn('Object already has a parent instance reference')
-                }
+                // if (lensCore[$parentInstance]) {
+                //     console.warn('Object already has a parent instance reference')
+                // }
 
-                lensCore[$parentInstance] = parent
+                // lensCore[$parentInstance] = parent
                 lensConstructor(lensCore, $ => {
                     const r = cbWithService($)
                     r && r.catch && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
                 }, {
                     lensName: name, fullyQualifiedName,
                     preinitializer: ($) => new Promise(resolveChild => {
+                        const _ = core_unsafe($)
+                        if ([$parentInstance]) {
+                            console.warn('Object already has a parent instance reference')
+                        }
+                        _[$parentInstance] = parent
+
                         const initializerName = `_${name}`
                         if (initializerName in parent) {
                             parent[initializerName]($)
-                                .then(resolveChild) // but not continuing child execution until parent is complete
+                            queueForExecution(parent, async () => await $, null, {next: true})
+                            queueForExecution(parent, resolveChild, null, {next: true})
+                                 // but not continuing child execution until parent is complete
                             resolveParent() // letting parent go on executing
                         } else {
                             resolveParent() // letting parent go on executing
                             resolveChild()
                         }
 
-                    })
+                    }),
+                    parent,
                 })
             })
         })

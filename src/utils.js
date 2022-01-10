@@ -1,5 +1,14 @@
 /* Object that who's keys are not all arrays or composed functions */
-import {$composition, $compositionId, $dataPointer, $isCompositionInstance, $isLc, $isService, $layerId} from "./const"
+import {
+    $composition,
+    $compositionId,
+    $dataPointer,
+    $getComposition,
+    $isCompositionInstance,
+    $isLc,
+    $isService,
+    $layerId
+} from "./const"
 import {unwrapProxy}                                                                                     from "./proxies/utils"
 
 /* isType checks // todo move */
@@ -96,7 +105,8 @@ export function selectExistingServices(composition) {
 let layerIdString = 0
 /** @param layer string */
 export function getLayerId(layer) {
-    return layer[$layerId] || layer[$compositionId] || layer[$composition]?.[$compositionId] || (layer[$layerId] = Symbol(layerIdString++))
+    return layer[$layerId] || layer[$compositionId]
+            || (layer[$layerId] = Symbol(layerIdString++))
 }
 
 /* Function modification */

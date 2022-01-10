@@ -7,7 +7,7 @@ import {
     $isLc,
     $layers,
     $lensName,
-    IS_DEV_MODE
+    IS_DEV_MODE, $parentInstance
 } from "../const"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods from "./wrapStandardMethods"
@@ -20,11 +20,11 @@ import {queueForExecution} from "../compose/queueForExecution"
 export function createConstructor(layers) {
 
     const _c = _constructor(layers)
-    _c[$getComposition] = () => {
-        return constructor[$composition] || (constructor[$composition] = compose(layers, null))
-    }
-
     const constructor = _c.bind(_c)
+
+    _c[$getComposition] = constructor[$getComposition] = async () => {
+        return constructor[$composition] || (constructor[$composition] = await compose(layers, null))
+    }
 
     constructor[$isLc] = true
     constructor[$layers] = layers
@@ -35,7 +35,8 @@ export function createConstructor(layers) {
 export async function constructFromComposition(composition, coreObject, {
     lensName,
     fullyQualifiedName,
-    preinitializer
+    preinitializer,
+    parent
 }) {
     const compositionInstance = seal(composition, Object.create(null))
     compositionInstance[$isCompositionInstance] = true
@@ -43,7 +44,9 @@ export async function constructFromComposition(composition, coreObject, {
     // compositionInstance[$composition] = composition
     compositionInstance[$lensName] = lensName
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName
-    compositionInstance[$dataPointer] = await constructCoreObject(coreObject, composition)
+
+    const core = await constructCoreObject(coreObject, composition)
+    compositionInstance[$dataPointer] = core
 
     preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance))
     wrapStandardMethods(compositionInstance) // for methods like .then
@@ -59,14 +62,16 @@ export async function constructFromComposition(composition, coreObject, {
 const _constructor = (layers) => async function (coreObject, cb, {
     lensName,
     fullyQualifiedName,
-    preinitializer
+    preinitializer,
+    parent
 } = {}) {
     try {
         const [$] = await constructFromComposition(
             await this[$getComposition](),
             coreObject,
-            { lensName, fullyQualifiedName, preinitializer })
+            { lensName, fullyQualifiedName, preinitializer, parent })
 
+        // todo. why not call CB right away?
         queueForExecution($, () => {
             cb($)
         })
