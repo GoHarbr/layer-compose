@@ -11,7 +11,7 @@ export default function parent ($, ofType) {
         if (isExtensionOf(p, ofType)) {
             return p
         } else {
-            parent(p, ofType)
+            return parent(p, ofType)
         }
     } else {
         return p
