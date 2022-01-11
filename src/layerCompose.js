@@ -33,7 +33,7 @@ export function $ (layer, baseLayer, {unsafe = true} = {}) {
 
     const c = baseLayer ? layerCompose(layer, baseLayer) : layerCompose(layer)
 
-    c.$ = layer => $(c, layer)
+    c.$ = layer => $(c, layer, {unsafe})
 
     return c
 }
