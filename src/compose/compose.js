@@ -18,14 +18,10 @@ import {findLocationFromError}                                                  
 import {markWithId}                                                                    from "./markWithId"
 
 async function compose(layerLike, composed) {
-    if (composed) {
-        composed = Object.create(composed)
-    }
-
     const layerId = getLayerId(layerLike) // can also return compositionId
 
     if (composed) {
-        // todo. why is there a isService check here
+        composed = Object.create(composed)
 
         if (composed[$layerOrder].includes(layerId)) {
             // console.debug("Layer is already present in the composition", Object.keys(layerLike))
@@ -46,22 +42,12 @@ async function compose(layerLike, composed) {
         * Processing an existing composition as a layer (taking it apart essentially and composing into this composition)
         * */
 
-        const existingComposition = await layerLike[$getComposition]()
+        const newLayers = await layerLike[$layers]
         if (!composed) {
-            return existingComposition
+            return compose(newLayers, null)
         }
 
-        return await compose(existingComposition, composed)
-
-        // } else {
-        //     composition = (layerLike[$composition] = await compose(layerLike[$layers], composed))
-        //     composition[$at] = layerLike[$layers][$at] || layerLike[$at]
-        //
-        //     const layerIdOfComposed = getLayerId(composition)
-        //     existingLayers.set(layerIdOfComposed, composition)
-        //     composed[$layerOrder].push(layerIdOfComposed)
-        // }
-        // return await composition
+        return await compose(newLayers, composed)
 
     } else if (isFragmentOfLayers(layerLike)) {
         /*
