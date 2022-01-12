@@ -58,6 +58,10 @@ async function compose(layerLike, composed) {
         /*
         * The style of spec definition is
         * bottom layers (base mixins; called first) are defined after top layers (extending mixins; called last)
+
+        *
+        * However, mixins added on top, replace the same ones on the bottom
+        * This allows to re-order layers
         * */
         return await processFragmentOfLayers(layerLike, composed)
 
@@ -124,8 +128,11 @@ async function compose(layerLike, composed) {
 
             } else if (typeof value == 'function') {
 
+                // ! explainer: layers used to be reversed when processed as an array
+                // ! that's why `isReverse` is now false for initializers and true for other functions
+
                 // reversing in case of the foreground initializer function
-                const isReverse = name === '_'
+                const isReverse = name !== '_'
                 const isLensInitializer = name[0] === name[0].toUpperCase()
 
                 let fnName = name
@@ -168,12 +175,8 @@ async function compose(layerLike, composed) {
     }
 }
 
-async function processFragmentOfLayers(layerLike, composed, inGivenOrder = false) {
-    if (inGivenOrder) {
-        layerLike.reverse()
-    }
-
-    for (let i = layerLike.length; i--; i >= 0) {
+async function processFragmentOfLayers(layerLike, composed) {
+    for (let i = 0; i < layerLike.length; i++) {
         const l = layerLike[i]
         if (!l[$at]) l[$at] = layerLike[$at]
 
