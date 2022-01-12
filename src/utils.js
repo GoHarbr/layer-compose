@@ -104,9 +104,10 @@ export function selectExistingServices(composition) {
 
 let layerIdString = 0
 /** @param layer string */
-export function getLayerId(layer) {
-    return layer[$layerId] || layer[$compositionId]
-            || (layer[$layerId] = Symbol(layerIdString++))
+export function getLayerId(layer, {noSet} = {}) {
+    const existing = layer[$layerId] || layer[$compositionId]
+    if (!existing && noSet) throw new Error("No layer id")
+    return existing || (layer[$layerId] = Symbol(layerIdString++))
 }
 
 /* Function modification */
