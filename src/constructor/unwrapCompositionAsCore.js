@@ -26,7 +26,7 @@ export function unwrapCompositionAsCore(proposedCore, composition) {
 
                 if (c.__debug || GLOBAL_DEBUG.enabled) {
                     const lensName = proposedCore[$lensName]
-                    console.debug(`${lensName.padEnd(50)} :extract: ${Object.keys(c)}`)
+                    console.debug(`${lensName.padEnd(65)} :extract: ${Object.keys(c)}`)
                 }
 
                 resolve(IS_DEV_MODE ? unwrapProxy(c) : c)

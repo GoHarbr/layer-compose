@@ -22,7 +22,7 @@ export function wrapFunctionForDev(layerId, fn, { name, at }) {
         }
         if (GLOBAL_DEBUG.enabled || 'debug' in _ && _.__debug) {
             const header = `.    ${$$[$lensName] || ''}.${name}`
-            console.debug(`${header.padEnd(50)} :: ${findLocationFromError(at)}`)
+            console.debug(`${header.padEnd(65)} :: ${findLocationFromError(at)}`)
         }
 
         // todo. wrap opt in proxy as well
