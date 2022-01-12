@@ -98,7 +98,7 @@ function sealService(lensConstructor, parent, { name, at }) {
                                 })
                             }, null, {next: true})
 
-                        }, {next: true})
+                        }, /*{next: true}*/)
 
 
                         resolveParent()
