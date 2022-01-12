@@ -32,7 +32,7 @@ export default function seal(composition, $) {
             const at = methodOrLens[$layers][$at]
             $[name] = sealService(methodOrLens, $, { name, at })
         } else {
-            $[name] = sealMethod(methodOrLens, $)
+            $[name] = sealMethod(methodOrLens, $, {name})
         }
     }
 
@@ -112,7 +112,7 @@ function sealService(lensConstructor, parent, { name, at }) {
 
 }
 
-function sealMethod(method, $) {
+function sealMethod(method, $, { name }) {
 
     return function (opt, ...rest) {
         if (IS_DEV_MODE) {
@@ -120,8 +120,14 @@ function sealMethod(method, $) {
                 throw new Error("Layer methods can take only named parameters/options or a single argument")
             }
         }
-
         const _ = IS_DEV_MODE ? unwrapProxy($[$dataPointer]) : $[$dataPointer]
+
+        if (GLOBAL_DEBUG.enabled) {
+            const fullyQualifiedName = $[$fullyQualifiedName]
+            const header = `## ${name} on ${fullyQualifiedName}`
+            console.debug(`${header.padEnd(50)} :: ${findLocationFromError(new Error())}`)
+        }
+
 
         method($, _, optOrEmpty(opt))
         // queueForExecution($, () => method($, _, optOrEmpty(opt)))
