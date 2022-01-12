@@ -44,8 +44,13 @@ async function compose(layerLike, composed) {
 
         const newLayers = await layerLike[$layers]
         if (!composed) {
-            return compose(newLayers, null)
-        }
+            return compose(newLayers, makeBaseComposition(layerId))
+            // not to loose the reference to the composed constructor
+            // important for parent()
+
+        } //else {
+            //composed[$layerOrder].push(layerId)
+        //}
 
         return await compose(newLayers, composed)
 
