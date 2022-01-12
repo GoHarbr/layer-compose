@@ -17,6 +17,10 @@ export const borrowProxy = (layerId) => ({
         value = unwrapProxy(value)
 
         if (typeof prop !== 'symbol') {
+            if (layerId === null) {
+                throw new Error('Not allowed to set values on a core outside of a Composition')
+            }
+
             if (!target.hasOwnProperty($borrowedKeys)) {
                 target[$borrowedKeys] = {}
             } else if (!!target[$borrowedKeys][prop] && target[$borrowedKeys][prop] !== layerId) {
@@ -29,7 +33,7 @@ export const borrowProxy = (layerId) => ({
             if (target.__debug || GLOBAL_DEBUG.enabled) {
                 const at = new Error()
                 const header = `*    '${prop}' set`
-                console.debug(`${header.padEnd(50)} :: ${findLocationFromError(at)}`)
+                console.debug(`${header.padEnd(65)} :: ${findLocationFromError(at)}`)
                 target[$borrowedKeys][prop + '_stack'] = at
             }
         }
