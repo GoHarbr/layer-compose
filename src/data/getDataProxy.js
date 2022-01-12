@@ -4,7 +4,9 @@ import {wrapDataWithProxy}                                   from "./wrapDataWit
 export function getDataProxy(layerId, data) {
     if (data[$isCompositionInstance]) return data
 
-    if (!data.hasOwnProperty($dataProxyMap)) data[$dataProxyMap] = new Map()
+    if (!data.hasOwnProperty($dataProxyMap) || !data[$dataProxyMap]) {
+        data[$dataProxyMap] = new Map()
+    }
 
     let p = data[$dataProxyMap].get(layerId)
     if (!p) {

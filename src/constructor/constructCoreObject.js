@@ -1,5 +1,5 @@
-import {$executionQueue, $isNullCore, $parentInstance, IS_DEV_MODE} from "../const"
-import {isPromise}                                                  from "../utils"
+import {$dataProxyMap, $executionQueue, $isNullCore, $parentInstance, IS_DEV_MODE} from "../const"
+import {isPromise}                                                                 from "../utils"
 import {unwrapCompositionAsCore}  from "./unwrapCompositionAsCore"
 import {unwrapProxy}              from "../proxies/utils"
 
@@ -17,10 +17,15 @@ export default async function constructCoreObject(proposed, composition) {
         core = unwrapProxy(core)
     }
 
+    // checking if it's a core ($dataPointer)
+    // and removing properties that must not transfer
     if (core[$executionQueue]) {
         core = Object.assign({}, core)
         core[$parentInstance] = null
         core[$executionQueue] = null
+        core[$dataProxyMap] = null
+
+        // keeping the borrowedKeys
     }
 
     if (core == null) {
