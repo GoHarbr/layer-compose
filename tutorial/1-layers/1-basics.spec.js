@@ -123,7 +123,7 @@ describe("The basics of Layers", () => {
       // initializerLayer
       {
         _(
-          $ /*: { [key : '_'|'print'|'then'] : (o: ?any) => void } */,
+          $ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */,
           _ /*: {-[string]: any } */,
           o /*: ?any */
         ) {
@@ -131,7 +131,7 @@ describe("The basics of Layers", () => {
           $.print();
         },
         print(
-          $ /*: { [key : '_'|'print'|'then'] : (o: ?any) => void } */,
+          $ /*: { [key : 'print'|'_'|'then'] : (o: ?any) => void } */,
           _ /*: { key : string , -[string]: any } */,
           o /*: ?any */
         ) {

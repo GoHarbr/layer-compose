@@ -1,4 +1,4 @@
-import {IS_DEV_MODE} from "./const"
+export {IS_DEV_MODE} from "./const"
 
 export layerCompose from './layerCompose'
 export {$, o} from './layerCompose'

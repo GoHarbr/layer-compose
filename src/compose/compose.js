@@ -105,7 +105,7 @@ async function compose(layerLike, composed) {
                 }
 
                 const serviceName = name
-                const serviceLayers = [value]
+                const serviceLayers = []
                 serviceLayers[$at] = value[$at] || layerLike[$at]
 
                 if (serviceName in composed) {
@@ -114,10 +114,7 @@ async function compose(layerLike, composed) {
                     * */
                     serviceLayers.push(composed[serviceName])
                 }
-                // todo. no need to re-wrap in a constructor again (but keep the isService flag off the original)
-                // else if (isLcConstructor(value)) {
-                //     return value
-                // }
+                serviceLayers.push(value) // given that top layers are processed first, push in the opposite order
 
                 const s = createConstructor(serviceLayers)
                 s[$isService] = true

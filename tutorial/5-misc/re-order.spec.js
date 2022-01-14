@@ -38,10 +38,10 @@ test("Lenses do not loose [new, existing] order", (done) => {
     Lens: o.$({
       fn(
         $ /*: { [key : 'fn'|'top'|'then'] : (o: ?any) => void } */,
-        _ /*: {-[string]: any } */,
+        _ /*: { key : string , -[string]: any } */,
         o /*: ?any */
       ) {
-        _.key = "v";
+        expect(_.key).toBe("v");
       },
       top($, _) {
         /* debugging marker */
@@ -51,8 +51,12 @@ test("Lenses do not loose [new, existing] order", (done) => {
 
   const Composition = layerCompose(_layer, {
     Lens: o.$({
-      fn($, _) {
-        expect(_.key).toBe("v");
+      fn(
+        $ /*: { [key : 'fn'|'top'|'then'] : (o: ?any) => void } */,
+        _ /*: {-[string]: any } */,
+        o /*: ?any */
+      ) {
+        _.key = "v";
       },
     }),
   });
