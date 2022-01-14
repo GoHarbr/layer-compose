@@ -2,13 +2,26 @@ import * as parser from "@babel/parser"
 import traverse    from "@babel/traverse"
 import generate    from "@babel/generator"
 
-import fs            from 'fs'
-import path          from 'path'
-import process       from 'process'
-import {IS_DEV_MODE} from "../const"
-import prettier from "prettier"
-
+import fs                   from 'fs'
+import path                 from 'path'
+import process              from 'process'
+import {IS_DEV_MODE}        from "../const"
+import prettier             from "prettier"
+import {addExportTypes}     from "./addExportTypes"
+import {prependFlowComment} from "./prependFlowComment"
 const { parse } = parser
+
+const defaultRegex = /(export\s+default\s+)([^]+)\/\*:\s*any\s*\*\/;/m
+
+function rewriteDefaultExport(source) {
+    const matches = defaultRegex.exec(source)
+    if (matches && matches[0]) {
+        const replaceWith = `${matches[1]}( ${matches[2]} /*: any*/)`
+        return source.replace(matches[0], replaceWith)
+    }
+
+    return source
+}
 
 export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
     // todo make sure it works in browsers
@@ -28,7 +41,9 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
             concise: false,
         }, source)
 
-        const updatedSource = prependFlowComment(output.code)
+        let updatedSource = prependFlowComment(output.code)
+        updatedSource = rewriteDefaultExport(updatedSource)
+
         const tmpDir = path.join(process.cwd(), 'tmp')
 
         if (!fs.existsSync(tmpDir)) {
@@ -37,23 +52,9 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
 
         const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
         fs.writeFileSync(backupFilename, source)
-        fs.writeFileSync(filename, prettier.format(updatedSource, {parser: "babel"}))
-    }
-}
-
-// export function addTypesFromError(error) {
-//     const loc = findLocationFromError(error)
-//     const locComponents = splitLocationIntoComponents(loc)
-//
-//     return rewriteFileWithTypes(locComponents)
-// }
-
-function prependFlowComment(source) {
-    const firstLine = source.slice(0, source.indexOf('\n'))
-    if (firstLine.includes('@flow') && firstLine.includes('//')) {
-        return source
-    } else {
-        return '// @flow\n' + source
+        fs.writeFileSync(filename,
+            prettier.format(updatedSource, {parser: "babel", semi: false, bracketSpacing: true, semicolons: false, tabWidth: 4})
+        )
     }
 }
 
@@ -80,6 +81,8 @@ function modifyFunctionAstWithType({ ast, types, startingLine }) {
                     }
                 }
             }
+
+            addExportTypes(path)
         }
     })
 }

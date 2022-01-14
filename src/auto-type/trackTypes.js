@@ -18,6 +18,10 @@ export function writeTypesToDisk() {
             const is_Empty = !_type
             if (is_Empty) _type = '{ '
 
+            if (_type.includes(": ,") || _type.includes('undefined')) {
+                debugger
+            }
+
             // const _otype = objectTypeToFlow(types.o)
 
             // todo. sort (consistent) by key length
@@ -111,7 +115,8 @@ function objectTypeToFlow(definitions) {
         return props && `{ ${props} }` || ''
     } else {
         if (typeof definitions == 'string') {
-            return definitions === 'object' ? '{}' : definitions
+            let ret = definitions === 'object' ? '{}' : definitions
+            return ret === 'undefined' ? 'null' : ret
         }
         return definitions || 'null'
     }
