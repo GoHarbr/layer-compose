@@ -75,6 +75,12 @@ into a _Composition_ that can be instantiated
 2. Async is difficult.
 3. Writing code with multiple authors is notoriously prone to inconsistencies.  
 
+## Features
+
+***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
+Generates [flow.js](https://flow.org) types without a single manual input.
+![auto-type](./auto-type.png)
+
 ## Learn
 
 Start with the `tutorial` folder
