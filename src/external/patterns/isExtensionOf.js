@@ -8,7 +8,10 @@ export function isExtensionOf($, ofType) {
     if (!baseTypeId) throw new Error('Type must be a Composition constructor or prototype')
     if (!$[$layerOrder] && !$[$compositionId]) throw new Error("$ must be composition or instance")
 
-    const composition = $[$layerOrder] ? $ : getCompositionById($[$compositionId])
+    const composition = $[$layerOrder] ? $ : getCompositionById($[$compositionId])[$composition]
+    if (!composition) {
+        throw new Error("Could not find composition. Likely a Programmer Mistake")
+    }
     const layers = composition[$layerOrder]
     return baseTypeId === composition[$compositionId] || layers && layers.includes(baseTypeId)
 }

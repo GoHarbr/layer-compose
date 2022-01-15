@@ -1,24 +1,23 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor, isService,}                                    from "../utils"
+import {getLayerId, isFragmentOfLayers, isLcConstructor, }                                    from "../utils"
 import {
-    $at,
-    $composition,
-    $compositionId,
+    $at, $compositionId,
     $getComposition,
-    $isComposed,
+    $isComposed, $isLc,
     $isService,
     $layerOrder,
     $layers,
     IS_DEV_MODE
 } from "../const"
-import {functionComposer}                                                                               from "./functionComposer"
-import makeBaseComposition                                                             from "./makeBaseComposition"
-import {createConstructor}                                                             from "../constructor/createConstructor"
-import {wrapFunctionForDev}                                                            from "./wrapFunctionForDev"
-import {findLocationFromError}                                                         from "../external/utils/findLocationFromError"
-import {markWithId}                                                                    from "./markWithId"
+import {functionComposer}      from "./functionComposer"
+import makeBaseComposition     from "./makeBaseComposition"
+import {createConstructor}     from "../constructor/createConstructor"
+import {wrapFunctionForDev}    from "./wrapFunctionForDev"
+import {findLocationFromError} from "../external/utils/findLocationFromError"
+import {markWithId}                   from "./markWithId"
+import {registerLayer, retrieveLayer} from "./registerLayer"
 
 async function compose(layerLike, composed) {
-    const layerId = getLayerId(layerLike) // can also return compositionId
+    const layerId = registerLayer(layerLike) // can also return compositionId
 
     if (composed) {
         composed = Object.create(composed)
@@ -26,11 +25,6 @@ async function compose(layerLike, composed) {
         if (composed[$layerOrder].includes(layerId)) {
             // console.debug("Layer is already present in the composition", Object.keys(layerLike))
             return composed
-        } else if (layerLike[$layerOrder]) {
-            for (const _lid of layerLike[$layerOrder]) {
-                if (composed[$layerOrder].includes(_lid)) debugger
-            }
-            composed[$layerOrder] = [...composed[$layerOrder], ...layerLike[$layerOrder]]
         } else {
             composed[$layerOrder] = [...composed[$layerOrder], layerId]
         }
@@ -42,16 +36,16 @@ async function compose(layerLike, composed) {
         * Processing an existing composition as a layer (taking it apart essentially and composing into this composition)
         * */
 
-        const newLayers = await layerLike[$layers]
         if (!composed) {
-            return compose(newLayers, makeBaseComposition(layerId))
-            // not to loose the reference to the composed constructor
+            // not to lose the reference to the composed constructor
             // important for parent()
+            // return await compose(newLayers, makeBaseComposition(layerId))
+            const c = await layerLike[$getComposition]()
+            c[$layerOrder].push(c[$compositionId])
+            return c
+        }
 
-        } //else {
-            //composed[$layerOrder].push(layerId)
-        //}
-
+        const newLayers = layerLike[$layers]
         return await compose(newLayers, composed)
 
     } else if (isFragmentOfLayers(layerLike)) {
@@ -105,19 +99,27 @@ async function compose(layerLike, composed) {
                 }
 
                 const serviceName = name
-                const serviceLayers = []
-                serviceLayers[$at] = value[$at] || layerLike[$at]
+                const hasExisting = serviceName in composed
 
-                if (serviceName in composed) {
-                    /*
-                    * Case: second+ encounter of a Lens by this name
-                    * */
-                    serviceLayers.push(composed[serviceName])
+                let s
+                if (!hasExisting && value[$isLc]) { // no need to recompose
+                    s = value
+                } else {
+                    const serviceLayers = [value] // given that top layers are processed first, push in the opposite order
+                    serviceLayers[$at] = value[$at] || layerLike[$at]
+
+                    if (hasExisting) {
+                        /*
+                        * Case: second+ encounter of a Lens by this name
+                        * */
+                        serviceLayers.unshift(composed[serviceName]) // given that top layers are processed first, push in the opposite order
+                        serviceLayers[$at] = value[$at] || layerLike[$at]
+
+                        s = createConstructor(serviceLayers)
+                    } else {
+                        s = createConstructor(serviceLayers)
+                    }
                 }
-                serviceLayers.push(value) // given that top layers are processed first, push in the opposite order
-
-                const s = createConstructor(serviceLayers)
-                s[$isService] = true
 
                 if (IS_DEV_MODE && !s[$layers]?.[$at]) debugger
 
@@ -168,7 +170,7 @@ async function compose(layerLike, composed) {
 
         composed[$at] = layerLike[$at]
         if (IS_DEV_MODE && !composed[$at]) debugger
-        return markWithId(Object.assign(composed, next))
+        return Object.assign(composed, next)
     }
 }
 

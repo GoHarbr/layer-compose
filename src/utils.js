@@ -13,48 +13,12 @@ import {unwrapProxy}                                                            
 
 /* isType checks // todo move */
 
-export function isServiceLayer(l) {
-    if (!Array.isArray(l)) {
-        const vals = Object.values(l)
-        if (vals.length === 0) {
-            return false
-        }
-
-        const propDescriptors = Object.getOwnPropertyDescriptors(l)
-        const getters = Object.values(propDescriptors).filter(_ => !!_.get)
-        if (getters.length > 0) {
-            return false
-        }
-
-        /* every single value should be either an array, a constructor, marked as a service and not a function */
-        const isSL = vals.every(isLensDefinition)
-        if (isSL) {
-            console.log(Object.keys(l))
-            if (Object.keys(l).find(k => k[0] !== k[0].toUpperCase())) {
-                throw new Error("Service names must start with a capital")
-            }
-        }
-        return isSL
-    }
-    return false
-}
-
 export function isFragmentOfLayers(what) {
     return Array.isArray(what)
 }
 
 export function isLcConstructor(what) {
     return what[$isLc]
-}
-
-export function isLensDefinition(what) {
-    return (typeof what !== 'function') && (Array.isArray(what)
-    || isLcConstructor(what)
-    || isService(what))
-}
-
-export function isService(what) {
-    return !!what[$isService]
 }
 
 export function isInitializer(l) {
@@ -93,21 +57,12 @@ export function unbox(compositionOrObject) {
     return unwrapProxy(compositionOrObject)
 }
 
-export function selectExistingServices(composition) {
-    /*
-    * Do not change implementation, create new function
-    * */
-    return Object.fromEntries(
-        Object.entries(composition).filter(_ => isService(_[1]))
-    )
-}
-
 let layerIdString = 0
 /** @param layer string */
 export function getLayerId(layer, {noSet} = {}) {
-    const existing = layer[$layerId] || layer[$compositionId]
+    const existing = layer[$layerId] || layer[$compositionId] || layer[$composition]?.[$compositionId]
     if (!existing && noSet) throw new Error("No layer id")
-    return existing || (layer[$layerId] = Symbol(layerIdString++))
+    return existing || (layer[$layerId] = layerIdString++)
 }
 
 /* Function modification */

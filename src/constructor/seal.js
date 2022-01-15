@@ -1,14 +1,13 @@
-import {isService}                from "../utils"
 import {
     $at, $compositionId,
     $dataPointer,
-    $fullyQualifiedName,
+    $fullyQualifiedName, $isLc,
     $layers,
     $lensName,
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
-}                                 from "../const"
+} from "../const"
 import {unwrapProxy}              from "../proxies/utils"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import {queueForExecution}        from "../compose/queueForExecution"
@@ -28,8 +27,8 @@ export default function seal(composition, $) {
         if (typeof name == "symbol") continue
 
 
-        if (isService(methodOrLens)) {
-            const at = methodOrLens[$layers][$at]
+        if (methodOrLens[$isLc]) {
+            const at = composition[$at]
             $[name] = sealService(methodOrLens, $, { name, at })
         } else {
             $[name] = sealMethod(methodOrLens, $, {name})

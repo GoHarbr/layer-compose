@@ -18,7 +18,7 @@ export function writeTypesToDisk() {
             const is_Empty = !_type
             if (is_Empty) _type = '{ '
 
-            if (_type.includes(": ,") || _type.includes('undefined')) {
+            if (_type.includes(": ,") || _type.includes(': undefined')) {
                 debugger
             }
 
@@ -108,9 +108,12 @@ function objectTypeToFlow(definitions) {
 
 
     } else if (typeof definitions == 'object' && !!definitions) {
+
         const props = Object.entries(definitions).map(([k, t]) => {
             return `${k} : ${objectTypeToFlow(t)}`
         }).join(', ')
+
+        if (!props.length) return '{}'
 
         return props && `{ ${props} }` || ''
     } else {

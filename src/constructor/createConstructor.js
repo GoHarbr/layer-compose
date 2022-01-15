@@ -1,33 +1,51 @@
 import {
-    $getComposition,
-    $composition,
+    $composition, $compositionId,
     $dataPointer,
     $fullyQualifiedName,
+    $getComposition,
     $isCompositionInstance,
     $isLc,
     $layers,
     $lensName,
-    IS_DEV_MODE, $parentInstance
+    IS_DEV_MODE
 } from "../const"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods from "./wrapStandardMethods"
-import constructCoreObject from "./constructCoreObject"
-import compose from "../compose/compose"
-import seal from "./seal"
-import initialize from "./initialize"
-import {queueForExecution} from "../compose/queueForExecution"
+import wrapStandardMethods        from "./wrapStandardMethods"
+import constructCoreObject        from "./constructCoreObject"
+import compose                    from "../compose/compose"
+import seal                       from "./seal"
+import initialize                 from "./initialize"
+import {queueForExecution}        from "../compose/queueForExecution"
+import {markWithId}               from "../compose/markWithId"
 
 export function createConstructor(layers) {
+    if (!layers || layers.length === 0) {
+        throw new Error('Layers must be specified')
+    } else if (layers.length === 1 && layers[0][$isLc]) {
+        return layers[0]
+    }
 
     const _c = _constructor(layers)
     const constructor = _c.bind(_c)
 
-    _c[$getComposition] = constructor[$getComposition] = async () => {
-        return constructor[$composition] || (constructor[$composition] = await compose(layers, null))
-    }
-
     constructor[$isLc] = true
     constructor[$layers] = layers
+    markWithId(constructor)
+
+
+    _c[$getComposition] = constructor[$getComposition] = async () => {
+        const existing = constructor[$composition]
+        if (existing) return existing
+
+        const composition = await compose(layers, null)
+        composition[$compositionId] = constructor[$compositionId]
+        return constructor[$composition] = composition
+    }
+
+    constructor.tag = (name) => {
+        constructor.TAG = name
+        return constructor
+    }
 
     return constructor
 }

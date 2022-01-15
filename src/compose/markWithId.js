@@ -1,14 +1,19 @@
 import {$compositionId, $layerOrder} from "../const"
+import {registerLayer}               from "./registerLayer"
 
 const compositionsById = {}
 
 let _compositionId = 0 // for debug purposes
 export function markWithId(composition) {
-    _compositionId++
-    const id = composition[$compositionId] = Symbol(_compositionId + '::composition-id')
+    // const idString = numericId != null ? numericId : _compositionId++
+    const idString = _compositionId++
+
+    const id = composition[$compositionId] = Symbol(idString + '::composition-id')
     compositionsById[id] = composition
 
-    composition[$layerOrder].push(id)
+    // composition[$layerOrder].push(id)
+
+    registerLayer(composition)
 
     return composition
 }
