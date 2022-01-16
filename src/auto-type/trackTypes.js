@@ -18,7 +18,7 @@ export function writeTypesToDisk() {
             const is_Empty = !_type
             if (is_Empty) _type = '{ '
 
-            if (_type.includes(": ,") || _type.includes(': undefined')) {
+            if (_type.includes(": ,") || _type.includes(': undefined') || _type.includes(": '|'")) {
                 debugger
             }
 

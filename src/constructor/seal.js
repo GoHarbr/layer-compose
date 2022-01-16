@@ -7,13 +7,14 @@ import {
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
-} from "../const"
-import {unwrapProxy}              from "../proxies/utils"
-import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import {queueForExecution}        from "../compose/queueForExecution"
-import {GLOBAL_DEBUG}             from "../external/utils/enableDebug"
-import {findLocationFromError}    from "../external/utils/findLocationFromError"
-import {core_unsafe}              from "../external/patterns/core"
+}                                  from "../const"
+import {unwrapProxy}               from "../proxies/utils"
+import {wrapCompositionWithProxy}  from "../proxies/wrapCompositionWithProxy"
+import {queueForExecution}         from "../compose/queueForExecution"
+import {GLOBAL_DEBUG}              from "../external/utils/enableDebug"
+import {findLocationFromError}     from "../external/utils/findLocationFromError"
+import {core_unsafe}               from "../external/patterns/core"
+import {trackExternalFunctionCall} from "../auto-type/mapper/mapper"
 
 
 // noinspection FunctionTooLongJS
@@ -125,6 +126,8 @@ function sealMethod(method, $, { name }) {
             const fullyQualifiedName = $[$fullyQualifiedName]
             const header = `## ${name} on ${fullyQualifiedName}`
             console.debug(`${header.padEnd(65)} :: ${findLocationFromError(new Error()) || ''}`)
+
+            trackExternalFunctionCall(fullyQualifiedName, name, $[$compositionId])
         }
 
 
