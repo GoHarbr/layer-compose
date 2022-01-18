@@ -22,6 +22,8 @@ function onExit() {
     const contents = generateMapFile(tree)
 
     fs.writeFileSync(mapFile, contents)
+
+    process.exit()
 }
 
 
