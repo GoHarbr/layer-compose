@@ -11,7 +11,7 @@ import {addExportTypes}     from "./addExportTypes"
 import {prependFlowComment} from "./prependFlowComment"
 const { parse } = parser
 
-const defaultRegex = /(export\s+default\s+)([^]+)\/\*:\s*any\s*\*\/;/m
+const defaultRegex = /^\s*(export\s+default\s+)([^]+)\/\*:\s*any\s*\*\/;/m
 
 function rewriteDefaultExport(source) {
     const matches = defaultRegex.exec(source)
@@ -73,11 +73,15 @@ function modifyFunctionAstWithType({ ast, types, startingLine }) {
                 const callee = path.node.callee
                 const is$ = is$notation(callee)
                 const isO = !is$ && isOnotation(callee)
-                if ((is$ || isO) && path.node.loc.start.line === startingLine) {
 
-                    const arg = path.node.arguments[0]
-                    if (arg && arg.type === "ObjectExpression") {
-                        modifyLayerAstWithType(arg, types)
+                if (is$ || isO) {
+                    const line = is$ ? path.node.loc.start.line : path.node.callee.property.loc.end.line
+
+                    if (line === startingLine) {
+                        const arg = path.node.arguments[0]
+                        if (arg && arg.type === "ObjectExpression") {
+                            modifyLayerAstWithType(arg, types)
+                        }
                     }
                 }
             }

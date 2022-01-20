@@ -15,12 +15,8 @@ export function writeTypesToDisk() {
 
         for (const [name, types] of Object.entries(functionsWithTypes)) {
             let _type = objectTypeToFlow(types._)
-            const is_Empty = !_type
-            if (is_Empty) _type = '{ '
-
-            if (_type.includes(": ,") || _type.includes(': undefined') || _type.includes(": '|'")) {
-                debugger
-            }
+            const is_Empty = _type === '{}'
+            // if (is_Empty) _type = '{ '
 
             // const _otype = objectTypeToFlow(types.o)
 
@@ -85,15 +81,23 @@ function typeObj(obj, {existing, depth = 0}) {
         if (Array.isArray(obj)) return []
         // if (obj[$isCompositionInstance]) return '$_'
 
-        return Object.fromEntries(
-            Object.entries(obj).map(([k, v]) => {
-                if (depth < 2) {
-                    return [k, typeObj(v, { depth: depth + 1 })]
-                } else {
-                    return [k, obj ? typeof obj : null]
-                }
-            })
-        )
+        // todo. go over prototype
+        const types = {}
+        let count = 0
+        for (const k in obj) {
+            count++
+
+            // objects with such numerous properties are probably not in need of typing
+            if (count > 100) return {}
+
+            const v = obj[k]
+            if (depth < 1) {
+                types[k] = typeObj(v, { depth: depth + 1 })
+            } else {
+                types[k] = obj ? typeof obj : null
+            }
+        }
+        return types
 
     } else {
         return _typeof

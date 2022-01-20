@@ -2,9 +2,11 @@ export function addExportTypes(path) {
     const type = path.node.type
     if (type === 'ExportNamedDeclaration') {
         const ds = path.node.declaration?.declarations
-        for (const d of ds) {
-            const i = d.id
-            i && addTrailingComment(i)
+        if (ds) {
+            for (const d of ds) {
+                const i = d.id
+                i && addTrailingComment(i)
+            }
         }
     } else if (type === 'ExportDefaultDeclaration') {
         const d = path.node.declaration
