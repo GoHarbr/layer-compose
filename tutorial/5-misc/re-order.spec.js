@@ -1,71 +1,73 @@
 // @flow
-import { layerCompose, pause, o } from "../../src";
+import { layerCompose, pause, o, enableDebug } from "../../src"
+
+enableDebug()
 
 test("Layers can be reordered", (done) => {
-  const _layer = layerCompose({
-    _($, _) {
-      _.key = "v";
-    },
-  });
+    const _layer = layerCompose({
+        _($, _) {
+            _.key = "v"
+        },
+    })
 
-  const Composition = layerCompose(
-    {
-      _($, _) {
-        if (_.not) {
-          expect("key" in _).not.toBeTruthy();
-        } else {
-          expect(_.key).toBeTruthy();
-        }
-      },
-    },
+    const Composition = layerCompose(
+        {
+            _($, _) {
+                if (_.not) {
+                    expect("key" in _).not.toBeTruthy()
+                } else {
+                    expect(_.key).toBeTruthy()
+                }
+            },
+        },
 
-    _layer
-  );
+        _layer
+    )
 
-  const Reordered = o.$(_layer).$(Composition);
+    const Reordered = o.$(_layer).$(Composition)
 
-  // testing base composition, should fail
-  Composition({ not: true }, (c) => {
-    // once that test is done, testing the reordered
-    Reordered({ not: false }, (r) => {
-      done();
-    });
-  });
-});
+    // testing base composition, should fail
+    Composition({ not: true }, (c) => {
+        // once that test is done, testing the reordered
+        Reordered({ not: false }, (r) => {
+            done()
+        })
+    })
+})
 
 test("Lenses do not loose [new, existing] order", (done) => {
-  const _layer = layerCompose({
-    Lens: o.$({
-      fn(
-        $ /*: { [key : 'fn'|'top'|'then'] : (o: ?any) => void } */,
-        _ /*: { key : string , -[string]: any } */,
-        o /*: ?any */
-      ) {
-        expect(_.key).toBe("v");
-      },
-      top($, _) {
-        /* debugging marker */
-      },
-    }),
-  });
+    const _layer = layerCompose({
+        Lens: o.$({
+            fn(
+                $ /*: { [key : 'fn'|'top'|'then'] : (o: ?any) => void } */,
+                _ /*: { key : string , -[string]: any } */,
+                o /*: ?any */
+            ) {
+                expect(_.key).toBe("v")
+            },
+            top($, _) {
+                /* debugging marker */
+            },
+        }),
+    })
 
-  const Composition = layerCompose(_layer, {
-    Lens: o.$({
-      fn(
-        $ /*: { [key : 'fn'|'top'|'then'] : (o: ?any) => void } */,
-        _ /*: {-[string]: any } */,
-        o /*: ?any */
-      ) {
-        _.key = "v";
-      },
-    }),
-  });
+    const Composition = layerCompose(_layer, {
+        Lens: o.$({
+            fn(
+                $ /*: { [key : 'fn'|'top'|'then'] : (o: ?any) => void } */,
+                _ /*: {, -[string]: any } */,
+                o /*: ?any */
+            ) {
+                _.key = "v"
+            },
+        }),
+    })
 
-  // testing base composition, should fail
-  Composition({}, (c) => {
-    // once that test is done, testing the reordered
-    c.Lens({}, (l) => {
-      l.fn().then(done);
-    });
-  });
-});
+    // testing base composition, should fail
+    Composition({}, (c) => {
+        // once that test is done, testing the reordered
+        c.Lens({}, (l) => {
+            l.fn().then(done)
+        })
+    })
+})
