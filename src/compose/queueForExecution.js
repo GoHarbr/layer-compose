@@ -5,11 +5,13 @@ import asap                                             from "asap/raw"
 import {writeTypesToDisk}                               from "../auto-type/trackTypes"
 
 let id = 0
-export function queueForExecution($, fn, cb, {push = false, next = false} = {}) {
+export function queueForExecution($, fn, cb, {push = false, next = false, prepend = false} = {}) {
     const queue = getExecutionQueue($)
 
     const item = { fn, cb, id: id++}
-    if (next) {
+    if (prepend) {
+        if (!queue.buffer) queue.buffer = []
+    } else if (next) {
         queue.unshift(item)
     } else if (queue.buffer != null && !push) {
         queue.buffer.push(item)
@@ -59,9 +61,19 @@ async function execute(queue) {
 
     const { fn, cb } = next
 
-    if (queue.buffer == null) queue.buffer = []
+    if (queue.buffer != null) debugger
+    queue.buffer = []
 
     const fnReturn = fn()
+
+    queue.unshift(...queue.buffer)
+    queue.buffer = null
+
+    /*
+    ? Allow control yielding with generators
+    ? `const x = yield Promise.resolve(1) // x = 1`
+    * */
+
 
     if (isPromise(fnReturn)) {
 
@@ -70,18 +82,10 @@ async function execute(queue) {
             throw e
         })
 
-        queue.unshift(...queue.buffer)
-        queue.buffer = null
-
         cb && cb(res)
 
-        await execute(queue)
     } else {
-        queue.unshift(...queue.buffer)
-        queue.buffer = null
-
         cb && cb(fnReturn)
-
-        await execute(queue)
     }
+    return execute(queue)
 }

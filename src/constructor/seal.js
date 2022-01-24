@@ -66,6 +66,12 @@ function sealService(lensConstructor, parent, { name, at }) {
         }
 
         queueForExecution(parent, () => {
+            let childCompletedResolve
+            const childCompletedBlock = new Promise(resolve => childCompletedResolve = resolve)
+
+            // waiting for child to complete initialization before parent proceeds
+            queueForExecution(parent, () => childCompletedBlock, null, {next: true})
+
             return new Promise(resolveParent => {
                 diagnostics && diagnostics()
                 // if (lensCore[$parentInstance]) {
@@ -92,13 +98,10 @@ function sealService(lensConstructor, parent, { name, at }) {
 
                         queueForExecution(parent, resolveChild, () => {
 
-                            queueForExecution(parent, () => {
-                                return new Promise(res => {
-                                    queueForExecution($, () => res(), null, {push: true})
-                                })
-                            }, null, {next: true})
+                            // releasing parent after child initializes
+                            queueForExecution($, childCompletedResolve, null, {push: true})
 
-                        }, /*{next: true}*/)
+                        }, {next: true})
 
 
                         resolveParent()
@@ -107,6 +110,7 @@ function sealService(lensConstructor, parent, { name, at }) {
                     parent,
                 })
             })
+
         })
     }
 
