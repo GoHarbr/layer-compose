@@ -33,7 +33,7 @@ export const borrowProxy = (layerId) => ({
             if (target.__debug || GLOBAL_DEBUG.enabled) {
                 const at = new Error()
                 const header = `*    '${prop}' set`
-                console.debug(`${header.padEnd(65)} :: ${findLocationFromError(at)}`)
+                console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
                 target[$borrowedKeys][prop + '_stack'] = at
             }
         }

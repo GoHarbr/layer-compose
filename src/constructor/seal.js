@@ -90,7 +90,7 @@ function sealService(lensConstructor, parent, { name, at }) {
         const diagnostics = !IS_DEV_MODE ? null : () => {
             if (GLOBAL_DEBUG.enabled) {
                 const header = `>>   ${fullyQualifiedName} () lens`
-                console.debug(`${header.padEnd(65)} :: ${findLocationFromError(at)}`)
+                console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
             }
         }
 
@@ -158,8 +158,8 @@ function sealMethod(method, $, { name }) {
 
         if (GLOBAL_DEBUG.enabled) {
             const fullyQualifiedName = $[$fullyQualifiedName]
-            const header = `##   ${name.padEnd(15)}  ${fullyQualifiedName}`
-            console.debug(`${header.padEnd(65)} :: ${findLocationFromError(new Error()) || ''}`)
+            const header = `##   ${name.padEnd(25)}  ${fullyQualifiedName}`
+            console.debug(`${header.padEnd(95)} :: ${findLocationFromError(new Error()) || ''}`)
 
             trackExternalFunctionCall(fullyQualifiedName, name, $[$compositionId])
         }
