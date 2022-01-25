@@ -8,7 +8,7 @@ import {
     $layers,
     $lensName,
     IS_DEV_MODE
-} from "../const"
+}                                 from "../const"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import wrapStandardMethods        from "./wrapStandardMethods"
 import constructCoreObject        from "./constructCoreObject"
@@ -17,6 +17,8 @@ import seal                       from "./seal"
 import initialize                 from "./initialize"
 import {queueForExecution}        from "../compose/queueForExecution"
 import {markWithId}               from "../compose/markWithId"
+import core                       from "../external/patterns/core"
+import defaults                   from "../external/patterns/defaults"
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {
@@ -56,7 +58,7 @@ export async function constructFromComposition(composition, coreObject, {
     preinitializer,
     parent
 }) {
-    const compositionInstance = seal(composition, Object.create(null))
+    const compositionInstance = seal(composition)
     wrapStandardMethods(compositionInstance) // for methods like .then
 
     compositionInstance[$isCompositionInstance] = true
@@ -64,11 +66,11 @@ export async function constructFromComposition(composition, coreObject, {
     compositionInstance[$lensName] = lensName
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName
 
-    const core = await constructCoreObject(coreObject, composition)
-    compositionInstance[$dataPointer] = core
+    compositionInstance[$dataPointer] = {}
 
-    preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance))
-    initialize(compositionInstance) // no need to wrap in queueForExecution
+    initialize(compositionInstance, coreObject) // no need to wrap in queueForExecution
+    // preinitializer runs first, thus must be queued last
+    preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance), null, {next:true})
 
     if (IS_DEV_MODE) {
         return [wrapCompositionWithProxy(compositionInstance)]

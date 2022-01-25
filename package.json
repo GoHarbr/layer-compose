@@ -1,6 +1,6 @@
 {
   "name": "@goharbr/layer-compose",
-  "version": "0.5.31",
+  "version": "0.5.33",
   "main": "lib/index.js",
   "types": "typings/index.d.ts",
   "description": "",

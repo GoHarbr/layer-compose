@@ -57,7 +57,7 @@ export function unbox(compositionOrObject) {
     return unwrapProxy(compositionOrObject)
 }
 
-let layerIdString = 0
+let layerIdString = 1
 /** @param layer string */
 export function getLayerId(layer, {noSet} = {}) {
     const existing = layer[$layerId] || layer[$compositionId] || layer[$composition]?.[$compositionId]

@@ -6,7 +6,7 @@ import {unwrapProxy}              from "../proxies/utils"
 export default async function constructCoreObject(proposed, composition) {
     let core
 
-    proposed = unwrapCompositionAsCore(proposed, composition)
+    // proposed = unwrapCompositionAsCore(proposed, composition)
     if (isPromise(proposed)) {
         core = await proposed
     } else {

@@ -13,12 +13,38 @@ import {wrapCompositionWithProxy}  from "../proxies/wrapCompositionWithProxy"
 import {queueForExecution}         from "../compose/queueForExecution"
 import {GLOBAL_DEBUG}              from "../external/utils/enableDebug"
 import {findLocationFromError}     from "../external/utils/findLocationFromError"
-import {core_unsafe}               from "../external/patterns/core"
+import core, {core_unsafe}         from "../external/patterns/core"
 import {trackExternalFunctionCall} from "../auto-type/mapper/mapper"
+import defaults                    from "../external/patterns/defaults"
+import constructCoreObject         from "./constructCoreObject"
 
 
-// noinspection FunctionTooLongJS
-export default function seal(composition, $) {
+const PRIMORDIAL_LEVEL=0
+
+export default function seal(composition) {
+    const $ = function (arg) {
+        if (IS_DEV_MODE && typeof arg !== 'object') throw new Error('only objects are allowed currently')
+
+        let coreUpdate
+
+
+        // pass on the message
+        queueForExecution($, () => {
+            if (coreUpdate) $._ && $._(coreUpdate)
+        }, () => {
+            if (coreUpdate) {
+                const c = core($, PRIMORDIAL_LEVEL)
+                defaults(c, coreUpdate)
+            }
+        }, {next: true})
+
+        /* order is reversed here, because of `next` flag.
+        * For this operation to execute before the above one, we must queue it after */
+        if (arg) {
+            queueForExecution($, async () => coreUpdate = await constructCoreObject(arg), null, {next: true})
+        }
+    }
+
     $[$writableKeys] = [$parentInstance, $lensName]
     $[$dataPointer] = null
     $[$compositionId] = composition[$compositionId]
@@ -91,6 +117,7 @@ function sealService(lensConstructor, parent, { name, at }) {
                         }
                         _[$parentInstance] = parent
 
+                        // todo. remove
                         const initializerName = `_${name}`
                         if (initializerName in parent) {
                             parent[initializerName]($)

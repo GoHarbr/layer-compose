@@ -1,11 +1,14 @@
 import {$isInitialized, IS_DEV_MODE} from "../const"
 
-export default function initialize($) {
+export default function initialize($, coreUpdate) {
     const has$initializer = typeof $.$ == 'function'
-    const has_initializer = typeof $._ == 'function'
 
-    has_initializer && $._()
-    has$initializer && $.$()
+    $(coreUpdate)
+
+    if (has$initializer) {
+        $.$()
+    }
+
 
 
     if (IS_DEV_MODE) {

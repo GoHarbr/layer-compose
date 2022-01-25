@@ -20,7 +20,7 @@ export function generate(from: (($,_) => object) | object): ($, _) => object
 export function transform(transform: (_) => object): ($, _) => object
 
 export function lens(transform: (parent, parentCore) => object): ($, _) => object
-export function memo(generator: (($,_) => object) | object): ($, _) => object
+export function memo(_: object, generator: (($,_) => object) | object): ($, _) => object
 export function attach(generator: (($,_) => object) | object): ($, _) => object
 
 export function parent($: lcInstance<any>): lcInstance<any>
