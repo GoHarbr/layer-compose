@@ -15,7 +15,7 @@ export replace     from "./external/patterns/replace"
 export { defer }     from "./external/patterns/defer"
 export pause     from "./external/patterns/pause"
 
-export parent     from "./external/patterns/parent"
+export { parent }     from "./external/patterns/parent"
 export core     from "./external/patterns/core"
 
 export {unbox} from "./utils"

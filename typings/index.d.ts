@@ -19,7 +19,7 @@ export function defaults(_:object, values: object): void
 export function generate(from: (($,_) => object) | object): ($, _) => object
 export function transform(transform: (_) => object): ($, _) => object
 
-export function lens(transform: (parent, parentCore) => object): ($, _) => object
+export function lens(parentType?: object): object
 export function memo(_: object, generator: (($,_) => object) | object): ($, _) => object
 export function attach(generator: (($,_) => object) | object): ($, _) => object
 

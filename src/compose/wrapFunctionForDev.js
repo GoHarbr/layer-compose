@@ -1,9 +1,9 @@
 import {getDataProxy}             from "../data/getDataProxy"
 import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
 import {isProxy}                  from "../proxies/utils"
-import {GLOBAL_DEBUG}             from "../external/utils/enableDebug"
-import {$lensName}                from "../const"
-import {findLocationFromError}    from "../external/utils/findLocationFromError"
+import {GLOBAL_DEBUG}          from "../external/utils/enableDebug"
+import {$lensName, $tag}       from "../const"
+import {findLocationFromError} from "../external/utils/findLocationFromError"
 import {trackTypes}               from "../auto-type/trackTypes"
 
 export function wrapFunctionForDev(layerId, fn, { name, at }) {
@@ -13,7 +13,7 @@ export function wrapFunctionForDev(layerId, fn, { name, at }) {
         if (isProxy(_)) debugger
 
         const __ = getDataProxy(layerId, _)
-        const $$ = wrapCompositionWithProxy($)
+        const $$ = wrapCompositionWithProxy($, layerId)
 
         try {
             _.__debug
@@ -21,7 +21,7 @@ export function wrapFunctionForDev(layerId, fn, { name, at }) {
             debugger
         }
         if (GLOBAL_DEBUG.enabled || 'debug' in _ && _.__debug) {
-            const header = `.    ${$$[$lensName] || ''}.${name}`
+            const header = `.    ${name}  ${$$[$lensName] || $[$tag] || ''}`
             console.debug(`${header.padEnd(65)} :: ${findLocationFromError(at)}`)
         }
 

@@ -155,7 +155,7 @@ function sealMethod(method, $, { name }) {
 
         if (GLOBAL_DEBUG.enabled) {
             const fullyQualifiedName = $[$fullyQualifiedName]
-            const header = `## ${name} on ${fullyQualifiedName}`
+            const header = `##   ${name} on ${fullyQualifiedName}`
             console.debug(`${header.padEnd(65)} :: ${findLocationFromError(new Error()) || ''}`)
 
             trackExternalFunctionCall(fullyQualifiedName, name, $[$compositionId])

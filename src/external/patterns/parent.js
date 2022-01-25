@@ -2,7 +2,7 @@ import {$parentInstance}   from "../../const"
 import core, {core_unsafe} from "./core"
 import {isExtensionOf}     from "./isExtensionOf"
 
-export default function parent ($, ofType) {
+export function parent ($, ofType) {
     const p = core_unsafe($)[$parentInstance]
     if (!p) {
         throw new Error("Composition has no parent of given type")
@@ -18,3 +18,5 @@ export default function parent ($, ofType) {
     }
 
 }
+
+export default parent

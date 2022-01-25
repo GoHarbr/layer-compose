@@ -1,5 +1,7 @@
 import {
-    $composition, $compositionId,
+    $at,
+    $composition,
+    $compositionId,
     $dataPointer,
     $fullyQualifiedName,
     $getComposition,
@@ -7,18 +9,20 @@ import {
     $isLc,
     $layers,
     $lensName,
+    $tag,
     IS_DEV_MODE
-}                                 from "../const"
-import {wrapCompositionWithProxy} from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods        from "./wrapStandardMethods"
-import constructCoreObject        from "./constructCoreObject"
-import compose                    from "../compose/compose"
-import seal                       from "./seal"
-import initialize                 from "./initialize"
-import {queueForExecution}        from "../compose/queueForExecution"
-import {markWithId}               from "../compose/markWithId"
-import core                       from "../external/patterns/core"
-import defaults                   from "../external/patterns/defaults"
+}                                  from "../const"
+import {wrapCompositionWithProxy}  from "../proxies/wrapCompositionWithProxy"
+import wrapStandardMethods         from "./wrapStandardMethods"
+import compose                     from "../compose/compose"
+import seal                        from "./seal"
+import initialize                  from "./initialize"
+import {queueForExecution}         from "../compose/queueForExecution"
+import {markWithId}                from "../compose/markWithId"
+import {findLocationFromError}     from "../external/utils/findLocationFromError"
+import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
+import {wrapWithUtils}             from "./wrapWithUtils"
+import changeCase from 'case'
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {
@@ -45,7 +49,7 @@ export function createConstructor(layers) {
     }
 
     constructor.tag = (name) => {
-        constructor.TAG = name
+        _c[$tag] = name
         return constructor
     }
 
@@ -56,21 +60,24 @@ export async function constructFromComposition(composition, coreObject, {
     lensName,
     fullyQualifiedName,
     preinitializer,
-    parent
+    tag
 }) {
     const compositionInstance = seal(composition)
     wrapStandardMethods(compositionInstance) // for methods like .then
+    wrapWithUtils(compositionInstance)
 
     compositionInstance[$isCompositionInstance] = true
     // compositionInstance[$composition] = composition
     compositionInstance[$lensName] = lensName
-    compositionInstance[$fullyQualifiedName] = fullyQualifiedName
+
+    compositionInstance[$tag] = tag
+    compositionInstance[$fullyQualifiedName] = fullyQualifiedName || tag
 
     compositionInstance[$dataPointer] = {}
 
     initialize(compositionInstance, coreObject) // no need to wrap in queueForExecution
     // preinitializer runs first, thus must be queued last
-    preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance), null, {next:true})
+    preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance), null, { next: true })
 
     if (IS_DEV_MODE) {
         return [wrapCompositionWithProxy(compositionInstance)]
@@ -79,25 +86,34 @@ export async function constructFromComposition(composition, coreObject, {
     }
 }
 
-const _constructor = (layers) => async function (coreObject, cb, {
-    lensName,
-    fullyQualifiedName,
-    preinitializer,
-    parent
-} = {}) {
-    try {
-        const [$] = await constructFromComposition(
-            await this[$getComposition](),
-            coreObject,
-            { lensName, fullyQualifiedName, preinitializer, parent })
+const mjsRe = /m?js/
+const _constructor = (layers) => {
+    const location = findLocationFromError(layers[$at])
+    const { filename } = splitLocationIntoComponents(location)
+    const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
 
-        // todo. why not call CB right away? might not make much of a difference
-        queueForExecution($, () => {
-            cb($)
-        })
+    return async function (coreObject, cb, {
+        lensName,
+        fullyQualifiedName,
+        preinitializer,
+        parent
+    } = {}) {
+        try {
+            const [$] = await constructFromComposition(
+                await this[$getComposition](),
+                coreObject,
+                {
+                    lensName, fullyQualifiedName, preinitializer, tag
+                })
 
-    } catch (e) {
-        console.error("layerCompose encountered an error while constructing a composition:", e, e.stack)
-        if (IS_DEV_MODE) throw e
+            // todo. why not call CB right away? might not make much of a difference
+            queueForExecution($, () => {
+                cb($)
+            })
+
+        } catch (e) {
+            console.error("layerCompose encountered an error while constructing a composition:", e, e.stack)
+            if (IS_DEV_MODE) throw e
+        }
     }
 }
