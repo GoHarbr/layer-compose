@@ -30,13 +30,16 @@ export default function seal(composition) {
 
         // pass on the message
         queueForExecution($, () => {
-            if (coreUpdate) $._ && $._(coreUpdate)
-        }, () => {
             if (coreUpdate) {
-                const c = core($, PRIMORDIAL_LEVEL)
-                defaults(c, coreUpdate)
+                $._ && $._(coreUpdate)
+
+                // runs after
+                queueForExecution($, () => {
+                    const c = core($, PRIMORDIAL_LEVEL)
+                    defaults(c, coreUpdate)
+                }, null, {next: true})
             }
-        }, {next: true})
+        }, null, {next: true})
 
         /* order is reversed here, because of `next` flag.
         * For this operation to execute before the above one, we must queue it after */
@@ -155,7 +158,7 @@ function sealMethod(method, $, { name }) {
 
         if (GLOBAL_DEBUG.enabled) {
             const fullyQualifiedName = $[$fullyQualifiedName]
-            const header = `##   ${name} on ${fullyQualifiedName}`
+            const header = `##   ${name.padEnd(15)}  ${fullyQualifiedName}`
             console.debug(`${header.padEnd(65)} :: ${findLocationFromError(new Error()) || ''}`)
 
             trackExternalFunctionCall(fullyQualifiedName, name, $[$compositionId])
