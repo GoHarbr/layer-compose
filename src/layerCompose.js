@@ -22,7 +22,10 @@ export default function layerCompose(...layers) {
 }
 
 
-export function $ (layer, baseLayer, {unsafe = true} = {}) {
+export function $ (layer, baseLayer, {unsafe = true, depth = 1} = {}) {
+    if (depth > 3) {
+        console.warn('Use `layerCompose(...layers)` syntax for more than 3 layers chained together with o.$().$()')
+    }
     if (!layer?.[$isLc] && typeof layer != 'object' || Array.isArray(layer) || layer == null) {
         throw new Error('A layer must be an object')
     }
@@ -33,7 +36,7 @@ export function $ (layer, baseLayer, {unsafe = true} = {}) {
 
     const c = baseLayer ? layerCompose(layer, baseLayer) : layerCompose(layer)
 
-    c.$ = layer => $(c, layer, {unsafe})
+    c.$ = layer => $(c, layer, {unsafe, depth: depth + 1})
 
     return c
 }

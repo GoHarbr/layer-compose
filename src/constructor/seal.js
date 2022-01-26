@@ -95,12 +95,6 @@ function sealService(lensConstructor, parent, { name, at }) {
         }
 
         queueForExecution(parent, () => {
-            let childCompletedResolve
-            const childCompletedBlock = new Promise(resolve => childCompletedResolve = resolve)
-
-            // waiting for child to complete initialization before parent proceeds
-            queueForExecution(parent, () => childCompletedBlock, null, {next: true})
-
             return new Promise(resolveParent => {
                 diagnostics && diagnostics()
                 // if (lensCore[$parentInstance]) {
@@ -109,34 +103,19 @@ function sealService(lensConstructor, parent, { name, at }) {
 
                 // lensCore[$parentInstance] = parent
                 lensConstructor(lensCore, $ => {
+                    resolveParent()
+
                     const r = cbWithService($)
                     r && r.catch && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
                 }, {
                     lensName: name, fullyQualifiedName,
-                    preinitializer: ($) => new Promise(resolveChild => {
+                    preinitializer: ($) => {
                         const _ = core_unsafe($)
                         if (_[$parentInstance]) {
                             console.warn('Object already has a parent instance reference')
                         }
                         _[$parentInstance] = parent
-
-                        // todo. remove
-                        const initializerName = `_${name}`
-                        if (initializerName in parent) {
-                            parent[initializerName]($)
-                        }
-
-                        queueForExecution(parent, resolveChild, () => {
-
-                            // releasing parent after child initializes
-                            queueForExecution($, childCompletedResolve, null, {push: true})
-
-                        }, {next: true})
-
-
-                        resolveParent()
-
-                    }),
+                    },
                     parent,
                 })
             })

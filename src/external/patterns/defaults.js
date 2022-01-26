@@ -12,7 +12,7 @@ export default function defaults(_, defaultValues) {
             if (v === null && !notIn && _[k] === null) continue;
 
             if (v === undefined) throw new Error(`Default value for key ${k} cannot be 'undefined'`)
-            _[k] = typeof v == 'function' ? v() : v
+            _[k] = typeof v == 'function' && v.length === 0 ? v() : v
         }
     }
 }
