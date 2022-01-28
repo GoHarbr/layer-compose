@@ -23,10 +23,9 @@ export default function initialize($, coreUpdate) {
                     Object.defineProperty($, '_' + k,
                         {
                             get: () => {
-
-                                if (target.__debug || GLOBAL_DEBUG.enabled) {
+                                if (GLOBAL_DEBUG.enabled) {
                                     const at = new Error()
-                                    const header = `*    '${k}'`
+                                    const header = `*    \`${k}\``
                                     console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
                                 }
 
