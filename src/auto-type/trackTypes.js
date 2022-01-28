@@ -1,6 +1,7 @@
 import {findLocationFromError}     from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents           from "../external/utils/splitLocationIntoComponents"
 import {$isCompositionInstance, IS_DEV_MODE} from "../const"
+import equal from 'fast-deep-equal/es6'
 
 const trackedLocations = {}
 
@@ -73,7 +74,7 @@ function type$($) {
     return Object.keys($)
 }
 
-function typeObj(obj, {existing, depth = 0}) {
+function typeObj(obj, {depth = 0, maxDepth = 1}) {
     const _typeof = typeof obj
 
     if (_typeof === 'object') {
@@ -91,7 +92,7 @@ function typeObj(obj, {existing, depth = 0}) {
             if (count > 100) return {}
 
             const v = obj[k]
-            if (depth < 1) {
+            if (depth < maxDepth) {
                 types[k] = typeObj(v, { depth: depth + 1 })
             } else {
                 types[k] = obj ? typeof obj : null
@@ -104,23 +105,54 @@ function typeObj(obj, {existing, depth = 0}) {
     }
 }
 
+function getCommonObjectShape(objs) {
+    objs = [...objs]
+    const first = objs.pop()
+
+    const common = typeObj(first, {maxDepth: 1})
+    for (const o of objs) {
+        for (const k of Object.keys(common)) {
+            if (!(k in o)) {
+                // removing key that does not exist on all objects
+                delete common[k]
+            } else {
+                // check that the type is the same
+                if (!equal(common[k], o[k])) {
+                    // if not the same, delete from common
+                    delete common[k]
+                }
+            }
+        }
+    }
+
+    if (!Object.keys(common).length) return null
+}
+
 function objectTypeToFlow(definitions) {
     if (Array.isArray(definitions)) {
-        // if (!definitions.length) {
-            return 'Array<mixed>'
-        // }
-
+        if (definitions.length) {
+            const common = getCommonObjectShape(definitions)
+            if (common) {
+                return `Array< ${objectTypeToFlow(common)} >`
+            }
+        }
+        // when common type is not available
+        return 'Array<mixed>'
 
     } else if (typeof definitions == 'object' && !!definitions) {
+        const common = getCommonObjectShape(Object.values(definitions))
+        if (common) {
+            return `{[string]: ${objectTypeToFlow(common)} }`
+        } else {
+            const props = Object.entries(definitions).map(([k, t]) => {
+                const kStr = !Number.isNaN(parseInt(k)) || k.includes('-') || k.includes('.') ? `'${k}'` : k
+                return `${kStr} : ${objectTypeToFlow(t)}`
+            }).join(', ')
 
-        const props = Object.entries(definitions).map(([k, t]) => {
-            const kStr = !Number.isNaN(parseInt(k)) || k.includes('-') || k.includes('.') ? `'${k}'` : k
-            return `${kStr} : ${objectTypeToFlow(t)}`
-        }).join(', ')
+            if (!props.length) return '{}'
 
-        if (!props.length) return '{}'
-
-        return props && `{ ${props} }` || ''
+            return props && `{ ${props} }` || ''
+        }
     } else {
         if (typeof definitions == 'string') {
             let ret = definitions === 'object' ? '{}' : definitions

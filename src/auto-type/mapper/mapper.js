@@ -4,26 +4,7 @@ import fs                          from "fs"
 import {retrieveLayer}             from "../../compose/registerLayer"
 import {$composition, $layerOrder} from "../../const"
 
-process.on('exit', onExit)
-
-process.on('SIGINT', onExit)
-process.on('SIGTERM', onExit)
-process.on('SIGHUP', onExit)
-process.on('SIGUSR2', onExit)
-
 const functionCallsByName = {}
-
-function onExit() {
-    console.debug("Storing Compositions World Map")
-    const mapFile = path.join(process.cwd(), 'world.mapping.html')
-
-    const tree = generateMapTree(functionCallsByName)
-    const contents = generateMapFile(tree)
-
-    fs.writeFileSync(mapFile, contents)
-
-    process.exit()
-}
 
 
 function addRecord(cname, fnName, layerIds) {
@@ -44,7 +25,7 @@ const __functions = Symbol('functions')
 const __layers = Symbol('layers')
 const __meta = Symbol('meta')
 
-function generateMapTree(functionCallsByName) {
+export function generateMapTree(functionCallsByName) {
     const mapTree = {}
 
     const distinctCompositionChains = Object.keys(functionCallsByName)
@@ -80,7 +61,7 @@ function generateMapTree(functionCallsByName) {
     return mapTree
 }
 
-function generateMapFile(tree) {
+export function generateMapFile(tree) {
     return `
         ${generateMapCard(tree)}
     

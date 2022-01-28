@@ -38,10 +38,6 @@ async function _execute($, queue, catchWith) {
     try {
         await execute(queue)
 
-        if (IS_DEV_MODE) {
-            writeTypesToDisk()
-        }
-
     } catch (e) {
         catchWith.forEach(cb => cb(e))
     }

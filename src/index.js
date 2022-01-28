@@ -1,3 +1,5 @@
+import "auto-type/onExit"
+
 export {IS_DEV_MODE} from "./const"
 
 export layerCompose from './layerCompose'
