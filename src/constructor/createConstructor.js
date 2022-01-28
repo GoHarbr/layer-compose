@@ -23,6 +23,7 @@ import {findLocationFromError}     from "../external/utils/findLocationFromError
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
 import {wrapWithUtils}             from "./wrapWithUtils"
 import changeCase from 'case'
+import { findDependency } from "../external/patterns/findDependency"
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {
@@ -40,12 +41,14 @@ export function createConstructor(layers) {
     wrapWithUtils(constructor)
 
 
-    _c[$getComposition] = constructor[$getComposition] = async () => {
+    _c[$getComposition] = constructor[$getComposition] = async ({tag}) => {
         const existing = constructor[$composition]
         if (existing) return existing
 
         const composition = await compose(layers, null)
         composition[$compositionId] = constructor[$compositionId]
+        composition[$tag] = tag
+
         return constructor[$composition] = composition
     }
 
@@ -61,7 +64,6 @@ export async function constructFromComposition(composition, coreObject, {
     lensName,
     fullyQualifiedName,
     preinitializer,
-    tag
 }) {
     const compositionInstance = seal(composition)
     wrapStandardMethods(compositionInstance) // for methods like .then
@@ -70,7 +72,7 @@ export async function constructFromComposition(composition, coreObject, {
     // compositionInstance[$composition] = composition
     compositionInstance[$lensName] = lensName
 
-    compositionInstance[$tag] = tag
+    const tag = compositionInstance[$tag] = composition[$tag]
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName || tag
 
     compositionInstance[$dataPointer] = {}
@@ -102,28 +104,39 @@ const _constructor = (layers) => {
             cb = coreObject
             coreObject = null
         }
-
         try {
-            const [$] = await constructFromComposition(
-                await this[$getComposition](),
-                coreObject,
-                {
-                    lensName, fullyQualifiedName, preinitializer, tag
-                })
 
-            // scheduling the callback to happen after all actions scheduled during the constructor
-            // especially relevant when there's an interplay between several compositions
-            // queueForExecution($, () => {}, () => {
-            //     queueForExecution($, () => cb($))
-            // })
+        const composition = await this[$getComposition]({tag})
 
-            // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
-            queueForExecution($, () => {}, () => cb($))
-            // queueForExecution($, () => cb($))
+        if (coreObject[$isCompositionInstance]) {
+            const $ = findDependency(coreObject, composition)
+
+            if (!$) {
+                throw new Error('Failed to find dependency')
+            }
+
+            queueCb($, cb)
+        } else {
+
+                const [$] = await constructFromComposition(
+                    composition,
+                    coreObject,
+                    {
+                        lensName, fullyQualifiedName, preinitializer
+                    })
+
+                // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
+                queueCb($, cb)
+        }
 
         } catch (e) {
-            console.error("layerCompose encountered an error while constructing a composition:", e, e.stack)
+            console.error("layerCompose encountered an error:", e, e.stack)
             if (IS_DEV_MODE) throw e
         }
+
     }
+}
+
+function queueCb($, cb) {
+    return queueForExecution($, () => {}, () => cb($))
 }

@@ -10,11 +10,15 @@ export function enableDebug() {
 
 function printIntroduction() {
     console.log(`
-    o.$                  $_o
+    o.$                       $_o
            Welcome
            
            This is
                layer-compose
+    
+    An opinionated, minimalist 
+      architectural framework 
+      for crafts women and other analogue monkeys
     
     
     
@@ -23,9 +27,10 @@ function printIntroduction() {
     
     
     Legend:
-    >> Lens instantiated
-    *  Property set
-    ## Method called
-    .  Method executed (one . per layer)
+    *   Property set
+    ~~  Method called
+    .   Method executed (one . per layer)
+    |>> Lens instantiated
+    <<| Dependency injected
     `)
 }
