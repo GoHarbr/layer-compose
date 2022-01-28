@@ -46,7 +46,7 @@ export function createConstructor(layers) {
         if (existing) {
             if (!existing[$tag] && tag) {
                 existing[$tag] = tag
-            } else if (existing[$tag] && tag) {
+            } else if (existing[$tag] && tag && tag !== existing[$tag]) {
                 debugger
             }
             return existing
