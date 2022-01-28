@@ -11,17 +11,17 @@ import {
     $lensName,
     $tag,
     IS_DEV_MODE
-}                                  from "../const"
-import {wrapCompositionWithProxy}  from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods         from "./wrapStandardMethods"
-import compose                     from "../compose/compose"
-import seal                        from "./seal"
-import initialize                  from "./initialize"
-import {queueForExecution}         from "../compose/queueForExecution"
-import {markWithId}                from "../compose/markWithId"
-import {findLocationFromError}     from "../external/utils/findLocationFromError"
+} from "../const"
+import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
+import wrapStandardMethods from "./wrapStandardMethods"
+import compose from "../compose/compose"
+import seal from "./seal"
+import initialize from "./initialize"
+import { queueForExecution } from "../compose/queueForExecution"
+import { markWithId } from "../compose/markWithId"
+import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
-import {wrapWithUtils}             from "./wrapWithUtils"
+import { wrapWithUtils } from "./wrapWithUtils"
 import changeCase from 'case'
 import { findDependency } from "../external/patterns/findDependency"
 
@@ -77,7 +77,7 @@ export async function constructFromComposition(composition, coreObject, {
 
     compositionInstance[$dataPointer] = {}
 
-    initialize(compositionInstance, coreObject) // no need to wrap in queueForExecution
+    initialize(compositionInstance, coreObject)
     // preinitializer runs first, thus must be queued last
     preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance), null, { next: true })
 
