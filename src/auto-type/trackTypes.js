@@ -1,6 +1,6 @@
-import {findLocationFromError}     from "../external/utils/findLocationFromError"
-import splitLocationIntoComponents           from "../external/utils/splitLocationIntoComponents"
-import {$isCompositionInstance, IS_DEV_MODE} from "../const"
+import { findLocationFromError } from "../external/utils/findLocationFromError"
+import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
+import { IS_DEV_MODE } from "../const"
 import equal from 'fast-deep-equal/es6'
 
 const trackedLocations = {}
@@ -79,7 +79,13 @@ function typeObj(obj, {depth = 0, maxDepth = 1}) {
 
     if (_typeof === 'object') {
         if (!obj) return null
-        if (Array.isArray(obj)) return []
+        if (Array.isArray(obj)) return obj.map(v => typeObj(v, {depth: depth + 1, maxDepth}))
+
+        const className = obj.constructor?.name
+        if (className) {
+            if (className == 'Set') return 'Set<mixed>'
+            if (className == 'Map') return 'Map<mixed, mixed>'
+        }
         // if (obj[$isCompositionInstance]) return '$_'
 
         // todo. go over prototype
@@ -89,11 +95,11 @@ function typeObj(obj, {depth = 0, maxDepth = 1}) {
             count++
 
             // objects with such numerous properties are probably not in need of typing
-            if (count > 100) return {}
+            if (count > 30) return {}
 
             const v = obj[k]
             if (depth < maxDepth) {
-                types[k] = typeObj(v, { depth: depth + 1 })
+                types[k] = typeObj(v, { depth: depth + 1 , maxDepth})
             } else {
                 types[k] = obj ? typeof obj : null
             }
@@ -123,9 +129,10 @@ function getCommonObjectShape(objs) {
                 }
             }
         }
+
+        if (!Object.keys(common).length) return null
     }
 
-    if (!Object.keys(common).length) return null
 }
 
 function objectTypeToFlow(definitions) {
@@ -142,7 +149,7 @@ function objectTypeToFlow(definitions) {
     } else if (typeof definitions == 'object' && !!definitions) {
         const common = getCommonObjectShape(Object.values(definitions))
         if (common) {
-            return `{[string]: ${objectTypeToFlow(common)} }`
+            return `{[key: string]: ${objectTypeToFlow(common)} }`
         } else {
             const props = Object.entries(definitions).map(([k, t]) => {
                 const kStr = !Number.isNaN(parseInt(k)) || k.includes('-') || k.includes('.') ? `'${k}'` : k
