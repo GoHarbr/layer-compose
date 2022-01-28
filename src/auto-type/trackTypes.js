@@ -26,7 +26,7 @@ function flowRepresentationFor$(types) {
                 }
 
 
-    `: { (coreUpdate: {}): void, [key : ${lenses.map(k => `'${k}'`).join('|')}] : ((coreUpdate: {}, cb: ?(lens) => void) => void) | (cb: (lens) => void) => void), [key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => {}, [key : ${accessors.map(k => `'${k}'`).join('|')}] : any }`
+    return `: { (coreUpdate: {}): void, [key : ${lenses.map(k => `'${k}'`).join('|')}] : ((coreUpdate: {}, cb: ?(lens) => void) => void) | (cb: (lens) => void) => void), [key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => {}, [key : ${accessors.map(k => `'${k}'`).join('|')}] : any }`
 }
 
 export function writeTypesToDisk() {
