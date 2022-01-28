@@ -52,7 +52,7 @@ export async function writeTypesToDisk() {
                 flowTypesByFn[name] = {
                     $: flowRepresentationFor$(types.$),
                     _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || ''} -[string]: any }`,
-                    o: `: {[key: string]: any}`
+                    o: `: {+[key: string]: any}`
                 }
         }
 
@@ -138,7 +138,7 @@ function typeObj(obj, { depth = 0, maxDepth = 1 }) {
 }
 
 function getCommonObjectShape(objs) {
-    if (objs.every(o => !!o && typeof o === 'object')) {
+    if (objs.length && objs.every(o => !!o && typeof o === 'object')) {
 
         objs = [...objs]
         const first = objs.pop()
