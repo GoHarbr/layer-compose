@@ -6,6 +6,29 @@ import equal from 'fast-deep-equal/es6'
 const trackedLocations = {}
 
 let rewriteFileWithTypes
+
+function flowRepresentationFor$(types) {
+    const methods = []
+        const accessors = []
+            const lenses = []
+
+                for (const k of types) {
+                    const firstLetter = k[0]
+                    if (firstLetter === firstLetter.toUpperCase) {
+                        if (firstLetter === '_') {
+                            accessors.push(k)
+                        } else {
+                            lenses.push(k)
+                        }
+                    } else {
+                        methods.push(k)
+                    }
+                }
+
+
+    `: { [key : ${lenses.map(k => `'${k}'`).join('|')}] : (o: ?any) => void, [key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => void, [key : ${accessors.map(k => `'${k}'`).join('|')}] : any }`
+}
+
 export function writeTypesToDisk() {
     if (!IS_DEV_MODE) return
 
@@ -23,8 +46,9 @@ export function writeTypesToDisk() {
 
             // todo. sort (consistent) by key length
 
+            let flow$ =
             flowTypesByFn[name] = {
-                $: `: { [key : ${types.$.map(k => `'${k}'`).join('|')}] : (o: ?any) => void }`,
+                $: flowRepresentationFor$(types.$),
                 _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || ''} -[string]: any }`,
                 o: `: {[key: string]: any}`
             }
