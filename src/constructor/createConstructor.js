@@ -41,7 +41,7 @@ export function createConstructor(layers) {
     wrapWithUtils(constructor)
 
 
-    _c[$getComposition] = constructor[$getComposition] = async ({tag}) => {
+    _c[$getComposition] = constructor[$getComposition] = async ({tag = null} = {}) => {
         const existing = constructor[$composition]
         if (existing) return existing
 
