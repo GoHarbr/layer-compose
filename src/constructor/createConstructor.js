@@ -43,7 +43,14 @@ export function createConstructor(layers) {
 
     _c[$getComposition] = constructor[$getComposition] = async ({tag = null} = {}) => {
         const existing = constructor[$composition]
-        if (existing) return existing
+        if (existing) {
+            if (!existing[$tag] && tag) {
+                existing[$tag] = tag
+            } else if (existing[$tag] && tag) {
+                debugger
+            }
+            return existing
+        }
 
         const composition = await compose(layers, null)
         composition[$compositionId] = constructor[$compositionId]
