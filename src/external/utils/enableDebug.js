@@ -1,3 +1,5 @@
+import { enableTypeStorage } from "../../auto-type/onExit"
+
 export const GLOBAL_DEBUG = {
     enabled: false
 }
@@ -6,6 +8,7 @@ export function enableDebug() {
     GLOBAL_DEBUG.enabled = true
 
     printIntroduction()
+    enableTypeStorage()
 }
 
 function printIntroduction() {

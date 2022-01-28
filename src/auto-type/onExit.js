@@ -3,9 +3,8 @@ import path from "path"
 import fs from "fs"
 import { functionCallsByName, generateMapFile, generateMapTree } from "./mapper/mapper"
 import { writeTypesToDisk } from "./trackTypes"
-import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 
-if (GLOBAL_DEBUG.enabled) {
+export function enableTypeStorage() {
     process.on('exit', onExit)
     process.on('SIGINT', onExit)
     process.on('SIGTERM', onExit)
