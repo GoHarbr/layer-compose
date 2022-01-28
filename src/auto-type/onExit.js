@@ -3,24 +3,32 @@ import path from "path"
 import fs from "fs"
 import { functionCallsByName, generateMapFile, generateMapTree } from "./mapper/mapper"
 import { writeTypesToDisk } from "./trackTypes"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 
-process.on('exit', onExit)
-process.on('SIGINT', onExit)
-process.on('SIGTERM', onExit)
-process.on('SIGHUP', onExit)
+if (GLOBAL_DEBUG.enabled) {
+    process.on('exit', onExit)
+    process.on('SIGINT', onExit)
+    process.on('SIGTERM', onExit)
+    process.on('SIGHUP', onExit)
 
-process.on('SIGUSR2', onExit)
+    process.on('SIGUSR2', onExit)
+}
 
-function onExit() {
-    console.debug("Storing Compositions World Map")
-    const mapFile = path.join(process.cwd(), 'world.mapping.html')
+let stored = false
+function onExit(...args) {
+    if (!stored) {
+        console.debug("Storing types", ...args)
+        const mapFile = path.join(process.cwd(), 'world.mapping.html')
 
-    const tree = generateMapTree(functionCallsByName)
-    const contents = generateMapFile(tree)
+        const tree = generateMapTree(functionCallsByName)
+        const contents = generateMapFile(tree)
 
-    fs.writeFileSync(mapFile, contents)
+        fs.writeFileSync(mapFile, contents)
 
-    writeTypesToDisk()
+        writeTypesToDisk()
 
-    process.exit()
+        stored = true
+
+        process.exit()
+    }
 }
