@@ -18,7 +18,7 @@ export function findDependency($, ofType) {
         }
     }
 
-    const p = [$parentInstance]
+    const p = $[$parentInstance]
     if (!p) {
         throw new Error("Composition has no dependency of given type in the parental chain")
     }
