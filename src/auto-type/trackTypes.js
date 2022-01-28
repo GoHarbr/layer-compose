@@ -136,27 +136,33 @@ function typeObj(obj, {depth = 0, maxDepth = 1}) {
 }
 
 function getCommonObjectShape(objs) {
-    objs = [...objs]
-    const first = objs.pop()
+    if (objs.every(o => !!o && typeof o === 'object')) {
 
-    const common = typeObj(first, {maxDepth: 1})
-    for (const o of objs) {
-        for (const k of Object.keys(common)) {
-            if (!(k in o)) {
-                // removing key that does not exist on all objects
-                delete common[k]
-            } else {
-                // check that the type is the same
-                if (!equal(common[k], o[k])) {
-                    // if not the same, delete from common
+        objs = [...objs]
+        const first = objs.pop()
+
+        const common = typeObj(first, { maxDepth: 1 })
+        for (const o of objs) {
+            for (const k of Object.keys(common)) {
+                if (!(k in o)) {
+                    // removing key that does not exist on all objects
                     delete common[k]
+                } else {
+                    // check that the type is the same
+                    if (!equal(common[k], o[k])) {
+                        // if not the same, delete from common
+                        delete common[k]
+                    }
                 }
             }
+
+            if (!Object.keys(common).length) return null
         }
 
-        if (!Object.keys(common).length) return null
+        return common
     }
 
+    return null
 }
 
 function objectTypeToFlow(definitions) {
