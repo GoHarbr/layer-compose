@@ -25,8 +25,8 @@ export function writeTypesToDisk() {
 
             flowTypesByFn[name] = {
                 $: `: { [key : ${types.$.map(k => `'${k}'`).join('|')}] : (o: ?any) => void }`,
-                _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ', ' || ''}-[string]: any }`,
-                o: `: ?any`
+                _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || ''} -[string]: any }`,
+                o: `: {[key: string]: any}`
             }
         }
 
@@ -83,8 +83,8 @@ function typeObj(obj, {depth = 0, maxDepth = 1}) {
 
         const className = obj.constructor?.name
         if (className) {
-            if (className == 'Set') return 'Set<mixed>'
-            if (className == 'Map') return 'Map<mixed, mixed>'
+            if (className.includes('Set')) return 'Set<mixed>'
+            if (className.includes('Map')) return 'Map<mixed, mixed>'
         }
         // if (obj[$isCompositionInstance]) return '$_'
 
