@@ -7,9 +7,11 @@ import { findLocationFromError } from "../external/utils/findLocationFromError"
 export const borrowProxy = (layerId) => ({
     get(target, prop) {
         if (target.__debug || GLOBAL_DEBUG.enabled) {
-            const at = new Error()
-            const header = `+    '${prop}' read`
-            console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
+            if (typeof prop !== 'symbol') {
+                const at = new Error()
+                const header = `+    '${prop}' read`
+                console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
+            }
         }
 
         return definedGetProxy._get(target, prop, borrowProxy(layerId))
