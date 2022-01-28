@@ -9,24 +9,26 @@ let rewriteFileWithTypes
 
 function flowRepresentationFor$(types) {
     const methods = []
-        const accessors = []
-            const lenses = []
+    const accessors = []
+    const lenses = []
 
-                for (const k of types) {
-                    const firstLetter = k[0]
-                    if (firstLetter === firstLetter.toUpperCase) {
-                        if (firstLetter === '_') {
-                            accessors.push(k)
-                        } else {
-                            lenses.push(k)
-                        }
-                    } else {
-                        methods.push(k)
-                    }
-                }
+    for (const k of types) {
+        const firstLetter = k[0]
+        if (firstLetter === firstLetter.toUpperCase) {
+            if (firstLetter === '_') {
+                accessors.push(k)
+            } else {
+                lenses.push(k)
+            }
+        } else {
+            methods.push(k)
+        }
+    }
 
-
-    return `: { (coreUpdate: {}): void, [key : ${lenses.map(k => `'${k}'`).join('|')}] : ((coreUpdate: {}, cb: ?(lens) => void) => void) | (cb: (lens) => void) => void), [key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => {}, [key : ${accessors.map(k => `'${k}'`).join('|')}] : any }`
+    const lensesStr = lenses.length ? `[key : ${lenses.map(k => `'${k}'`).join('|')}] : ((coreUpdate: {}, cb: ?(lens) => void) => void) | (cb: (lens) => void) => void),` : ''
+    const methodsStr = methods.length ? `[key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => {},` : ''
+    const accessStr = accessors.length ? `[key : ${accessors.map(k => `'${k}'`).join('|')}] : any` : ''
+    return `: { (coreUpdate: {}): void, ${lensesStr} ${methodsStr} ${accessStr}  }`
 }
 
 export async function writeTypesToDisk() {
@@ -47,17 +49,17 @@ export async function writeTypesToDisk() {
             // todo. sort (consistent) by key length
 
             let flow$ =
-            flowTypesByFn[name] = {
-                $: flowRepresentationFor$(types.$),
-                _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || ''} -[string]: any }`,
-                o: `: {[key: string]: any}`
-            }
+                flowTypesByFn[name] = {
+                    $: flowRepresentationFor$(types.$),
+                    _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || ''} -[string]: any }`,
+                    o: `: {[key: string]: any}`
+                }
         }
 
         if (rewriteFileWithTypes == null) {
             await import('fs').catch(() => null).then(fs => {
                 if (fs) {
-                    return import("./addTypes").then(({rewriteFileWithTypes: fn}) => {
+                    return import("./addTypes").then(({ rewriteFileWithTypes: fn }) => {
                         rewriteFileWithTypes = fn
                         rewriteFileWithTypes({ ...locComponents, types: flowTypesByFn })
                     })
@@ -88,8 +90,8 @@ export function trackTypes({
     }
 
     selfTracker.$ = type$($, selfTracker.$)
-    selfTracker._ = typeObj(_, {existing: selfTracker._})
-    selfTracker.o = typeObj(opt, {existing: selfTracker.o})
+    selfTracker._ = typeObj(_, { existing: selfTracker._ })
+    selfTracker.o = typeObj(opt, { existing: selfTracker.o })
 
     // trackedLocations[]
 }
@@ -98,12 +100,12 @@ function type$($) {
     return Object.keys($)
 }
 
-function typeObj(obj, {depth = 0, maxDepth = 1}) {
+function typeObj(obj, { depth = 0, maxDepth = 1 }) {
     const _typeof = typeof obj
 
     if (_typeof === 'object') {
         if (!obj) return null
-        if (Array.isArray(obj)) return obj.map(v => typeObj(v, {depth: depth + 1, maxDepth}))
+        if (Array.isArray(obj)) return obj.map(v => typeObj(v, { depth: depth + 1, maxDepth }))
 
         const className = obj.constructor?.name
         if (className) {
@@ -123,7 +125,7 @@ function typeObj(obj, {depth = 0, maxDepth = 1}) {
 
             const v = obj[k]
             if (depth < maxDepth) {
-                types[k] = typeObj(v, { depth: depth + 1 , maxDepth})
+                types[k] = typeObj(v, { depth: depth + 1, maxDepth })
             } else {
                 types[k] = obj ? typeof obj : null
             }
