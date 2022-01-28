@@ -1,11 +1,17 @@
-import {$borrowedKeys}         from "../const"
-import {definedGetProxy}       from "./proxies"
-import {unwrapProxy}           from "./utils"
-import {GLOBAL_DEBUG}          from "../external/utils/enableDebug"
-import {findLocationFromError} from "../external/utils/findLocationFromError"
+import { $borrowedKeys } from "../const"
+import { definedGetProxy } from "./proxies"
+import { unwrapProxy } from "./utils"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { findLocationFromError } from "../external/utils/findLocationFromError"
 
 export const borrowProxy = (layerId) => ({
     get(target, prop) {
+        if (target.__debug || GLOBAL_DEBUG.enabled) {
+            const at = new Error()
+            const header = `+    '${prop}' read`
+            console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
+        }
+
         return definedGetProxy._get(target, prop, borrowProxy(layerId))
     },
 
@@ -32,7 +38,7 @@ export const borrowProxy = (layerId) => ({
 
             if (target.__debug || GLOBAL_DEBUG.enabled) {
                 const at = new Error()
-                const header = `*    '${prop}' set`
+                const header = `-    '${prop}' set`
                 console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
                 target[$borrowedKeys][prop + '_stack'] = at
             }

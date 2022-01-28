@@ -27,9 +27,13 @@ function printIntroduction() {
     
     
     Legend:
-    *   Property set
+    -   Property set
+    +   Property read
+    
+    *   Getter called
     ~~  Method called
     .   Method executed (one . per layer)
+    
     |>> Lens instantiated
     <<| Dependency injected
     `)

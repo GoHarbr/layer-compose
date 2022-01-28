@@ -1,6 +1,8 @@
 import { $isInitialized, IS_DEV_MODE } from "../const"
 import { queueForExecution } from "../compose/queueForExecution"
 import core from "../external/patterns/core"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { findLocationFromError } from "../external/utils/findLocationFromError"
 
 export default function initialize($, coreUpdate) {
     const has$initializer = typeof $.$ == 'function'
@@ -13,12 +15,24 @@ export default function initialize($, coreUpdate) {
 
     queueForExecution($, () => {
         const _ = core($)
-        for (const [k,v] of Object.entries(_)) {
+        for (const [k, v] of Object.entries(_)) {
             // it's a data accessor!
             if (typeof v === 'function' && !v.length) {
                 // it's not hidden
                 if (k[0] !== '_') {
-                    Object.defineProperty($, '_' + k, {get: v})
+                    Object.defineProperty($, '_' + k,
+                        {
+                            get: () => {
+
+                                if (target.__debug || GLOBAL_DEBUG.enabled) {
+                                    const at = new Error()
+                                    const header = `*    '${k}'`
+                                    console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
+                                }
+
+                                return v()
+                            }
+                        })
                     // todo. ??? make sure that accessors cannot change _
                 }
             }
