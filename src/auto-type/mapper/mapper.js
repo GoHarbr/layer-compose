@@ -1,10 +1,7 @@
-import path                        from "path"
-import process                     from "process"
-import fs                          from "fs"
-import {retrieveLayer}             from "../../compose/registerLayer"
-import {$composition, $layerOrder} from "../../const"
+import { retrieveLayer } from "../../compose/registerLayer"
+import { $composition, $layerOrder } from "../../const"
 
-const functionCallsByName = {}
+export const functionCallsByName = {}
 
 
 function addRecord(cname, fnName, layerIds) {

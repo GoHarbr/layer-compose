@@ -1,7 +1,7 @@
 import process from "process"
 import path from "path"
 import fs from "fs"
-import { generateMapFile, generateMapTree } from "./mapper/mapper"
+import { functionCallsByName, generateMapFile, generateMapTree } from "./mapper/mapper"
 import { writeTypesToDisk } from "./trackTypes"
 
 process.on('exit', onExit)

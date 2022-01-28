@@ -1,4 +1,4 @@
-import "auto-type/onExit"
+import "./auto-type/onExit"
 
 export {IS_DEV_MODE} from "./const"
 
