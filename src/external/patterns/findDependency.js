@@ -1,8 +1,9 @@
-import { $isCompositionInstance, $parentInstance, $tag } from "../../const"
+import { $isCompositionInstance, $tag } from "../../const"
 import { core_unsafe } from "./core"
 import { isExtensionOf } from "./isExtensionOf"
 import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import { findLocationFromError } from "../utils/findLocationFromError"
+import { parent } from './parent'
 
 export function findDependency($, ofType) {
     const core = core_unsafe($)
@@ -18,7 +19,7 @@ export function findDependency($, ofType) {
         }
     }
 
-    const p = $[$parentInstance]
+    const p = parent($)
     if (!p) {
         throw new Error("Composition has no dependency of given type in the parental chain")
     }
