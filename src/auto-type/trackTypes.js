@@ -29,7 +29,7 @@ function flowRepresentationFor$(types) {
     return `: { (coreUpdate: {}): void, [key : ${lenses.map(k => `'${k}'`).join('|')}] : ((coreUpdate: {}, cb: ?(lens) => void) => void) | (cb: (lens) => void) => void), [key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => {}, [key : ${accessors.map(k => `'${k}'`).join('|')}] : any }`
 }
 
-export function writeTypesToDisk() {
+export async function writeTypesToDisk() {
     if (!IS_DEV_MODE) return
 
     for (const [locationId, functionsWithTypes] of Object.entries(trackedLocations)) {
@@ -55,7 +55,7 @@ export function writeTypesToDisk() {
         }
 
         if (rewriteFileWithTypes == null) {
-            import('fs').catch(() => null).then(fs => {
+            await import('fs').catch(() => null).then(fs => {
                 if (fs) {
                     return import("./addTypes").then(({rewriteFileWithTypes: fn}) => {
                         rewriteFileWithTypes = fn

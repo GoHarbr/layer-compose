@@ -14,6 +14,7 @@ export function enableTypeStorage() {
 }
 
 let stored = false
+
 function onExit(...args) {
     if (!stored) {
         console.debug("Storing types", ...args)
@@ -24,10 +25,11 @@ function onExit(...args) {
 
         fs.writeFileSync(mapFile, contents)
 
-        writeTypesToDisk()
-
         stored = true
 
-        process.exit()
+        writeTypesToDisk().then(() => {
+            process.exit()
+        })
+
     }
 }
