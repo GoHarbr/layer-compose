@@ -37,6 +37,7 @@ export function createConstructor(layers) {
     constructor[$isLc] = true
     constructor[$layers] = layers
     markWithId(constructor)
+    wrapWithUtils(constructor)
 
 
     _c[$getComposition] = constructor[$getComposition] = async () => {
@@ -64,7 +65,6 @@ export async function constructFromComposition(composition, coreObject, {
 }) {
     const compositionInstance = seal(composition)
     wrapStandardMethods(compositionInstance) // for methods like .then
-    wrapWithUtils(compositionInstance)
 
     compositionInstance[$isCompositionInstance] = true
     // compositionInstance[$composition] = composition
@@ -98,6 +98,11 @@ const _constructor = (layers) => {
         preinitializer,
         parent
     } = {}) {
+        if (!cb && typeof coreObject == 'function') {
+            cb = coreObject
+            coreObject = null
+        }
+
         try {
             const [$] = await constructFromComposition(
                 await this[$getComposition](),
@@ -106,10 +111,15 @@ const _constructor = (layers) => {
                     lensName, fullyQualifiedName, preinitializer, tag
                 })
 
-            // todo. why not call CB right away? might not make much of a difference
-            queueForExecution($, () => {
-                cb($)
-            })
+            // scheduling the callback to happen after all actions scheduled during the constructor
+            // especially relevant when there's an interplay between several compositions
+            // queueForExecution($, () => {}, () => {
+            //     queueForExecution($, () => cb($))
+            // })
+
+            // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
+            queueForExecution($, () => {}, () => cb($))
+            // queueForExecution($, () => cb($))
 
         } catch (e) {
             console.error("layerCompose encountered an error while constructing a composition:", e, e.stack)

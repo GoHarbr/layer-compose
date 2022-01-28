@@ -46,6 +46,8 @@ export default function seal(composition) {
         if (arg) {
             queueForExecution($, async () => coreUpdate = await constructCoreObject(arg), null, {next: true})
         }
+
+        return $
     }
 
     $[$writableKeys] = [$parentInstance, $lensName]
@@ -89,24 +91,22 @@ function sealService(lensConstructor, parent, { name, at }) {
         const fullyQualifiedName = (parent[$fullyQualifiedName] || '') + `.${name}`
         const diagnostics = !IS_DEV_MODE ? null : () => {
             if (GLOBAL_DEBUG.enabled) {
-                const header = `>>   ${fullyQualifiedName} () lens`
+                const header = `>>   ${''.padEnd(25)}  ${fullyQualifiedName} () lens`
                 console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
             }
         }
 
-        queueForExecution(parent, () => {
-            return new Promise(resolveParent => {
+        return new Promise(whenInstantiated => {
+
                 diagnostics && diagnostics()
-                // if (lensCore[$parentInstance]) {
-                //     console.warn('Object already has a parent instance reference')
-                // }
 
-                // lensCore[$parentInstance] = parent
                 lensConstructor(lensCore, $ => {
-                    resolveParent()
-
                     const r = cbWithService($)
                     r && r.catch && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
+
+                    whenInstantiated($)
+
+                    return r
                 }, {
                     lensName: name, fullyQualifiedName,
                     preinitializer: ($) => {
@@ -118,7 +118,6 @@ function sealService(lensConstructor, parent, { name, at }) {
                     },
                     parent,
                 })
-            })
 
         })
     }

@@ -6,16 +6,15 @@ import {$composition, $layerOrder} from "../../const"
 
 process.on('exit', onExit)
 
-//catches ctrl+c event
 process.on('SIGINT', onExit)
-
-// catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', onExit)
+process.on('SIGTERM', onExit)
+process.on('SIGHUP', onExit)
 process.on('SIGUSR2', onExit)
 
 const functionCallsByName = {}
 
 function onExit() {
+    console.debug("Storing Compositions World Map")
     const mapFile = path.join(process.cwd(), 'world.mapping.html')
 
     const tree = generateMapTree(functionCallsByName)

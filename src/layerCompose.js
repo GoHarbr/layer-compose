@@ -24,7 +24,7 @@ export default function layerCompose(...layers) {
 
 export function $ (layer, baseLayer, {unsafe = true, depth = 1} = {}) {
     if (depth > 3) {
-        console.warn('Use `layerCompose(...layers)` syntax for more than 3 layers chained together with o.$().$()')
+        console.warn('Use `layerCompose(...layers)` syntax for more than 3 layers chained together with o.$().$()', findLocationFromError(new Error()))
     }
     if (!layer?.[$isLc] && typeof layer != 'object' || Array.isArray(layer) || layer == null) {
         throw new Error('A layer must be an object')
