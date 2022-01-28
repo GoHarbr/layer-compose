@@ -9,7 +9,7 @@ export function findDependency($, ofType) {
     const core = core_unsafe($)
 
     for (const v of Object.values(core)) {
-        if (v[$isCompositionInstance]) {
+        if (v && v[$isCompositionInstance]) {
             if (isExtensionOf(v, ofType)) {
 
                 notify(ofType)
