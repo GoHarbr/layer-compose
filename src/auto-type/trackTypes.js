@@ -109,8 +109,8 @@ function typeObj(obj, { depth = 0, maxDepth = 2, showHidden = false }) {
 
         const className = obj.constructor?.name
         if (className) {
-            if (className.includes('Set')) return 'Set<mixed>'
-            if (className.includes('Map')) return 'Map<mixed, mixed>'
+            if (className == 'Set') return 'Set<mixed>'
+            if (className == ('Map')) return 'Map<mixed, mixed>'
         }
         // if (obj[$isCompositionInstance]) return '$_'
 
