@@ -100,7 +100,7 @@ function type$($) {
     return Object.keys($)
 }
 
-function typeObj(obj, { depth = 0, maxDepth = 1 }) {
+function typeObj(obj, { depth = 0, maxDepth = 2, showHidden = false }) {
     const _typeof = typeof obj
 
     if (_typeof === 'object') {
@@ -118,7 +118,11 @@ function typeObj(obj, { depth = 0, maxDepth = 1 }) {
         const types = {}
         let count = 0
         for (const k in obj) {
+            if (!showHidden && k.startsWith('_')) continue
+
             count++
+
+            // todo. check for getters
 
             // objects with such numerous properties are probably not in need of typing
             if (count > 30) return {}

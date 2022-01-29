@@ -19,9 +19,9 @@ function printIntroduction() {
            This is
                layer-compose
     
-    An opinionated, minimalist 
+    An minimal, opinionated, 
       architectural framework 
-      for crafts women and other analogue monkeys
+      for crafts women and other analogue people-engineers
     
     
     
