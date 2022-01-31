@@ -2,7 +2,6 @@ import { $isCompositionInstance, $tag } from "../../const"
 import { core_unsafe } from "./core"
 import { isExtensionOf } from "./isExtensionOf"
 import { GLOBAL_DEBUG } from "../utils/enableDebug"
-import { findLocationFromError } from "../utils/findLocationFromError"
 import { parent } from './parent'
 
 export function findDependency($, ofType, {location} = {}) {
@@ -37,6 +36,6 @@ export function findDependency($, ofType, {location} = {}) {
 function notify(ofType, location) {
     if (GLOBAL_DEBUG.enabled) {
         const header = `${ofType[$tag]} injected`
-        console.debug(`<<|  ${header.padEnd(95)} :: ${findLocationFromError(location) || ''}`)
+        console.debug(`<<|  ${header.padEnd(95)} :: ${location || ''}`)
     }
 }
