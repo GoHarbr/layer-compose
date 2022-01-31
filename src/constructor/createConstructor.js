@@ -116,7 +116,7 @@ const _constructor = (layers) => {
         const composition = await this[$getComposition]({tag})
 
         if (coreObject[$isCompositionInstance]) {
-            const $ = findDependency(coreObject, composition)
+            const $ = findDependency(coreObject, composition, {location})
 
             if (!$) {
                 throw new Error('Failed to find dependency')

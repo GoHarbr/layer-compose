@@ -5,14 +5,14 @@ import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import { findLocationFromError } from "../utils/findLocationFromError"
 import { parent } from './parent'
 
-export function findDependency($, ofType) {
+export function findDependency($, ofType, {location} = {}) {
     const core = core_unsafe($)
 
     for (const v of Object.values(core)) {
         if (v && v[$isCompositionInstance]) {
             if (isExtensionOf(v, ofType)) {
 
-                notify(ofType)
+                notify(ofType, location)
 
                 return v
             }
@@ -25,7 +25,7 @@ export function findDependency($, ofType) {
     }
 
     if (isExtensionOf(p, ofType)) {
-        notify(ofType)
+        notify(ofType, location)
 
         return p
     } else {
@@ -34,9 +34,9 @@ export function findDependency($, ofType) {
 
 }
 
-function notify(ofType) {
+function notify(ofType, location) {
     if (GLOBAL_DEBUG.enabled) {
-        const header = `${ofType[$tag]}`
-        console.debug(`<<|  ${header.padEnd(95)} injected  :: ${findLocationFromError(new Error()) || ''}`)
+        const header = `${ofType[$tag]} injected`
+        console.debug(`<<|  ${header.padEnd(95)} :: ${findLocationFromError(location) || ''}`)
     }
 }
