@@ -19,8 +19,9 @@ export default function initialize($, coreUpdate) {
             // it's a data accessor!
             if (typeof v === 'function' && !v.length) {
                 // it's not hidden
-                if (k[0] !== '_') {
-                    Object.defineProperty($, '_' + k,
+                const firstLetter = k[0]
+                if (firstLetter !== '_' && firstLetter.toUpperCase() === firstLetter) {
+                    Object.defineProperty($, '_' + firstLetter.toUpperCase() + k.slice(1),
                         {
                             get: () => {
                                 if (GLOBAL_DEBUG.enabled) {
