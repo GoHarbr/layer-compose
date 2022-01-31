@@ -6,7 +6,7 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 
 <p align="center" style="font-size:20px">
 <br/>
-Lenses meet OO
+Lenses meet Reactive OOP
 </p>
 
 <p align="center" style="font-size:20px">
@@ -21,9 +21,12 @@ How does a _**team**_ write software that _**grows**_?
 
 --------
 
-*layerCompose* is a **safe** state management / data flow builder with safety checks  
+*layerCompose* shines as a business logic layer of your application, providing safety for implementing
+ state management and data flow, allowing your team to focus on the logic. It provides flexibility in
+adding functionality as the application grows, easing the pain of having to figure out the 
+entire architecture up-front.
   
-*layerCompose* is a subset of JavaScript (opposite of a superset!): it **constrains** you (making it easier to work as a team) and 
+*layerCompose* can be thought of as a language: a subset of JavaScript (opposite of a superset!): it **constrains** you (making it easier to work as a team) and 
 counterintuitively gives you more **power** by letting you focus on the implementation and worry less about the architectural choices.  
 
 ## layerCompose
