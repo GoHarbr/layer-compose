@@ -29,6 +29,9 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
             catchWith.push(e => console.error(e))
         }
         queue[$currentExecutor] = {
+            then(cb) {
+                queueForExecution($, cb, null, {push: true})
+            },
             catch(cb) {
                 catchWith.push(cb)
             }

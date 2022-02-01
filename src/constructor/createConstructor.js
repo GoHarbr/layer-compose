@@ -2,6 +2,7 @@ import {
     $at,
     $composition,
     $compositionId,
+    $currentExecutor,
     $dataPointer,
     $fullyQualifiedName,
     $getComposition,
@@ -17,7 +18,7 @@ import wrapStandardMethods from "./wrapStandardMethods"
 import compose from "../compose/compose"
 import seal from "./seal"
 import initialize from "./initialize"
-import { queueForExecution } from "../compose/queueForExecution"
+import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
 import { markWithId } from "../compose/markWithId"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
@@ -41,7 +42,7 @@ export function createConstructor(layers) {
     wrapWithUtils(constructor)
 
 
-    _c[$getComposition] = constructor[$getComposition] = async ({tag = null} = {}) => {
+    _c[$getComposition] = constructor[$getComposition] = async ({ tag = null } = {}) => {
         const existing = constructor[$composition]
         if (existing) {
             if (!existing[$tag] && tag) {
@@ -113,17 +114,20 @@ const _constructor = (layers) => {
         }
         try {
 
-        const composition = await this[$getComposition]({tag})
+            const composition = await this[$getComposition]({ tag })
 
-        if (coreObject[$isCompositionInstance]) {
-            const $ = findDependency(coreObject, composition, {location})
+            if (coreObject[$isCompositionInstance]) {
+                const $ = findDependency(coreObject, composition, { location })
 
-            if (!$) {
-                throw new Error('Failed to find dependency')
-            }
+                if (!$) {
+                    throw new Error('Failed to find dependency')
+                }
 
-            queueCb($, cb)
-        } else {
+                queueCb($, cb)
+
+                return getExecutionQueue($)[$currentExecutor]
+
+            } else {
 
                 const [$] = await constructFromComposition(
                     composition,
@@ -134,7 +138,9 @@ const _constructor = (layers) => {
 
                 // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
                 queueCb($, cb)
-        }
+
+                return getExecutionQueue($)[$currentExecutor]
+            }
 
         } catch (e) {
             console.error("layerCompose encountered an error:", e, e.stack)
@@ -145,5 +151,6 @@ const _constructor = (layers) => {
 }
 
 function queueCb($, cb) {
-    return queueForExecution($, () => {}, () => cb($))
+    return queueForExecution($, () => {
+    }, () => cb($))
 }

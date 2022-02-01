@@ -1,6 +1,7 @@
 import {
     $at,
     $compositionId,
+    $currentExecutor,
     $dataPointer,
     $fullyQualifiedName,
     $isLc,
@@ -11,7 +12,7 @@ import {
 } from "../const"
 import { unwrapProxy } from "../proxies/utils"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
-import { queueForExecution } from "../compose/queueForExecution"
+import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import core, { core_unsafe } from "../external/patterns/core"
@@ -103,7 +104,7 @@ function sealService(lensConstructor, parent, { name, at }) {
                     const r = cbWithService($)
                     r && r.catch && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
 
-                    whenInstantiated($)
+                    whenInstantiated(getExecutionQueue($)[$currentExecutor])
 
                     return r
                 }, {
