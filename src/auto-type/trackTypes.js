@@ -42,16 +42,17 @@ export async function writeTypesToDisk() {
         for (const [name, types] of Object.entries(functionsWithTypes)) {
             let _type = objectTypeToFlow(types._)
             const is_Empty = _type === '{}'
+
+            const flowComment_ = `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || '[string]: any'}  }`.replace('[', '-[')
             // if (is_Empty) _type = '{ '
 
             // const _otype = objectTypeToFlow(types.o)
 
             // todo. sort (consistent) by key length
 
-            let flow$ =
                 flowTypesByFn[name] = {
                     $: flowRepresentationFor$(types.$),
-                    _: `: ${_type.slice(0, _type.length - 1)}${!is_Empty && ',' || ''} -[string]: any }`,
+                    _: flowComment_,
                     o: `: {+[key: string]: any}`
                 }
         }
@@ -100,7 +101,7 @@ function type$($) {
     return Object.keys($)
 }
 
-function typeObj(obj, { depth = 0, maxDepth = 2, showHidden = false }) {
+function typeObj(obj, { depth = 0, maxDepth = 1, showHidden = false }) {
     const _typeof = typeof obj
 
     if (_typeof === 'object') {
@@ -125,7 +126,7 @@ function typeObj(obj, { depth = 0, maxDepth = 2, showHidden = false }) {
             // todo. check for getters
 
             // objects with such numerous properties are probably not in need of typing
-            if (count > 30) return {}
+            if (count > 100) return {}
 
             const v = obj[k]
             if (depth < maxDepth) {
@@ -185,7 +186,8 @@ function objectTypeToFlow(definitions) {
     } else if (typeof definitions == 'object' && !!definitions) {
         const common = getCommonObjectShape(Object.values(definitions))
         if (common) {
-            return `{[key: string]: ${objectTypeToFlow(common)} }`
+            const keys = Object.keys(definitions).map(k => `'${k}'`).join('|')
+            return `{[${keys}]: ${objectTypeToFlow(common)} }`
         } else {
             const props = Object.entries(definitions).map(([k, t]) => {
                 const kStr = !Number.isNaN(parseInt(k)) || k.includes('-') || k.includes('.') ? `'${k}'` : k
