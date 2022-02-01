@@ -1,14 +1,14 @@
-import {$currentExecutor, $executionQueue, IS_DEV_MODE} from "../const"
-import {isPromise}                                      from "../utils"
-import core                                             from "../external/patterns/core"
-import asap                                             from "asap/raw"
-import {writeTypesToDisk}                               from "../auto-type/trackTypes"
+import { $currentExecutor, $executionQueue, IS_DEV_MODE } from "../const"
+import { isPromise } from "../utils"
+import core from "../external/patterns/core"
+import asap from "asap/raw"
 
 let id = 0
-export function queueForExecution($, fn, cb, {push = false, next = false, prepend = false} = {}) {
+
+export function queueForExecution($, fn, cb, { push = false, next = false, prepend = false } = {}) {
     const queue = getExecutionQueue($)
 
-    const item = { fn, cb, id: id++}
+    const item = { fn, cb, id: id++ }
     if (prepend) {
         if (!queue.buffer) queue.buffer = []
     } else if (next) {
@@ -36,7 +36,7 @@ export function queueForExecution($, fn, cb, {push = false, next = false, prepen
 
 async function _execute($, queue, catchWith) {
     try {
-        await execute(queue)
+        await execute(queue, $)
 
     } catch (e) {
         catchWith.forEach(cb => cb(e))
@@ -47,7 +47,7 @@ export function getExecutionQueue($) {
     return core($)[$executionQueue] || (core($)[$executionQueue] = [])
 }
 
-async function execute(queue) {
+async function execute(queue, $) {
     const next = queue.shift()
     if (!next) {
         queue[$currentExecutor] = null
@@ -60,28 +60,57 @@ async function execute(queue) {
     if (queue.buffer != null) debugger
     queue.buffer = []
 
-    const fnReturn = fn()
+    try {
+        const fnReturn = fn()
 
-    queue.unshift(...queue.buffer)
-    queue.buffer = null
+        if (fnReturn) {
+            if (isPromise(fnReturn)) {
+                queue.unshift(...queue.buffer)
+                queue.buffer = null
 
-    /*
-    ? Allow control yielding with generators
-    ? `const x = yield Promise.resolve(1) // x = 1`
-    * */
+                const res = await fnReturn
 
+                cb && cb(res)
 
-    if (isPromise(fnReturn)) {
+                return execute(queue, $)
 
-        const res = await fnReturn.catch(e => {
-            console.error('Queue task: Promise rejected:', e)
-            throw e
-        })
+            } else if (fnReturn[Symbol.asyncIterator] || fnReturn[Symbol.iterator]) {
+                const res = fnReturn.next()
 
-        cb && cb(res)
+                queue.unshift(...queue.buffer)
+                queue.buffer = null
 
-    } else {
+                const { value, done } = await res
+
+                if (!done) {
+                    queueForExecution($,() => {
+                        return fnReturn
+                    }, null, {next: true})
+                }
+
+                if (value) {
+                    typeof value === 'function' ?
+                        queueForExecution($, value, null, {next: true})
+                        : $(value)
+                }
+
+                return execute(queue, $)
+
+            }
+        }
+
+        // all other cases
+
+        queue.unshift(...queue.buffer)
+        queue.buffer = null
+
         cb && cb(fnReturn)
+
+
+        return execute(queue, $)
+
+    } catch (e) {
+        console.warn('!! Queue task failed:', e)
+        throw e
     }
-    return execute(queue)
 }
