@@ -1,22 +1,23 @@
 import {
-    $at, $compositionId,
+    $at,
+    $compositionId,
     $dataPointer,
-    $fullyQualifiedName, $isLc,
-    $layers,
+    $fullyQualifiedName,
+    $isLc,
     $lensName,
     $parentInstance,
     $writableKeys,
     IS_DEV_MODE
-}                                  from "../const"
-import {unwrapProxy}               from "../proxies/utils"
-import {wrapCompositionWithProxy}  from "../proxies/wrapCompositionWithProxy"
-import {queueForExecution}         from "../compose/queueForExecution"
-import {GLOBAL_DEBUG}              from "../external/utils/enableDebug"
-import {findLocationFromError}     from "../external/utils/findLocationFromError"
-import core, {core_unsafe}         from "../external/patterns/core"
-import {trackExternalFunctionCall} from "../auto-type/mapper/mapper"
-import defaults                    from "../external/patterns/defaults"
-import constructCoreObject         from "./constructCoreObject"
+} from "../const"
+import { unwrapProxy } from "../proxies/utils"
+import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
+import { queueForExecution } from "../compose/queueForExecution"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { findLocationFromError } from "../external/utils/findLocationFromError"
+import core, { core_unsafe } from "../external/patterns/core"
+import { trackExternalFunctionCall } from "../auto-type/mapper/mapper"
+import defaults from "../external/patterns/defaults"
+import constructCoreObject from "./constructCoreObject"
 
 
 const PRIMORDIAL_LEVEL=0
@@ -27,25 +28,23 @@ export default function seal(composition) {
 
         let coreUpdate
 
+            queueForExecution($, async () => coreUpdate = arg && await constructCoreObject(arg), () => {
 
-        // pass on the message
-        queueForExecution($, () => {
-            if (coreUpdate) {
-                $._ && $._(coreUpdate)
-
-                // runs after
+                // pass on the message
                 queueForExecution($, () => {
-                    const c = core($, PRIMORDIAL_LEVEL)
-                    defaults(c, coreUpdate)
-                }, null, {next: true})
-            }
-        }, null, {next: true})
+                    if (coreUpdate) {
+                        $._ && $._(coreUpdate)
 
-        /* order is reversed here, because of `next` flag.
-        * For this operation to execute before the above one, we must queue it after */
-        if (arg) {
-            queueForExecution($, async () => coreUpdate = await constructCoreObject(arg), null, {next: true})
-        }
+                        // runs after
+                        queueForExecution($, () => {
+                            const c = core($, PRIMORDIAL_LEVEL)
+                            defaults(c, coreUpdate)
+                        }, null, {prepend: true})
+                    }
+                }, null, {prepend: true})
+
+            }, {prepend: true})
+
 
         return $
     }

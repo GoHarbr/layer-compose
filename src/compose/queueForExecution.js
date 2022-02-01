@@ -10,7 +10,11 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
 
     const item = { fn, cb, id: id++ }
     if (prepend) {
-        if (!queue.buffer) queue.buffer = []
+        if (queue.buffer) {
+            queue.buffer.push(item)
+        } else {
+            queue.unshift(item)
+        }
     } else if (next) {
         queue.unshift(item)
     } else if (queue.buffer != null && !push) {
