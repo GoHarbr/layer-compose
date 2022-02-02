@@ -1,20 +1,11 @@
-import {getLayerId, isFragmentOfLayers, isLcConstructor, }                                    from "../utils"
-import {
-    $at, $compositionId,
-    $getComposition,
-    $isComposed, $isLc,
-    $isService,
-    $layerOrder,
-    $layers,
-    IS_DEV_MODE
-} from "../const"
-import {functionComposer}      from "./functionComposer"
-import makeBaseComposition     from "./makeBaseComposition"
-import {createConstructor}     from "../constructor/createConstructor"
-import {wrapFunctionForDev}    from "./wrapFunctionForDev"
-import {findLocationFromError} from "../external/utils/findLocationFromError"
-import {markWithId}                   from "./markWithId"
-import {registerLayer, retrieveLayer} from "./registerLayer"
+import { isFragmentOfLayers, isLcConstructor, } from "../utils"
+import { $at, $compositionId, $getComposition, $isComposed, $isLc, $layerOrder, $layers, IS_DEV_MODE } from "../const"
+import { functionComposer } from "./functionComposer"
+import makeBaseComposition from "./makeBaseComposition"
+import { createConstructor } from "../constructor/createConstructor"
+import { wrapFunctionForDev } from "./wrapFunctionForDev"
+import { findLocationFromError } from "../external/utils/findLocationFromError"
+import { registerLayer } from "./registerLayer"
 
 async function compose(layerLike, composed) {
     const layerId = registerLayer(layerLike) // can also return compositionId
@@ -177,7 +168,9 @@ async function compose(layerLike, composed) {
 async function processFragmentOfLayers(layerLike, composed) {
     for (let i = 0; i < layerLike.length; i++) {
         const l = layerLike[i]
-        if (!l[$at]) l[$at] = layerLike[$at]
+        if (!l[$at] && !l[$isLc]) {
+            l[$at] = layerLike[$at]
+        }
 
         composed = await compose(l, composed)
         if (IS_DEV_MODE && !composed[$at]) debugger

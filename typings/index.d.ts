@@ -1,4 +1,4 @@
-import {lcConstructor, lcInstance} from "./lcConstructor";
+import {lcInstance} from "./lcConstructor";
 
 export { layerCompose } from './layerCompose';
 
@@ -12,6 +12,8 @@ export const $: <T>(layer: T) => {
     $: <T2>(layer: T2) => $<T | T2>
 }
 export const o: {$: typeof $}
+
+export function lc(tag?: string): {}
 
 export function coreLens(transform: (parentCore) => object): ($, _) => object
 

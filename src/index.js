@@ -3,7 +3,7 @@ import "./auto-type/onExit"
 export {IS_DEV_MODE} from "./const"
 
 export layerCompose from './layerCompose'
-export {$, o} from './layerCompose'
+export {$, o, lc} from './layerCompose'
 
 export assign       from "./external/patterns/assign"
 export defaults       from "./external/patterns/defaults"
