@@ -2,6 +2,7 @@ import { $currentExecutor, $executionQueue, IS_DEV_MODE } from "../const"
 import { isPromise } from "../utils"
 import core from "../external/patterns/core"
 import asap from "asap/raw"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 
 let id = 0
 
@@ -118,6 +119,11 @@ async function execute(queue, $) {
 
     } catch (e) {
         console.warn('!! Queue task failed:', e)
+
+        if (GLOBAL_DEBUG.enabled) {
+            process.exit(1)
+        }
+
         throw e
     }
 }
