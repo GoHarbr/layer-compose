@@ -9,16 +9,19 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 Lenses meet Reactive OOP
 </p>
 
-<p align="center" style="font-size:20px">
-<br/>
-Or, look! Dependency injection meets Lenses and Mixins to form the backbone of data flow in your applications. 
-</p>
+[//]: # ()
+[//]: # (<p align="center" style="font-size:20px">)
+
+[//]: # (<br/>)
+
+[//]: # (Or, look! Dependency injection meets Lenses and Mixins to form the backbone of data flow in your applications. )
+
+[//]: # (</p>)
 
 
 --------
 
-How does a _**team**_ write software that _**grows**_?  
-
+I made layer-compose because I got tired of writing sh*tty code.
 --------
 
 *layerCompose* shines as a business logic layer of your application, providing safety for implementing

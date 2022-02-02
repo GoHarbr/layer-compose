@@ -92,7 +92,7 @@ function sealService(lensConstructor, parent, { name, at }) {
         const diagnostics = !IS_DEV_MODE ? null : () => {
             if (GLOBAL_DEBUG.enabled) {
                 const header = `|>>  ${''.padEnd(25)}  ${fullyQualifiedName} () lens`
-                console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
+                console.debug(`${header.padEnd(95)} :: ${findLocationFromError(new Error())}`)
             }
         }
 
