@@ -88,13 +88,15 @@ async function execute(queue, $) {
                 queue.unshift(...queue.buffer)
                 queue.buffer = null
 
+
+                let doContinue
+                queueForExecution($,() => {
+                    return doContinue && fnReturn
+                }, null, {next: true})
+
                 const { value, done } = await res
 
-                if (!done) {
-                    queueForExecution($,() => {
-                        return fnReturn
-                    }, null, {next: true})
-                }
+                if (!done) {doContinue = true}
 
                 if (value) {
                     typeof value === 'function' ?
