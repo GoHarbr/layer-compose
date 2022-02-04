@@ -1,14 +1,15 @@
 import * as parser from "@babel/parser"
-import traverse    from "@babel/traverse"
-import generate    from "@babel/generator"
+import traverse from "@babel/traverse"
+import generate from "@babel/generator"
 
-import fs                   from 'fs'
-import path                 from 'path'
-import process              from 'process'
-import {IS_DEV_MODE}        from "../const"
-import prettier             from "prettier"
-import {addExportTypes}     from "./addExportTypes"
-import {prependFlowComment} from "./prependFlowComment"
+import fs from 'fs'
+import path from 'path'
+import process from 'process'
+import { IS_DEV_MODE } from "../const"
+import prettier from "prettier"
+import { addExportTypes } from "./addExportTypes"
+import { prependFlowComment } from "./prependFlowComment"
+
 const { parse } = parser
 
 const defaultRegex = /^\s*(export\s+default\s+)([^]+)\/\*:\s*any\s*\*\/;/m
@@ -26,35 +27,47 @@ function rewriteDefaultExport(source) {
 export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
     // todo make sure it works in browsers
     if (fs && IS_DEV_MODE) {
-        const source = fs.readFileSync(filename).toString()
-        const isModule = source.includes('import') || source.includes('export')
+        let updatedSource
+        try {
+            const source = fs.readFileSync(filename).toString()
+            const isModule = source.includes('import') || source.includes('export')
 
-        const ast = parse(source, { sourceType: isModule && 'module' || 'script' })
+            const ast = parse(source, { sourceType: isModule && 'module' || 'script' })
 
-        modifyFunctionAstWithType({
-            ast, startingLine, types
-        })
+            modifyFunctionAstWithType({
+                ast, startingLine, types
+            })
 
-        const output = generate(ast, {
-            retainLines: true,
-            compact: false,
-            concise: false,
-        }, source)
+            const output = generate(ast, {
+                retainLines: true,
+                compact: false,
+                concise: false,
+            }, source)
 
-        let updatedSource = prependFlowComment(output.code)
-        updatedSource = rewriteDefaultExport(updatedSource)
+            updatedSource = prependFlowComment(output.code)
+            updatedSource = rewriteDefaultExport(updatedSource)
 
-        const tmpDir = path.join(process.cwd(), 'tmp')
+            const tmpDir = path.join(process.cwd(), 'tmp')
 
-        if (!fs.existsSync(tmpDir)) {
-            fs.mkdirSync(tmpDir)
+            if (!fs.existsSync(tmpDir)) {
+                fs.mkdirSync(tmpDir)
+            }
+
+            const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
+            fs.writeFileSync(backupFilename, source)
+            fs.writeFileSync(filename,
+                prettier.format(updatedSource, {
+                    parser: "babel",
+                    semi: false,
+                    bracketSpacing: true,
+                    semicolons: false,
+                    tabWidth: 4
+                })
+            )
+        } catch (e) {
+            console.error('Failed to write types for file: ', filename, e)
+            console.error(updatedSource)
         }
-
-        const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
-        fs.writeFileSync(backupFilename, source)
-        fs.writeFileSync(filename,
-            prettier.format(updatedSource, {parser: "babel", semi: false, bracketSpacing: true, semicolons: false, tabWidth: 4})
-        )
     }
 }
 
