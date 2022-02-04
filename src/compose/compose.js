@@ -1,5 +1,15 @@
 import { isFragmentOfLayers, isLcConstructor, } from "../utils"
-import { $at, $compositionId, $getComposition, $isComposed, $isLc, $layerOrder, $layers, IS_DEV_MODE } from "../const"
+import {
+    $at,
+    $compositionId,
+    $getComposition,
+    $isComposed,
+    $isLc,
+    $layerOrder,
+    $layers,
+    GETTER_NAMING_CONVENTION_RE,
+    IS_DEV_MODE
+} from "../const"
 import { functionComposer } from "./functionComposer"
 import makeBaseComposition from "./makeBaseComposition"
 import { createConstructor } from "../constructor/createConstructor"
@@ -85,8 +95,8 @@ async function compose(layerLike, composed) {
 
             if (typeof value === 'object' || isLcConstructor(value)) {
                 // if this is a service definition then it starts with a capital letter
-                if (name[0] !== name[0].toUpperCase()) {
-                    throw new Error("Lens name must start with uppercase: " + name)
+                if (name[0] !== name[0].toUpperCase() && name[0] !== '_' && name[0] !== '$') {
+                    throw new Error("Lens name must start with uppercase letter: " + name)
                 }
 
                 const serviceName = name
@@ -143,6 +153,10 @@ async function compose(layerLike, composed) {
                 }
 
                 const existing = composed[fnName] || null
+
+                if (existing && GETTER_NAMING_CONVENTION_RE.test(fnName)) {
+                    throw new Error('Getter cannot be redefined: already exists' + fnName)
+                }
 
                 if (existing || !fn[$isComposed]) { // do not recompose!
                     composedEntry = functionComposer(existing, fn, { isReverse })

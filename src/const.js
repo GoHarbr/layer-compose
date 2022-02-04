@@ -39,3 +39,4 @@ export const $currentExecutor = Symbol('currentExecutor')
 
 // export const $isSetter = Symbol("isSetter")
 // export const $isGetter = Symbol("isGetter")
+export const GETTER_NAMING_CONVENTION_RE = /^_[A-Z]/

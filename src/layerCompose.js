@@ -1,4 +1,4 @@
-import { $at, $isLc, IS_DEV_MODE } from "./const"
+import { $at, $isLc, GETTER_NAMING_CONVENTION_RE, IS_DEV_MODE } from "./const"
 import { createConstructor } from "./constructor/createConstructor"
 import { findLocationFromError } from "./external/utils/findLocationFromError"
 
@@ -51,8 +51,8 @@ o.$ = (layer) => {
     return $(layer, null,{unsafe: false})
 }
 
-const capitalRe = /[A-Z]/
-const nonCapital = /[_]?[a-z]+.*/
+const capitalRe = /^[A-Z]/
+const layerRe = /^[_]+[a-z]?/
 
 export function lc(tag) {
     const layers = []
@@ -74,25 +74,45 @@ export function lc(tag) {
             }
 
             if (constructor) throw new Error(`Can't add layers after the constructor has been created`)
-            if (!value || (typeof value !== "object" && !value[$isLc])) {
-                throw new Error('a Layer must be an object, composition constructor or an async import')
-            }
 
-            const isLens = capitalRe.test(prop[0])
+            const isLens = capitalRe.test(prop)
             const at = new Error()
 
+            if (!value) throw new Error('A layer must not be nothing: ' + prop)
+
             if (isLens) {
-                layers.push({[prop]: value, [$at]: at})
+                if (typeof value !== "object" && !value[$isLc]) {
+                    throw new Error('Lens definition can contain only layers or compositoin constructors')
+                }
+
+                layers.unshift({ [prop]: value, [$at]: at })
+
+                return true
+            } else if (GETTER_NAMING_CONVENTION_RE.test(prop)) {
+
+                if (typeof value !== "function") throw new Error('A getter must be a function')
+                if (value.length > 1) throw new Error('A getter must take at most a single argument -- the core')
+                layers.unshift({
+                    [prop]: ($,_) => value(_)
+                })
+
+                return true
             } else {
-                if (!nonCapital.test(prop)) {
+                if (!layerRe.test(prop)) {
                     throw new Error('layer names must start with an optional `_` and a lowercase letter. Not valid: ' + prop)
                 }
-                if (prop in target) throw new Error('Layer with such name already exists')
-                layers.push(value)
+                if (typeof value !== "object" && !value[$isLc]) {
+                    throw new Error('A layers must be an object, an array, or a composition constructor. It cannot be a function: ' + prop)
+                }
+
+                if (prop in target && prop !== '_') throw new Error('Layer with such name already exists: ' + prop)
+                layers.unshift(value)
                 target[prop] = true
+
+                return true
             }
 
-            return true
+            throw new Error('a Layer must be an object, composition constructor or an async import, or a getter')
         },
 
         apply(target, thisArg, args) {
