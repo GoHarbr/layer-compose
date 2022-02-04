@@ -8,6 +8,7 @@ import {
     $lensName,
     $parentInstance,
     $writableKeys,
+    GETTER_NAMING_CONVENTION_RE,
     IS_DEV_MODE
 } from "../const"
 import { unwrapProxy } from "../proxies/utils"
@@ -19,6 +20,7 @@ import core, { core_unsafe } from "../external/patterns/core"
 import { trackExternalFunctionCall } from "../auto-type/mapper/mapper"
 import defaults from "../external/patterns/defaults"
 import constructCoreObject from "./constructCoreObject"
+import { isPromise } from "../utils"
 
 
 const PRIMORDIAL_LEVEL=0
@@ -33,14 +35,16 @@ export default function seal(composition) {
 
                 // pass on the message
                 queueForExecution($, () => {
-                    if (coreUpdate) {
+                    if (coreUpdate !== undefined) {
                         $._ && $._(coreUpdate)
 
                         // runs after
-                        queueForExecution($, () => {
-                            const c = core($, PRIMORDIAL_LEVEL)
-                            defaults(c, coreUpdate)
-                        }, null, {prepend: true})
+                        if (coreUpdate) {
+                            queueForExecution($, () => {
+                                const c = core($, PRIMORDIAL_LEVEL)
+                                defaults(c, coreUpdate)
+                            }, null, { prepend: true })
+                        }
                     }
                 }, null, {prepend: true})
 
@@ -125,6 +129,7 @@ function sealService(lensConstructor, parent, { name, at }) {
 }
 
 function sealMethod(method, $, { name }) {
+    const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
 
     return function (opt, ...rest) {
         if (IS_DEV_MODE) {
@@ -143,10 +148,13 @@ function sealMethod(method, $, { name }) {
         }
 
 
-        method($, _, optOrEmpty(opt))
-        // queueForExecution($, () => method($, _, optOrEmpty(opt)))
+        const res = method($, _, optOrEmpty(opt))
 
-        return $
+        if (IS_DEV_MODE && isGetter && isPromise(res)) {
+            throw new Error("Getters must not return promises, they must be synchronous")
+        }
+
+        return isGetter ? res : $
     }
 
 }
