@@ -33,7 +33,7 @@ export function createConstructor(layers) {
         return layers[0]
     }
 
-    const _c = _constructor(layers)
+    const _c = _constructor({at: layers[$at]})
     const constructor = _c.bind(_c)
 
     constructor[$isLc] = true
@@ -53,7 +53,7 @@ export function createConstructor(layers) {
             return existing
         }
 
-        const composition = await compose(layers, null)
+        const composition = await compose(constructor[$layers], null)
         composition[$compositionId] = constructor[$compositionId]
         composition[$tag] = tag
 
@@ -97,8 +97,8 @@ export async function constructFromComposition(composition, coreObject, {
 }
 
 const mjsRe = /m?js/
-const _constructor = (layers) => {
-    const location = findLocationFromError(layers[$at])
+const _constructor = ({at}) => {
+    const location = findLocationFromError(at)
     const { filename } = splitLocationIntoComponents(location)
     const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
 
