@@ -106,6 +106,7 @@ export function lc(tag) {
                 }
 
                 if (prop in target && prop !== '_') throw new Error('Layer with such name already exists: ' + prop)
+                if (prop === '_' && !value[$isLc]) throw new Error('Non-composed layers must be named: ' + prop)
                 layers.unshift(value)
                 target[prop] = true
 
