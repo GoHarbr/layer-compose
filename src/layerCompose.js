@@ -93,7 +93,8 @@ export function lc(tag) {
                 if (typeof value !== "function") throw new Error('A getter must be a function')
                 if (value.length > 1) throw new Error('A getter must take at most a single argument -- the core')
                 layers.unshift({
-                    [prop]: ($,_) => value(_)
+                    [prop]: ($,_) => value(_),
+                    [$at]: at
                 })
 
                 return true
@@ -107,6 +108,8 @@ export function lc(tag) {
 
                 if (prop in target && prop !== '_') throw new Error('Layer with such name already exists: ' + prop)
                 if (prop === '_' && !value[$isLc]) throw new Error('Non-composed layers must be named: ' + prop)
+
+                value[$at] = at
                 layers.unshift(value)
                 target[prop] = true
 
