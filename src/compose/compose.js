@@ -127,6 +127,7 @@ async function compose(layerLike, composed) {
                 next[serviceName] = s
 
             } else if (typeof value == 'function') {
+                const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
 
                 // ! explainer: layers used to be reversed when processed as an array
                 // ! that's why `isReverse` is now false for initializers and true for other functions
@@ -145,24 +146,40 @@ async function compose(layerLike, composed) {
 
                 let composedEntry
                 let fn = value
-                if (IS_DEV_MODE && !fn[$isComposed]) {
-                    fn = wrapFunctionForDev(layerId, fn, {
-                            name: fnName,
-                            at
-                        })
-                }
 
                 const existing = composed[fnName] || null
 
-                if (existing && GETTER_NAMING_CONVENTION_RE.test(fnName)) {
-                    throw new Error('Getter cannot be redefined: already exists' + fnName)
+                if (isGetter) {
+                    if (existing) {
+                        throw new Error('Getter cannot be redefined: already exists' + fnName)
+                    }
+
+                    composedEntry = ($,_) => fn(_)
+
+                    if (IS_DEV_MODE) {
+                        composedEntry = wrapFunctionForDev(layerId, composedEntry, {
+                            name: fnName,
+                            at,
+                        })
+                    }
+
+                } else {
+
+                    if (IS_DEV_MODE && !fn[$isComposed]) {
+                        fn = wrapFunctionForDev(layerId, fn, {
+                            name: fnName,
+                            at
+                        })
+                    }
+
+                    if (existing || !fn[$isComposed]) { // do not recompose!
+                        composedEntry = functionComposer(existing, fn, { isReverse })
+                    } else {
+                        composedEntry = fn
+                    }
+
                 }
 
-                if (existing || !fn[$isComposed]) { // do not recompose!
-                    composedEntry = functionComposer(existing, fn, { isReverse })
-                } else {
-                    composedEntry = fn
-                }
 
                 composedEntry[$isComposed] = true
 
