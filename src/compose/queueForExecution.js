@@ -100,7 +100,7 @@ async function execute(queue, $) {
 
                 if (value) {
                     typeof value === 'function' ?
-                        queueForExecution($, value, null, {next: true})
+                        queueForExecution($, value, cb, {next: true})
                         : $(value)
                 }
 
