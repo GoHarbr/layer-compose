@@ -9,6 +9,8 @@ import { IS_DEV_MODE } from "../const"
 import prettier from "prettier"
 import { addExportTypes } from "./addExportTypes"
 import { prependFlowComment } from "./prependFlowComment"
+import { modifyLayerAstWithType } from "./modifyLayerAstWithType"
+import * as lcAst from "./lc-notation/modifyAstWithType"
 
 const { parse } = parser
 
@@ -18,52 +20,73 @@ function rewriteDefaultExport(source) {
     const matches = defaultRegex.exec(source)
     if (matches && matches[0]) {
         const replaceWith = `${matches[1]}( ${matches[2]} /*: any*/)`
-        return source.replace(matches[0], replaceWith)
+        const updated = source.slice(0, matches.index) + replaceWith + source.slice(matches.index + matches[0].length, source.length)
+        return updated
     }
 
     return source
 }
 
+const pendingWrites = []
+
+export function flushTypesToDisk() {
+    for (const {filename, ast} of pendingWrites) {
+        const output = generate(ast, {
+            retainLines: true,
+            compact: false,
+            concise: false,
+        })
+
+        let updatedSource = prependFlowComment(output.code)
+        updatedSource = rewriteDefaultExport(updatedSource)
+
+        fs.writeFileSync(filename,
+            prettier.format(updatedSource, {
+                parser: "babel",
+                semi: false,
+                bracketSpacing: true,
+                semicolons: false,
+                tabWidth: 4
+            })
+        )
+    }
+}
+
+const cachedAsts = {}
+
 export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
     // todo make sure it works in browsers
     if (fs && IS_DEV_MODE) {
-        let updatedSource
         try {
-            const source = fs.readFileSync(filename).toString()
-            const isModule = source.includes('import') || source.includes('export')
+            let ast = cachedAsts[filename]
 
-            const ast = parse(source, { sourceType: isModule && 'module' || 'script' })
+            if (!ast) {
+                const source = fs.readFileSync(filename).toString()
+                const isModule = source.includes('import') || source.includes('export') // todo. fragile
+
+                ast = parse(source, { sourceType: isModule && 'module' || 'script' })
+                cachedAsts[filename] = ast
+
+                const tmpDir = path.join(process.cwd(), 'tmp')
+
+                if (!fs.existsSync(tmpDir)) {
+                    fs.mkdirSync(tmpDir)
+                }
+
+                const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
+
+                fs.writeFileSync(backupFilename, source)
+            }
 
             modifyFunctionAstWithType({
                 ast, startingLine, types
             })
+            modifyAstWithExports(ast)
+            lcAst.modifyAstWithType({
+                ast, startingLine, types
+            })
 
-            const output = generate(ast, {
-                retainLines: true,
-                compact: false,
-                concise: false,
-            }, source)
-
-            updatedSource = prependFlowComment(output.code)
-            updatedSource = rewriteDefaultExport(updatedSource)
-
-            const tmpDir = path.join(process.cwd(), 'tmp')
-
-            if (!fs.existsSync(tmpDir)) {
-                fs.mkdirSync(tmpDir)
-            }
-
-            const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
-            fs.writeFileSync(backupFilename, source)
-            fs.writeFileSync(filename,
-                prettier.format(updatedSource, {
-                    parser: "babel",
-                    semi: false,
-                    bracketSpacing: true,
-                    semicolons: false,
-                    tabWidth: 4
-                })
-            )
+            pendingWrites.push({filename, ast})
         } catch (e) {
             console.error('Failed to write types for file: ', filename, e)
             console.error(updatedSource)
@@ -93,62 +116,17 @@ function modifyFunctionAstWithType({ ast, types, startingLine }) {
                     if (line === startingLine) {
                         const arg = path.node.arguments[0]
                         if (arg && arg.type === "ObjectExpression") {
-                            modifyLayerAstWithType(arg, types)
+                            modifyLayerAstWithType(arg, types, {containerAst: path.node, writeLayerHeader: false})
                         }
                     }
                 }
             }
-
-            addExportTypes(path)
         }
     })
 }
 
-// let layerId = 0
-function modifyLayerAstWithType(ast, functionArgTypes) {
-    ast.properties.forEach(prop => {
-        if (prop.type === 'ObjectMethod' && prop.key.type === "Identifier") {
-            const types = functionArgTypes[prop.key.name]
-            if (types) {
-                const fnParams = {}
-                const sourceParams = prop.params
-                fnParams['$'] = sourceParams[0] || (sourceParams[0] = {
-                    type: 'Identifier', name: '$'
-                })
-                fnParams['_'] = sourceParams[1] || (sourceParams[1] = {
-                    type: 'Identifier', name: '_'
-                })
-                fnParams['o'] = sourceParams[2] || (sourceParams[2] = {
-                    type: 'Identifier', name: 'o'
-                })
-
-                for (const [name, type] of Object.entries(types)) {
-                    const param = fnParams[name]
-                    if (param) {
-                        const line = param?.loc?.end?.line
-                        const columnStart = param?.loc?.end?.column + 1
-                        param.trailingComments = [
-                            {
-                                type: 'CommentBlock',
-                                value: type + ' ',
-                                start: param.start && param.start + 1,
-                                end: param.start && param.start + 1 + 4 + type.length + 1,
-                                loc: {
-                                    start: {
-                                        line,
-                                        column: columnStart,
-                                    },
-                                    end: {
-                                        line,
-                                        column: columnStart + 4 + type.length,
-                                    },
-                                }
-
-                            }
-                        ]
-                    }
-                }
-            }
-        }
+function modifyAstWithExports(ast) {
+    return traverse(ast, {
+        enter: addExportTypes
     })
 }

@@ -1,6 +1,6 @@
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
-import { IS_DEV_MODE } from "../const"
+import { $getterNames, GETTER_NAMING_CONVENTION_RE, IS_DEV_MODE } from "../const"
 import equal from 'fast-deep-equal/es6'
 
 const trackedLocations = {}
@@ -14,8 +14,9 @@ function flowRepresentationFor$(types) {
 
     for (const k of types) {
         const firstLetter = k[0]
-        if (firstLetter === firstLetter.toUpperCase) {
-            if (firstLetter === '_') {
+        if (firstLetter === firstLetter.toUpperCase()) {
+            const secondLetter = k[1]
+            if (firstLetter === '_' && secondLetter && secondLetter === secondLetter.toUpperCase()) {
                 accessors.push(k)
             } else {
                 lenses.push(k)
@@ -25,13 +26,25 @@ function flowRepresentationFor$(types) {
         }
     }
 
-    const lensesStr = lenses.length ? `[key : ${lenses.map(k => `'${k}'`).join('|')}] : ((coreUpdate: {}, cb: ?(lens) => void) => void) | (cb: (lens) => void) => void),` : ''
-    const methodsStr = methods.length ? `[key : ${methods.map(k => `'${k}'`).join('|')}] : (o: ?any) => {},` : ''
-    const accessStr = accessors.length ? `[key : ${accessors.map(k => `'${k}'`).join('|')}] : any` : ''
+    const lensesStr = lenses.length ? `${lenses.map(k => `'${k}' : ((coreUpdate: {}, cb: ?(lens: {}) => void) => Promise<void>)`).join(',')}` : ''
+    const methodsStr = methods.length ? `, ${methods.map(k => `'${k}' : (o: ?any) => {}`).join(',')}` : ''
+    const accessStr = accessors.length ? `, ${accessors.map(k => `'${k}' : any`).join(',')}` : ''
     return `: { (coreUpdate: {}): void, ${lensesStr} ${methodsStr} ${accessStr}  }`
 }
 
-export async function writeTypesToDisk() {
+import('fs').catch((e) => {
+    console.error('Failed to import `fs`')
+}).then(fs => {
+    if (fs) {
+        return import("./addTypes").then(({ rewriteFileWithTypes: fn }) => {
+            rewriteFileWithTypes = fn
+        })
+    } else {
+        rewriteFileWithTypes = false
+    }
+})
+
+export function writeTypesToDisk() {
     if (!IS_DEV_MODE) return
 
     for (const [locationId, functionsWithTypes] of Object.entries(trackedLocations)) {
@@ -57,18 +70,7 @@ export async function writeTypesToDisk() {
                 }
         }
 
-        if (rewriteFileWithTypes == null) {
-            await import('fs').catch(() => null).then(fs => {
-                if (fs) {
-                    return import("./addTypes").then(({ rewriteFileWithTypes: fn }) => {
-                        rewriteFileWithTypes = fn
-                        rewriteFileWithTypes({ ...locComponents, types: flowTypesByFn })
-                    })
-                } else {
-                    rewriteFileWithTypes = false
-                }
-            })
-        } else {
+        if (rewriteFileWithTypes) {
             rewriteFileWithTypes({ ...locComponents, types: flowTypesByFn })
         }
 
@@ -98,7 +100,7 @@ export function trackTypes({
 }
 
 function type$($) {
-    return Object.keys($)
+    return Object.keys($).concat($[$getterNames])
 }
 
 function typeObj(obj, { depth = 0, maxDepth = 1, showHidden = false }) {
@@ -119,7 +121,7 @@ function typeObj(obj, { depth = 0, maxDepth = 1, showHidden = false }) {
         const types = {}
         let count = 0
         for (const k in obj) {
-            if (!showHidden && k.startsWith('_')) continue
+            if (!showHidden && k.startsWith('_') && !GETTER_NAMING_CONVENTION_RE.test(k)) continue
 
             count++
 

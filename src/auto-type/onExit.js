@@ -3,6 +3,7 @@ import path from "path"
 import fs from "fs"
 import { functionCallsByName, generateMapFile, generateMapTree } from "./mapper/mapper"
 import { writeTypesToDisk } from "./trackTypes"
+import { flushTypesToDisk } from "./addTypes"
 
 export function enableTypeStorage() {
     process.on('exit', onExit)
@@ -27,9 +28,8 @@ function onExit(...args) {
 
         stored = true
 
-        writeTypesToDisk().then(() => {
-            process.exit()
-        })
-
+        writeTypesToDisk()
+        flushTypesToDisk()
+        process.exit()
     }
 }
