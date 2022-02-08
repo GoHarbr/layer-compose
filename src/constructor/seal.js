@@ -107,7 +107,7 @@ function sealService(lensConstructor, parent, { name, at }) {
             }
         }
 
-        return new Promise(whenInstantiated => {
+        return new Promise(resolveWhenInstantiated => {
 
                 diagnostics && diagnostics()
 
@@ -115,7 +115,7 @@ function sealService(lensConstructor, parent, { name, at }) {
                     const r = cbWithService($)
                     r && r.catch && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
 
-                    whenInstantiated(getExecutionQueue($)[$currentExecutor])
+                    queueForExecution($, resolveWhenInstantiated)
 
                     return r
                 }, {

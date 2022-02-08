@@ -2,7 +2,6 @@ import {
     $at,
     $composition,
     $compositionId,
-    $currentExecutor,
     $dataPointer,
     $fullyQualifiedName,
     $getComposition,
@@ -18,7 +17,7 @@ import wrapStandardMethods from "./wrapStandardMethods"
 import compose from "../compose/compose"
 import seal from "./seal"
 import initialize from "./initialize"
-import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
+import { queueForExecution } from "../compose/queueForExecution"
 import { markWithId } from "../compose/markWithId"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
@@ -123,9 +122,7 @@ const _constructor = ({at}) => {
                     throw new Error('Failed to find dependency')
                 }
 
-                queueCb($, cb)
-
-                return getExecutionQueue($)[$currentExecutor]
+                return queueCb($, cb)
 
             } else {
 
@@ -137,9 +134,7 @@ const _constructor = ({at}) => {
                     })
 
                 // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
-                queueCb($, cb)
-
-                return getExecutionQueue($)[$currentExecutor]
+                return queueCb($, cb)
             }
 
         } catch (e) {
@@ -151,6 +146,11 @@ const _constructor = ({at}) => {
 }
 
 function queueCb($, cb) {
-    return queueForExecution($, () => {
-    }, () => cb($))
+    return new Promise((resolve) => {
+        queueForExecution($, () => {
+        }, () => {
+            cb($)
+            resolve()
+        })
+    })
 }
