@@ -1,9 +1,9 @@
 import {
     $at,
     $compositionId,
-    $currentExecutor,
     $dataPointer,
     $fullyQualifiedName,
+    $getterNames,
     $isLc,
     $lensName,
     $parentInstance,
@@ -13,7 +13,7 @@ import {
 } from "../const"
 import { unwrapProxy } from "../proxies/utils"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
-import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
+import { queueForExecution } from "../compose/queueForExecution"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import core, { core_unsafe } from "../external/patterns/core"
@@ -57,6 +57,7 @@ export default function seal(composition) {
     $[$writableKeys] = [$parentInstance, $lensName]
     $[$dataPointer] = null
     $[$compositionId] = composition[$compositionId]
+    $[$getterNames] = []
 
     for (const name in composition) {
         const methodOrLens = composition[name]
@@ -67,7 +68,13 @@ export default function seal(composition) {
             const at = composition[$at]
             $[name] = sealService(methodOrLens, $, { name, at })
         } else {
-            $[name] = sealMethod(methodOrLens, $, {name})
+            const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
+            if (isGetter) {
+                Object.defineProperty($, name, {get: sealMethod(methodOrLens, $, { name })})
+                $[$getterNames].push(name)
+            } else {
+                $[name] = sealMethod(methodOrLens, $, { name })
+            }
         }
     }
 

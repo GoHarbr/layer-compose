@@ -13,6 +13,7 @@ export const $isService = Symbol('isService')
 export const $lensName = Symbol('lensName')
 export const $fullyQualifiedName = Symbol("fullyQualifiedName")
 export const $tag = Symbol("tag")
+export const $getterNames = Symbol("getterNames")
 
 export const $dataPointer = Symbol('dataPointer')
 export const $isNullCore = Symbol('nullCore')
