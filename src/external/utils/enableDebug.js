@@ -36,6 +36,7 @@ function printIntroduction() {
     *   Getter called
     ~~  Method called
     .   Method executed (one . per layer)
+    ()  Updated issued
     
     |>> Lens instantiated
     <<| Dependency injected

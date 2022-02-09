@@ -21,6 +21,7 @@ import { trackExternalFunctionCall } from "../auto-type/mapper/mapper"
 import defaults from "../external/patterns/defaults"
 import constructCoreObject from "./constructCoreObject"
 import { isPromise } from "../utils"
+import debugCoreUpdate from "./debugCoreUpdate"
 
 
 const PRIMORDIAL_LEVEL=0
@@ -28,6 +29,7 @@ const PRIMORDIAL_LEVEL=0
 export default function seal(composition) {
     const $ = function (arg) {
         if (IS_DEV_MODE && typeof arg !== 'object') throw new Error('only objects are allowed currently')
+        debugCoreUpdate($)
 
         let coreUpdate
 
