@@ -41,20 +41,14 @@ export function createConstructor(layers) {
     wrapWithUtils(constructor)
 
 
-    _c[$getComposition] = constructor[$getComposition] = async ({ tag = null } = {}) => {
+    _c[$getComposition] = constructor[$getComposition] = async () => {
         const existing = constructor[$composition]
         if (existing) {
-            if (!existing[$tag] && tag) {
-                existing[$tag] = tag
-            } else if (existing[$tag] && tag && tag !== existing[$tag]) {
-                debugger
-            }
             return existing
         }
 
         const composition = await compose(constructor[$layers], null)
         composition[$compositionId] = constructor[$compositionId]
-        composition[$tag] = tag
 
         return constructor[$composition] = composition
     }
@@ -71,6 +65,7 @@ export async function constructFromComposition(composition, coreObject, {
     lensName,
     fullyQualifiedName,
     preinitializer,
+    tag
 }) {
     const compositionInstance = seal(composition)
     wrapStandardMethods(compositionInstance) // for methods like .then
@@ -79,7 +74,7 @@ export async function constructFromComposition(composition, coreObject, {
     // compositionInstance[$composition] = composition
     compositionInstance[$lensName] = lensName
 
-    const tag = compositionInstance[$tag] = composition[$tag]
+    compositionInstance[$tag] = tag
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName || tag
 
     compositionInstance[$dataPointer] = {}
@@ -113,7 +108,7 @@ const _constructor = ({at}) => {
         }
         try {
 
-            const composition = await this[$getComposition]({ tag })
+            const composition = await this[$getComposition]({})
 
             if (coreObject?.[$isCompositionInstance]) {
                 const $ = findDependency(coreObject, composition, { location })
@@ -130,7 +125,7 @@ const _constructor = ({at}) => {
                     composition,
                     coreObject,
                     {
-                        lensName, fullyQualifiedName, preinitializer
+                        lensName, fullyQualifiedName, preinitializer, tag
                     })
 
                 // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
