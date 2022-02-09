@@ -1,6 +1,6 @@
-import A                                                         from './A'
-import B                                                                               from './B'
-import {memo, coreLens, defaults, transform, layerCompose, assign, attach, lens} from "../../../src/index"
+import A from './A'
+import B from './B'
+import { assign, attach, coreLens, layerCompose, map } from "../../../src/index"
 
 describe("Circular dependencies, where a Composition mutually rilies on one another are possible", () => {
     // This is achieved through async `import`
@@ -75,7 +75,7 @@ describe("Circular dependencies, where a Composition mutually rilies on one anot
                 B: [
                     // taking the parent (which is A)
                     // and assigning it at runtime to instance of B
-                    attach(lens(A => {
+                    attach(map(A => {
                         return {A}
                     })),
                 ]

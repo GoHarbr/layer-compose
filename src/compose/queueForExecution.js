@@ -98,10 +98,11 @@ async function execute(queue, $) {
 
                 if (!done) {doContinue = true}
 
-                if (value) {
-                    typeof value === 'function' ?
-                        queueForExecution($, value, cb, {next: true})
-                        : $(value)
+                const next = isPromise(value) ? await value : value
+                if (next) {
+                    typeof next === 'function' ?
+                        queueForExecution($, next, cb, {next: true})
+                        : $(next)
                 }
 
                 return execute(queue, $)

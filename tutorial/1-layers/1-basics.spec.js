@@ -1,8 +1,5 @@
 // @flow
-import { $, layerCompose } from "../../src"
-import { enableDebug } from "../../src"
-
-enableDebug()
+import { $, enableDebug, layerCompose } from "../../src"
 
 describe("The basics of Layers", () => {
     /*
@@ -21,6 +18,8 @@ describe("The basics of Layers", () => {
     test(
         "Creating a single layer composition",
         (done) => {
+            enableDebug()
+
             const log = jest.fn((...args) => console.log(...args))
 
             /**
