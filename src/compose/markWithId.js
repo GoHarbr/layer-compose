@@ -1,5 +1,5 @@
-import {$compositionId, $layerOrder} from "../const"
-import {registerLayer}               from "./registerLayer"
+import { $compositionId } from "../const"
+import { registerLayer } from "./registerLayer"
 
 const compositionsById = {}
 
@@ -16,6 +16,10 @@ export function markWithId(composition) {
     registerLayer(composition)
 
     return composition
+}
+
+export function getCompositionFromInstance($) {
+    return getCompositionById($[$compositionId])
 }
 
 export function getCompositionById(id) {

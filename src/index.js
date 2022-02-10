@@ -25,3 +25,4 @@ export {unbox} from "./utils"
 export {unwrapProxy} from './proxies/utils'
 
 export {enableDebug} from './external/utils/enableDebug'
+export {getCompositionFromInstance} from './compose/markWithId'
