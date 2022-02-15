@@ -5,8 +5,8 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 </p>
 
 <p align="center" style="font-size:20px">
+Architecture Visualized (live)
 <br/>
-Lenses meet Reactive OOP
 </p>
 
 [//]: # ()
@@ -20,6 +20,9 @@ Lenses meet Reactive OOP
 
 
 --------
+
+Lenses meet Reactive OOP  
+
 
 I made layer-compose because I got tired of writing sh*tty code.
 --------
