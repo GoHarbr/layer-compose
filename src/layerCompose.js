@@ -93,7 +93,7 @@ export function lc(tag) {
                 if (typeof value !== "function") throw new Error('A getter must be a function')
                 if (value.length > 1) throw new Error('A getter must take at most a single argument -- the core')
                 layers.unshift({
-                    [prop]: ($,_) => value(_),
+                    [prop]: (_) => value(_),
                     [$at]: at
                 })
 
