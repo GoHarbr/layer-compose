@@ -9,14 +9,16 @@ enableDebug()
 * */
 
 const _id = lc()
-_id._ID = (_) => "_.id"
+_id._ID = (_) => _.id
 _id._manage = {
     _($,_,o) {
         if (o.id) _.id = o.id
     },
     $($,_) {
         // make sure id exists by the end of instantiation
-        if (!_.id) throw new Error('Missing id')
+        $.then(() => {
+            if (!_.id) throw new Error('Missing id')
+        })
     }
 }
 
@@ -43,6 +45,8 @@ Cart._items = {
 
 
 const User = lc()
+User._ = _id // mixing in the id layer
+
 User._id = {
     $($,_) {
         // automatically generate the id
@@ -66,6 +70,7 @@ User._cart = {
     },
     Cart: { // extending the Cart lens
         $($,_) {
+            // the cart must always be a singleton
             const p = parent($)
             const _p = core(p)
             const cart = _p.cart
@@ -86,7 +91,6 @@ User._cart = {
     }
 }
 User.Cart = Cart // the base of the Cart lens is the globally defined Cart composition
-User._ = _id // mixing in the id layer
 
 
 describe("Basic shopping cart example", () => {
@@ -113,6 +117,8 @@ describe("Basic shopping cart example", () => {
 
                 const _cartCore = core(cart)
                 expect(_cartCore.items.length).toBeTruthy()
+
+                done()
             })
         })
     })
