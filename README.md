@@ -1,4 +1,4 @@
-![splash](./unsplash.jpg)
+![splash](docs/unsplash.jpg)
 
 <p align="right">
 Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Mufid Majnun</a> on <a href="https://unsplash.com/t/textures-patterns?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText">Unsplash</a>
@@ -78,6 +78,11 @@ into a _Composition_ that can be instantiated
     a.Remote(r => r.receive())
 ```
 
+## Deep dive
+
+![splash](docs/layer-compose.png)
+
+
 ### Why?
 
 1. Mutable state management is notoriously prone to bugs.  
@@ -88,7 +93,7 @@ into a _Composition_ that can be instantiated
 
 ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
 Generates [flow.js](https://flow.org) types without a single manual input.
-![auto-type](./auto-type.png)
+![auto-type](docs/auto-type.png)
 
 ## Learn
 
