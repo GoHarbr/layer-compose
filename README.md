@@ -21,11 +21,20 @@ Architecture Visualized (live)
 
 --------
 
-Lenses meet Reactive OOP  
+Lenses meet Reactive OOP
+
+---
+
+## `layer-compose` is born: I got tired of writing sh*tty code.
 
 
-I made layer-compose because I got tired of writing sh*tty code.
---------
+## Goals
+- Safe JS
+- Simple and powerful Dependency Injection
+- Predictable async
+- Handle work that can be done by a machine, by a machine: eg. automatically generate type definitons, 
+create dataflow and class relationship diagrams
+
 
 *layerCompose* shines as a business logic layer of your application, providing safety for implementing
  state management and data flow, allowing your team to focus on the logic. It provides flexibility in
@@ -98,3 +107,24 @@ Generates [flow.js](https://flow.org) types without a single manual input.
 ## Learn
 
 Start with the `tutorial` folder
+
+## Related work
+
+###Trait libraries
+- [Straits](https://straits.github.io/introduction/) (not in active development): Babel-compiled traits syntax for javascript, 
+allowing to mix in new functions into existing objects. Main focus seems to be creating pipelines (eg: map, reduce, filter)
+
+- [Traits.js](https://github.com/traitsjs/traits.js) (not in active development): Readme overviews traits, comparing traits and mixins.
+Has concepts of required trait methods and conflicting methods.
+
+### Reactive libraries
+
+- [rxjs](https://rxjs.dev/guide/overview): popular JS reactive programming library. [Fluh](https://github.com/StreetStrider/fluh) provides a 
+friendlier introduction into reactive JS. 
+- [Fluh](https://github.com/StreetStrider/fluh): constructing reactive dependency graphs. Simplified FRP
+
+### State libraries
+- [Raj](https://jew.ski/what-is-raj/) (not in active development): Simpler redux
+
+### Papers
+- [Scalable Component Abstractions](http://lampwww.epfl.ch/~odersky/papers/ScalableComponent.pdf): Components in Scala
