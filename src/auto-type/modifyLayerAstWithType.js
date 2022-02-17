@@ -1,4 +1,6 @@
 // let layerId = 0
+import { GETTER_NAMING_CONVENTION_RE } from "../const"
+
 export function modifyLayerAstWithType(ast, functionArgTypes, {suffix = "", containerAst, writeLayerHeader} = {}) {
 
     ast.properties.forEach(prop => {
@@ -7,15 +9,21 @@ export function modifyLayerAstWithType(ast, functionArgTypes, {suffix = "", cont
             if (types) {
                 const fnParams = {}
                 const sourceParams = prop.params
-                fnParams['$'] = sourceParams[0] || (sourceParams[0] = {
-                    type: 'Identifier', name: '$'
-                })
-                fnParams['_'] = sourceParams[1] || (sourceParams[1] = {
-                    type: 'Identifier', name: '_'
-                })
-                fnParams['o'] = sourceParams[2] || (sourceParams[2] = {
-                    type: 'Identifier', name: 'o'
-                })
+
+                const isGetter = GETTER_NAMING_CONVENTION_RE.test(prop.key.name)
+                if (!isGetter) {
+                    fnParams['$'] = sourceParams[0] || (sourceParams[0] = {
+                        type: 'Identifier', name: '$'
+                    })
+                    fnParams['_'] = sourceParams[1] || (sourceParams[1] = {
+                        type: 'Identifier', name: '_'
+                    })
+                    fnParams['o'] = sourceParams[2] || (sourceParams[2] = {
+                        type: 'Identifier', name: 'o'
+                    })
+                } else {
+                    fnParams['_'] = sourceParams[0]
+                }
 
                 for (const [name, type] of Object.entries(types)) {
                     const param = fnParams[name]
