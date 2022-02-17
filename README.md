@@ -32,10 +32,10 @@ Lenses meet Reactive OOP for maintainable architectures
 ## Goals
 - One way to do the same thing twice
 - Saf**er** JS
-- Ease when refactoring architecture
-- Ability to split classes into reusable components (mixins)
-- Ability to visualize component relationships
-- Predictable async
+- **Ease when refactoring** architecture
+- Ability to split classes into reusable components (mixins) / **clear separation of concerns**
+- Ability to **visualize component relationships**
+- **Predictable async**
 - Handle work that can be done by a machine, by a machine: eg. automatically generate type definitions, 
 create dataflow and class relationship diagrams
 
@@ -142,9 +142,10 @@ const Cart = lc()
 3. Writing code with multiple authors is notoriously prone to inconsistencies.  
 
 ## Features
-Simple and powerful Dependency Injection
-
-***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
+- Simple and powerful ***Dependency Injection***
+- Generated Composition ***relationship diagrams***, visualizing program execution
+![architecture-visualized](docs/example-architecture-visualized.png)
+- ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
 Generates [flow.js](https://flow.org) types without a single manual input.
 ![auto-type](docs/auto-type.png)
 
