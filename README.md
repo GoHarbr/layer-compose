@@ -97,6 +97,43 @@ into a _Composition_ that can be instantiated
 
 ![diagram-accessors](docs/layer-compose-accessors.png)
 
+## Introduction
+
+LayerCompose aims to improve code quality by removing a major source of bugs in Javascript, dealing with state.  
+
+Classes are built up by layers (similar to mix-ins) so that the code can be minimal initially and build up over time.  Lenses provide extra functionality while keeping separation of concerns clear.
+
+
+## Layer
+
+A POJO is built up as layers with each layer able to mutate a section of the POJO’s state, also called the core.  Each layer is mutually exclusive.  
+
+
+## Lense 
+
+Adds functionality and has access to the core.  Can also be a layer with its own core.
+
+## External Interface
+
+Functions that can be called on the pojo to access or mutate state.
+
+## Example
+
+Lets look at a shopping cart which consists of information related to the cart, items in the cart and the user who owns the cart.
+
+Lets create an item that just has an id and a name
+
+```
+const Item = lc() //create the layer
+Item._ = _id // add an id to the core.  The underscore is the accessor for the core
+Item._ = _name // add a name property
+``` 
+
+Lets create a cart where we can add some items
+
+```
+const Cart = lc()
+
 
 ### Why?
 
