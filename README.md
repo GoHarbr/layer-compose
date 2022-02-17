@@ -163,6 +163,7 @@ friendlier introduction into reactive JS.
 
 ### State libraries
 - [Raj](https://jew.ski/what-is-raj/) (complete solution in 34 lines of code): Simpler and scalable redux
+- [Immer](https://github.com/immerjs/immer): State management through immutability 
 
 ### Papers
 - [Scalable Component Abstractions](http://lampwww.epfl.ch/~odersky/papers/ScalableComponent.pdf): Components in Scala
