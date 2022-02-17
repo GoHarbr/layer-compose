@@ -55,62 +55,134 @@ mutable inner state (known as `core`). Reactivity is built into `Compositions` e
 *layerCompose* shines when implementing [Model-Controller](https://en.wikipedia.org/wiki/Model–view–controller) 
 business logic of an application, especially when there are shifting and unpredictable requirements. 
 *layerCompose* is in-between a language and a framework: while it is pure JavaScript it does have predefined naming conventions giving it a feel 
-of a *sub*set of JavaScript. The end result is full expressiveness of JS for implementing logic within predictable architecture.  
+of a *sub*set of JavaScript. 
+
+The end result is full expressiveness of JS for implementing logic and control flows within a Composition, 
+with [declarative](https://en.wikipedia.org/wiki/Declarative_programming) style when outlining the execution of the entire application.  
 
 ## layerCompose
 
+![diagram1](docs/layer-compose.png)
+
 In a nutshell, *layerCompose* assembles numerous functions in the form:
 ```javascript
-    function fn ($ /* "super", like js `this` */, _ /* "core": like React props (but writable) */, opt /* additional named options */) {}
+    function fn (
+        $ /* "super" akin to `this` */, 
+        _ /* "core": mutable state */, 
+        o /* named arguments */) {}
 ```
 in nested configurations
 ```javascript
 /* Referred to as Composition */
-const Apple  = layerCompose(
-        // top layer
-    {
-        generateConfig($,_) { console.log(_.name + " top is generating") },
+const Apple = lc()
 
-        /* this is a lens */        
-        Remote: [
-            {
-                send($,_,opt) { /* eg. if (opt.optKey === 1) ... */ }
-            },
-            {
-                receive($,_,opt) {}
-            }
-        ]
+/* a `layer` */
+Apple._sweetness /* _type is a `layer` name tag for improved visualization */ = {
+    /* constructor function */
+    $($,_) {
+        defaults(_, {sweetnessLevel: 0.1})
     },
-        
-    // bottom layer
-    {
-        generateConfig($,_) { console.log(_.name + " bottom is generating") },
-    }    
-)
-```
-into a _Composition_ that can be instantiated
-```javascript
-    const a = Apple({name: 'honey-crisp'})
-    a.generateConfig() 
-    // prints:
-    // "honey-crisp bottom is generating"
-    // "honey-crisp top is generating"
+  
+    grow($,_,o) {
+        if (o.sunshineLevel > 0.5) {
+            _.sweetnessLevel += 0.3        
+        }
+    }
+}
+
+/* another `layer` */
+Apple._offspring = {
+    $($,_) {
+        defaults(_, {canHaveOffspring: false}) // `core` cannot contain `undefined` values,
+    },
+  
+    // notice that the `layer` above has a function with the same name
+    // both will be executed when calling `apple.grow()` (read more about execution order in the "Deep Dive" section)
+    grow($,_,o) {
+      _.maximumSeedCount = o.sunshineLevel * _.sweetnessLevel * 20
+    },
+  
+    /* 
+    `accessor` -- the only way to expose `core` values to the outside 
+    note the notation: must start with `_` followed by a capital letter
+     */
+    _MaximumSeedCount: (_) => _.maximumSeedCount,
     
-    a.Remote(r => r.send({optKey: optVal}))
-    a.Remote(r => r.receive())
+    /* Defining a `Lens` */
+    Seeds: {
+        _($,_,o) {
+            _.thresholdModifier = o.isColdWinter ? 0.5 : 1 // if the winter is cold, less seeds will sprout 
+        },
+        $($,_) {
+            defaults(_, {seeds: []})
+            $.setSeedCount()
+            $.generateSeeds()
+        },
+      
+        setSeedCount($,_,o) {
+            if (o.seedCount) {
+                _.seedCount = Math.round(o.seedCount * _.thresholdModifier)
+            } else {
+              // dependency injection: looking up the context chain (parental chain) to find the first Apple type Composition
+              // `return` forces the `Seeds` Composition to suspend until the dependency injection is complete
+
+              return Apple($, parentApple => {
+                _.seedCount = Math.round(parentApple._MaximumSeedCount * _.thresholdModifier)
+              })    
+            }
+        },
+      
+        * generateSeeds($,_) {
+            for (let i = 0; i < _.seedCount; i++) {
+              // suspending `Seeds` composition instance until all the seeds are instantiated  
+              yield $.Seed({birthOrder: i}, seed => {
+                  _.seeds.push(seed)
+              })   
+            }
+        },
+      
+        sprout($,_) {
+            // suspends `Seeds` composition until all seeds sprout
+            return _.seeds.map(s => s.sprout())  
+        },
+        
+        /* Defining another `Lens` */
+      
+        Seed: {
+            $($, _) {
+              setTimeout($.sprout, _.birthOrder * 1000)
+            },
+            sprout($,_) { /* ... */ }
+        }
+    }
+}
+
+```
+
+into a _Composition_ that can be instantiated using a [declarative](https://en.wikipedia.org/wiki/Declarative_programming) approach
+
+```javascript
+    Apple({sweetnessLevel: 0.2 /* override the default */}, 
+        apple => { // callback after the constructor completes
+            apple.grow({sunshineLevel: 0.8})
+          
+            apple.Seeds({}, seeds => { // callback runs after the Lens constructor completes
+                seeds.sprout() // calls upon each `Seed` to `sprout()`
+            })
+    })
 ```
 
 ## Features
-- Simple and powerful ***Dependency Injection***
-- Generated Composition ***relationship diagrams***, visualizing program execution
+- ***Borrow checks***: ensuring that only a single layer has write access to specific key-value pair 
+- Simple and powerful ***Dependency Injection*** 
+- ***Execution thread per composition*** ensuring sequential execution even for async functions
+- Generated composition ***relationship diagrams***, visualizing program execution  
   ![architecture-visualized](docs/example-architecture-visualized.png)
 - ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
-  Generates [flow.js](https://flow.org) types without a single manual input.
+  Generates [flow.js](https://flow.org) types without a single manual input.  
   ![auto-type](docs/auto-type.png)
 
 ## Deep dive
-
-![diagram1](docs/layer-compose.png)
 
 ![diagram-accessors](docs/layer-compose-accessors.png)
 

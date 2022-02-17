@@ -110,6 +110,7 @@ const _constructor = ({at}) => {
 
             const composition = await this[$getComposition]({})
 
+            // dependency injection
             if (coreObject?.[$isCompositionInstance]) {
                 const $ = findDependency(coreObject, composition, { location })
 
