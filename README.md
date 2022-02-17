@@ -5,6 +5,7 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 </p>
 
 <p align="center" style="font-size:20px">
+<img src="docs/logo.png"/>
 Architecture Visualized (live)
 <br/>
 </p>
@@ -21,7 +22,7 @@ Architecture Visualized (live)
 
 --------
 
-Lenses meet Reactive OOP
+Lenses meet Reactive OOP for maintainable architectures
 
 ---
 
@@ -29,10 +30,13 @@ Lenses meet Reactive OOP
 
 
 ## Goals
-- Safe JS
-- Simple and powerful Dependency Injection
+- One way to do the same thing twice
+- Saf**er** JS
+- Ease when refactoring architecture
+- Ability to split classes into reusable components (mixins)
+- Ability to visualize component relationships
 - Predictable async
-- Handle work that can be done by a machine, by a machine: eg. automatically generate type definitons, 
+- Handle work that can be done by a machine, by a machine: eg. automatically generate type definitions, 
 create dataflow and class relationship diagrams
 
 
@@ -89,7 +93,9 @@ into a _Composition_ that can be instantiated
 
 ## Deep dive
 
-![splash](docs/layer-compose.png)
+![diagram1](docs/layer-compose.png)
+
+![diagram-accessors](docs/layer-compose-accessors.png)
 
 
 ### Why?
@@ -99,6 +105,7 @@ into a _Composition_ that can be instantiated
 3. Writing code with multiple authors is notoriously prone to inconsistencies.  
 
 ## Features
+Simple and powerful Dependency Injection
 
 ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
 Generates [flow.js](https://flow.org) types without a single manual input.
