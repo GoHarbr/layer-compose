@@ -30,23 +30,32 @@ Lenses meet Reactive OOP for maintainable architectures
 
 
 ## Goals
-- One way to do the same thing twice
-- Saf**er** JS
+- One way to do the same thing twice: creating predictable architecture patterns within and across teams
+- Saf**er** mutable state: have the peace of mind as when working with *immutable* state
 - **Ease when refactoring** architecture
 - Ability to split classes into reusable components (mixins) / **clear separation of concerns**
 - Ability to **visualize component relationships**
 - **Predictable async**
 - Handle work that can be done by a machine, by a machine: eg. automatically generate type definitions, 
 create dataflow and class relationship diagrams
+- Keep library surface and **learning curve minimal**
 
 
-*layerCompose* shines as a business logic layer of your application, providing safety for implementing
- state management and data flow, allowing your team to focus on the logic. It provides flexibility in
-adding functionality as the application grows, easing the pain of having to figure out the 
-entire architecture up-front.
-  
-*layerCompose* can be thought of as a language: a subset of JavaScript (opposite of a superset!): it **constrains** you (making it easier to work as a team) and 
-counterintuitively gives you more **power** by letting you focus on the implementation and worry less about the architectural choices.  
+## Introduction
+
+LayerCompose aims to improve code quality by removing a major source of bugs in Javascript dealing with state and providing
+reusable, repeatable and predictable architectural pattern.
+
+Classes are built up by combining layers (similar to [mixins](https://en.wikipedia.org/wiki/Mixin)) into `Compositions` so that the code can be minimal initially and build up over time.
+`Lenses` provide extra functionality through composition, while keeping separation of concerns clear and maintaining context for Dependency Injection.
+
+Predictable async is achieved by treating each instance of a `Composition` as a green thread, guaranteeing order of execution and access to the
+mutable inner state (known as `core`). Reactivity is built into `Compositions` embodying an [Actor pattern](https://en.wikipedia.org/wiki/Actor_model).
+
+*layerCompose* shines when implementing [Model-Controller](https://en.wikipedia.org/wiki/Model–view–controller) 
+business logic of an application, especially when there are shifting and unpredictable requirements. 
+*layerCompose* is in-between a language and a framework: while it is pure JavaScript it does have predefined naming conventions giving it a feel 
+of a *sub*set of JavaScript. The end result is full expressiveness of JS for implementing logic within predictable architecture.  
 
 ## layerCompose
 
@@ -91,17 +100,19 @@ into a _Composition_ that can be instantiated
     a.Remote(r => r.receive())
 ```
 
+## Features
+- Simple and powerful ***Dependency Injection***
+- Generated Composition ***relationship diagrams***, visualizing program execution
+  ![architecture-visualized](docs/example-architecture-visualized.png)
+- ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
+  Generates [flow.js](https://flow.org) types without a single manual input.
+  ![auto-type](docs/auto-type.png)
+
 ## Deep dive
 
 ![diagram1](docs/layer-compose.png)
 
 ![diagram-accessors](docs/layer-compose-accessors.png)
-
-## Introduction
-
-LayerCompose aims to improve code quality by removing a major source of bugs in Javascript, dealing with state.  
-
-Classes are built up by layers (similar to mix-ins) so that the code can be minimal initially and build up over time.  Lenses provide extra functionality while keeping separation of concerns clear.
 
 
 ## Layer
@@ -133,25 +144,7 @@ Lets create a cart where we can add some items
 
 ```
 const Cart = lc()
-
-
-### Why?
-
-1. Mutable state management is notoriously prone to bugs.  
-2. Async is difficult.
-3. Writing code with multiple authors is notoriously prone to inconsistencies.  
-
-## Features
-- Simple and powerful ***Dependency Injection***
-- Generated Composition ***relationship diagrams***, visualizing program execution
-![architecture-visualized](docs/example-architecture-visualized.png)
-- ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
-Generates [flow.js](https://flow.org) types without a single manual input.
-![auto-type](docs/auto-type.png)
-
-## Learn
-
-Start with the `tutorial` folder
+```
 
 ## Related work
 
