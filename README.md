@@ -162,7 +162,7 @@ friendlier introduction into reactive JS.
 - [Fluh](https://github.com/StreetStrider/fluh): constructing reactive dependency graphs. Simplified FRP
 
 ### State libraries
-- [Raj](https://jew.ski/what-is-raj/) (not in active development): Simpler redux
+- [Raj](https://jew.ski/what-is-raj/) (complete solution in 34 lines of code): Simpler and scalable redux
 
 ### Papers
 - [Scalable Component Abstractions](http://lampwww.epfl.ch/~odersky/papers/ScalableComponent.pdf): Components in Scala
