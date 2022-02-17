@@ -166,3 +166,17 @@ friendlier introduction into reactive JS.
 
 ### Papers
 - [Scalable Component Abstractions](http://lampwww.epfl.ch/~odersky/papers/ScalableComponent.pdf): Components in Scala
+
+
+## License
+Modified GNU AGPLv3.
+
+-----
+
+### Contributors:
+- Anton Kats
+- Hamish Anderson
+
+### Sponsors:<br/>
+<a href="https://harbr.com"><img src="https://www.harbr.com/wp-content/uploads/2022/01/blackonlightWordmark_pipe-1.png" width="100"/></a>
+
