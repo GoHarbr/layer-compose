@@ -67,14 +67,14 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
     // todo make sure it works in browsers
     if (fs && IS_DEV_MODE) {
         try {
-            let ast = cachedAsts[filename]
+            let {ast, source} = cachedAsts[filename] || {}
 
             if (!ast) {
-                const source = fs.readFileSync(filename).toString()
+                source = fs.readFileSync(filename).toString()
                 const isModule = source.includes('import') || source.includes('export') // todo. fragile
 
                 ast = parse(source, { sourceType: isModule && 'module' || 'script' })
-                cachedAsts[filename] = ast
+                cachedAsts[filename] = {ast, source}
 
                 const backupDir = path.join(process.cwd(), '.backup')
 
