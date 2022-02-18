@@ -196,18 +196,19 @@ C._layer = {/* ... */}
 
 // Creating an instance
 // first argument is data (POJO) to wrap around (it is inserted into the `core`)
+// which becomes available thorugh the `_` argument in methods
 // second argument is a callback when the instance of `C` is ready
 C({}, instance => {/* do someting with `instance` */})
 ```
 
 #### Interface and core
-The diagram in the [showcase](#) section illustrates the `interface` wrapping over the `core`, 
+The diagram in the [showcase](#showcase) section illustrates the `interface` wrapping over the `core`, 
 which is not accessible to the outside. The only way to mutate the `core` is by calling methods available on the `interface` 
 (an instance of a _composition_)
 
 ### Layer
 A _layer_ is a Plain Old JS object containing method definitions. The order of _layers_ is significant, because it 
-dictates the [execution order](#).
+dictates the [execution order](#execution-order).
 
 Unlike traditional mixins or traits, layers do not allow for any (traditional) overriding. If a function with the same
 name is defined in multiple layers, all are executed.
@@ -217,7 +218,11 @@ const C = lc()
 C._bottomLayer = {
     doTask($,_) {
         console.log('doTask bottom layer')
+        $.sayMood()
     },
+    sayMood($,_) {
+        console.log(`Let's be ${_.mood}`)
+    }
 }
 C._topLayer = {
     doTask($,_) {
@@ -225,15 +230,16 @@ C._topLayer = {
     },
 }
 
-C({}, instance => instance.doTask())
-// prints
+C({mood: 'celebratory'}, instance => instance.doTask())
+// prints:
 // doTask bottom layer
+// Let's be celebratory
 // doTask top layer
 ```
 
 There are 2 special function names that are reserved: `_` and `$`
-- `$` is a [constructor](#)
-- `_` is a [transformer](#)
+- `$` is a [constructor](#constructors)
+- `_` is a [transformer](#transformers)
 
 #### Borrow checking
 
@@ -297,6 +303,12 @@ Adds functionality and has access to the core.  Can also be a layer with its own
 
 
 ### Execution order
+![diagram-accessors](docs/execution-order.png)
+
+#### Async
+
+#### With generators
+Less commonly used approach, useful when processing lists. (todo)
 
 
 ## Related work
