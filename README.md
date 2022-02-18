@@ -60,6 +60,13 @@ of a *sub*set of JavaScript.
 The end result is full expressiveness of JS for implementing logic and control flows within a Composition, 
 with [declarative](https://en.wikipedia.org/wiki/Declarative_programming) style when outlining the execution of the entire application.  
 
+## The Differentiator
+
+If you're looking to understand what makes `layer-compose` different from other _mixin/traits_ libraries or other _actor_ libraries:
+
+> _Layers_ are **additive**. There is no traditional overriding of methods with the same name.
+> While traits and mixins have resolution mechanism when there are naming conflicts, _Layers_ execute **all** the provided code. 
+
 ## Showcase
 
 ![diagram1](docs/layer-compose.png)
@@ -206,6 +213,15 @@ The diagram in the [showcase](#showcase) section illustrates the `interface` wra
 which is not accessible to the outside. The only way to mutate the `core` is by calling methods available on the `interface` 
 (an instance of a _composition_)
 
+#### Composition instances are functions
+
+Here `instance` will have all the methods as defined across all the layers in combination.
+As well, note, `instance` is a function. Calling `instance({...data})` will trigger [transformers](#transformers).
+
+```javascript
+C({}, instance => { instance({key: 'value'}) /* updates the core by triggering the transformers */ })
+```
+
 ### Layer
 A _layer_ is a Plain Old JS object containing method definitions. The order of _layers_ is significant, because it 
 dictates the [execution order](#execution-order).
@@ -254,7 +270,7 @@ C._bottomLayer = {
 }
 C._topLayer = {
     doTask($,_) {
-      _.key = 'value'
+      _.key = 'adjusted'
     },
 }
 
@@ -294,22 +310,108 @@ C({}, instance => {} /* callback executed once `$` constructors complete */)
 
 ### Transformers
 
+Functions named `_` are transformers and are used to update the `core`.  
+Transformers are executed when:
+1. Instance is constructed
+2. Explicit updates are made through `instance({...update})` <br>
+   Note that within methods `$({...update})` has the same effect
+
+The `o` parameter is populated with the update object
+
+```javascript
+const C = lc()
+C._bottomLayer = {
+    _($,_,o) {
+        if (o.key) {
+            _.key = o.key
+            console.log('key:' + o.key)
+        }
+    },
+}
+C._topLayer = {
+    _($,_,o) {
+      if (o.anotherKey) {
+        _.anotherKey = o.anotherKey
+        console.log('anotherKey:' + o.anotherKey)
+      }
+    },
+}
+
+C({key: 'value'}, instance => {
+    // printed:
+    // key:value
+  
+    instance({anotherKey: 2})
+    // prints:
+    // anotherKey:2
+})
+```
+
+#### Passing core updates for other layers to handle
+
+Given that `layer-compose` is very specific about which _layer_ is allowed to update a key/value on the _core_, 
+often updates within a composition happen through `$({...update})` calls.
+
+Modifying the [borrow checking](#borrow-checking) example to make it work:
+
+```javascript
+const C = lc()
+C._bottomLayer = {
+    // adding a Trasnformer to capture core updates
+    _($,_,o) {
+        if (o.key) _.key = o.key
+    },
+    
+    doTask($,_) {
+        _.key = 'value'
+    },
+}
+C._topLayer = {
+    doTask($,_) {
+      // using the core update mechanism to trigger a mutation in the core through Transformers 
+      $({key:'adjusted'})
+    },
+}
+
+C({}, async instance => {
+    await instance.doTask()
+    
+    // at this point core will contain
+    // {key: 'adjusted'}
+    // in other words _.key === 'adjusted' returns `true` within layer methods
+})
+```
+
+#### Expedited execution
+Transformer operations are pushed to the front of the queue, and are executed before any other operations. 
+See more in [execution order](#execution-order)
+
 ### Accessor
 ![diagram-accessors](docs/layer-compose-accessors.png)
 
 ### Lens
 
-Adds functionality and has access to the core.  Can also be a layer with its own core.
-
+(todo)
 
 ### Execution order
-![diagram-accessors](docs/execution-order.png)
+![execution-order](docs/execution-order.png)
+
+#### Depth first execution
+![depth-first-execution-order](docs/layer-compose-depth-first-execution.png)
 
 #### Async
 
 #### With generators
 Less commonly used approach, useful when processing lists. (todo)
 
+### Dependency Injection
+
+### Utilities
+
+#### `defaults`
+#### `parent`
+#### `core`
+#### `.mock`
 
 ## Related work
 
