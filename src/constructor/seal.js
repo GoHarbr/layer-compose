@@ -28,7 +28,10 @@ const PRIMORDIAL_LEVEL=0
 
 export default function seal(composition) {
     const $ = function (arg) {
-        if (IS_DEV_MODE && typeof arg !== 'object') throw new Error('only objects are allowed currently')
+        if (IS_DEV_MODE) {
+            if (typeof arg !== 'object') throw new Error('only objects are allowed currently')
+            if (Array.isArray(arg) && arg.find(e => e === undefined)) throw new Error(`Likely a Promise.all() was yielded/returned from a generator function`)
+        }
         debugCoreUpdate($)
 
         let coreUpdate

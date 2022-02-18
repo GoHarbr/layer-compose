@@ -1,5 +1,5 @@
-import { $currentExecutor, $executionQueue, IS_DEV_MODE } from "../const"
-import { isPromise } from "../utils"
+import { $currentExecutor, $executionQueue, $isCompositionInstance, IS_DEV_MODE } from "../const"
+import { isAwaitable } from "../utils"
 import core from "../external/patterns/core"
 import asap from "asap/raw"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
@@ -72,7 +72,7 @@ async function execute(queue, $) {
         const fnReturn = fn()
 
         if (fnReturn) {
-            if (isPromise(fnReturn)) {
+            if (isAwaitable(fnReturn)) {
                 queue.unshift(...queue.buffer)
                 queue.buffer = null
 
@@ -98,8 +98,8 @@ async function execute(queue, $) {
 
                 if (!done) {doContinue = true}
 
-                const next = isPromise(value) ? await value : value
-                if (next) {
+                const next = await value
+                if (next && !next[$isCompositionInstance]) {
                     typeof next === 'function' ?
                         queueForExecution($, next, cb, {next: true})
                         : $(next)
