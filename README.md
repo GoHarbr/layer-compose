@@ -60,7 +60,7 @@ of a *sub*set of JavaScript.
 The end result is full expressiveness of JS for implementing logic and control flows within a Composition, 
 with [declarative](https://en.wikipedia.org/wiki/Declarative_programming) style when outlining the execution of the entire application.  
 
-## layerCompose
+## Showcase
 
 ![diagram1](docs/layer-compose.png)
 
@@ -176,6 +176,7 @@ into a _Composition_ that can be instantiated using a [declarative](https://en.w
 - ***Borrow checks***: ensuring that only a single layer has write access to specific key-value pair 
 - Simple and powerful ***Dependency Injection*** 
 - ***Execution thread per composition*** ensuring sequential execution even for async functions
+- ***Actor model***
 - Generated composition ***relationship diagrams***, visualizing program execution  
   ![architecture-visualized](docs/example-architecture-visualized.png)
 - ***Auto type*** -- automatic typing for functions and interfaces (works well to be useful, will be improved with demand).
@@ -184,39 +185,119 @@ into a _Composition_ that can be instantiated using a [declarative](https://en.w
 
 ## Deep dive
 
+### Composition
+A *composition* is very similar to a traditional class. 
+The difference is that a *composition* is defined by combining (and recombining) **layers**.
+Just like classes, compositions are defined and can then be instantiated.
+
+```javascript
+const C = lc()
+C._layer = {/* ... */}
+
+// Creating an instance
+// first argument is data (POJO) to wrap around (it is inserted into the `core`)
+// second argument is a callback when the instance of `C` is ready
+C({}, instance => {/* do someting with `instance` */})
+```
+
+#### Interface and core
+The diagram in the [showcase](#) section illustrates the `interface` wrapping over the `core`, 
+which is not accessible to the outside. The only way to mutate the `core` is by calling methods available on the `interface` 
+(an instance of a _composition_)
+
+### Layer
+A _layer_ is a Plain Old JS object containing method definitions. The order of _layers_ is significant, because it 
+dictates the [execution order](#).
+
+Unlike traditional mixins or traits, layers do not allow for any (traditional) overriding. If a function with the same
+name is defined in multiple layers, all are executed.
+
+```javascript
+const C = lc()
+C._bottomLayer = {
+    doTask($,_) {
+        console.log('doTask bottom layer')
+    },
+}
+C._topLayer = {
+    doTask($,_) {
+        console.log('doTask top layer')
+    },
+}
+
+C({}, instance => instance.doTask())
+// prints
+// doTask bottom layer
+// doTask top layer
+```
+
+There are 2 special function names that are reserved: `_` and `$`
+- `$` is a [constructor](#)
+- `_` is a [transformer](#)
+
+#### Borrow checking
+
+This is a fundamental feature of `layer-compose`: only a single layer has a write access to a specific key on the `core`.
+
+```javascript
+const C = lc()
+C._bottomLayer = {
+    doTask($,_) {
+        _.key = 'value'
+    },
+}
+C._topLayer = {
+    doTask($,_) {
+      _.key = 'value'
+    },
+}
+
+C({}, instance => instance.doTask())
+// throws!
+// "`key` has already been set by _bottomLayer!"
+```
+
+### Methods
+All layer methods follow the signature `fnName($,_,o)`.   
+`$` is `self`, which refers to the instance of the `composition`.  
+`_` is the `core`, which is the mutable inner state of the `composition`. It is not exposed to the outside. 
+
+### Constructors
+
+Constructors are called once to create an instance of a _composition_. 
+Note that constructors do not receive the 3rd (`o`) argument.
+
+```javascript
+const C = lc()
+C._bottomLayer = {
+    $($,_) {
+        console.log('bottom')
+    },
+}
+C._topLayer = {
+    $($,_) {
+        console.log('top')
+    },
+}
+
+C({}, instance => {} /* callback executed once `$` constructors complete */)
+// prints
+// bottom
+// top
+```
+
+### Transformers
+
+### Accessor
 ![diagram-accessors](docs/layer-compose-accessors.png)
 
-
-## Layer
-
-A POJO is built up as layers with each layer able to mutate a section of the POJO’s state, also called the core.  Each layer is mutually exclusive.  
-
-
-## Lense 
+### Lens
 
 Adds functionality and has access to the core.  Can also be a layer with its own core.
 
-## External Interface
 
-Functions that can be called on the pojo to access or mutate state.
+### Execution order
 
-## Example
-
-Lets look at a shopping cart which consists of information related to the cart, items in the cart and the user who owns the cart.
-
-Lets create an item that just has an id and a name
-
-```
-const Item = lc() //create the layer
-Item._ = _id // add an id to the core.  The underscore is the accessor for the core
-Item._ = _name // add a name property
-``` 
-
-Lets create a cart where we can add some items
-
-```
-const Cart = lc()
-```
 
 ## Related work
 
