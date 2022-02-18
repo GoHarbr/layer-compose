@@ -1,6 +1,6 @@
-import RowView      from "./views/RowView"
+import RowView from "./views/RowView"
 import ExpandedView from "./views/ExpandedView"
-import DataManager  from "./DataManager"
+import DataManager from "./DataManager"
 
 export default layerCompose(
     function ({services}) {

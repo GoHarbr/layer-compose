@@ -1,4 +1,4 @@
-import Task   from "../Task"
+import Task from "../Task"
 import common from "./common"
 
 export default layerCompose(
@@ -9,10 +9,10 @@ export default layerCompose(
         borrow.createTask = function (id) {
             return Task({
                 id, views: {
-                    expanded: {
-                        isEnable: false, domContainer: null, slots: {
+                    row: {
+                        isEnabled: true, domContainer: {/*html elem*/}, slots: {
                             name: true,
-                            startDate: false,
+                            startDate: true,
                             endDate: false
                         }
                     }
@@ -39,7 +39,7 @@ export default layerCompose(
 
                 setSlotRenderer('name', () => nameSlot.innerHTML = dataManager.name)
                 setSlotRenderer('startDate', () => startDateSlot.innerHTML = dataManager.startDate)
-                setSlotRenderer('subtasks', () => subtaskRenderer.render)
+                setSlotRenderer('subtasks', subtaskRenderer.render)
 
                 // refresh view
                 render({

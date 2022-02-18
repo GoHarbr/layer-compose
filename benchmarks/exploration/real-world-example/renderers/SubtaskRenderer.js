@@ -1,5 +1,5 @@
 /* file */
-import ContainerRenderer, {gatedContainerRenderer} from "./ContainerRenderer"
+import ContainerRenderer from "./ContainerRenderer"
 
 export default layerCompose(
     ContainerRenderer,

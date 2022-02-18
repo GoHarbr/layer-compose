@@ -1,5 +1,5 @@
-import ContainerRenderer       from "../renderers/ContainerRenderer"
-import DataSlotRenderer        from "../renderers/DataSlotRenderer"
+import ContainerRenderer from "../renderers/ContainerRenderer"
+import DataSlotRenderer from "../renderers/DataSlotRenderer"
 import SlotConfigurationReader from "../renderers/SlotConfigurationReader"
 
 export default [

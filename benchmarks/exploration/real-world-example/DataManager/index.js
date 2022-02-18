@@ -1,5 +1,5 @@
-import RemoteLoader   from "./RemoteLoader"
-import SubtaskData    from "./SubtaskData"
+import RemoteLoader from "./RemoteLoader"
+import SubtaskData from "./SubtaskData"
 import SimpleTaskData from "./SimpleTaskData"
 
 export default layerCompose(
