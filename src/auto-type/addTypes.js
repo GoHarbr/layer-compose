@@ -30,7 +30,7 @@ function rewriteDefaultExport(source) {
 const pendingWrites = []
 
 export function flushTypesToDisk() {
-    for (const {filename, ast} of pendingWrites) {
+    for (const {filename, ast, original} of pendingWrites) {
         const output = generate(ast, {
             retainLines: true,
             compact: false,
@@ -39,6 +39,10 @@ export function flushTypesToDisk() {
 
         let updatedSource = prependFlowComment(output.code)
         updatedSource = rewriteDefaultExport(updatedSource)
+
+        const _filename = path.parse(filename)
+        const backupFilename = path.join(_filename.dir, `.${_filename.name}.backup`)
+        fs.writeFileSync(backupFilename, original)
 
         fs.writeFileSync(filename,
             prettier.format(updatedSource, {
@@ -49,9 +53,14 @@ export function flushTypesToDisk() {
                 tabWidth: 4
             })
         )
+
+        fs.rmSync(backupFilename)
     }
 }
 
+/*
+* Works since rewrite is ran only once: on exit
+* */
 const cachedAsts = {}
 
 export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
@@ -67,13 +76,13 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
                 ast = parse(source, { sourceType: isModule && 'module' || 'script' })
                 cachedAsts[filename] = ast
 
-                const tmpDir = path.join(process.cwd(), 'tmp')
+                const backupDir = path.join(process.cwd(), '.backup')
 
-                if (!fs.existsSync(tmpDir)) {
-                    fs.mkdirSync(tmpDir)
+                if (!fs.existsSync(backupDir)) {
+                    fs.mkdirSync(backupDir)
                 }
 
-                const backupFilename = path.join(tmpDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
+                const backupFilename = path.join(backupDir, filename.replaceAll('/', '_').replaceAll('\\', '_'))
 
                 fs.writeFileSync(backupFilename, source)
             }
@@ -86,7 +95,7 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
                 ast, startingLine, types
             })
 
-            pendingWrites.push({filename, ast})
+            pendingWrites.push({filename, ast, original: source})
         } catch (e) {
             console.error('Failed to write types for file: ', filename, e)
             console.error(updatedSource)
