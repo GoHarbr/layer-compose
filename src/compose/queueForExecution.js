@@ -85,7 +85,7 @@ async function execute(queue, $) {
             } else if (fnReturn[Symbol.asyncIterator] || fnReturn[Symbol.iterator]) {
                 const res = fnReturn.next()
 
-                queue.unshift(...queue.buffer)
+                const buffer = queue.buffer
                 queue.buffer = null
 
 
@@ -104,6 +104,9 @@ async function execute(queue, $) {
                         queueForExecution($, next, cb, {next: true})
                         : $(next)
                 }
+
+                // make sure to flush buffer before executing the yielded function
+                queue.unshift(...buffer)
 
                 return execute(queue, $)
 
