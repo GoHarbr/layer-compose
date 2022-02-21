@@ -88,7 +88,7 @@ export default function seal(composition) {
 
 
 function sealService(lensConstructor, parent, { name, at }) {
-    return function makeLens(cbOrCore, cb) {
+    function makeLens(cbOrCore, cb) {
         let lensCore = null
         let cbWithService
 
@@ -138,6 +138,9 @@ function sealService(lensConstructor, parent, { name, at }) {
         })
     }
 
+    makeLens.mock = lensConstructor.mock
+
+    return makeLens
 }
 
 function sealMethod(method, $, { name }) {
