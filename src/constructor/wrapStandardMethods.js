@@ -1,5 +1,6 @@
-import {$currentExecutor, $dataPointer, IS_DEV_MODE} from "../const"
-import {getExecutionQueue, queueForExecution}        from "../compose/queueForExecution"
+import { $currentExecutor, IS_DEV_MODE } from "../const"
+import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
+import core from "../external/patterns/core"
 
 function wrapThen(instance) {
     const then = instance.then
@@ -24,8 +25,11 @@ function wrapThen(instance) {
 }
 
 function wrapJson(instance) {
-    if ("json" in instance) {
-        instance.toJSON = () => instance[$dataPointer]
+    instance.toJSON = () => {
+        if ("_JSON" in instance) {
+            return instance._JSON
+        }
+        return core(instance)
     }
 }
 
