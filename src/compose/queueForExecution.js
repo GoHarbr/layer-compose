@@ -100,9 +100,11 @@ async function execute(queue, $) {
 
                 const next = await value
                 if (next && !next[$isCompositionInstance]) {
-                    typeof next === 'function' ?
+                    if (typeof next === 'function') {
                         queueForExecution($, next, cb, {next: true})
-                        : $(next)
+                    } else {
+                        throw new Error("Cannot yield a value; must be a function to queue or void")
+                    }
                 }
 
                 // make sure to flush buffer before executing the yielded function
