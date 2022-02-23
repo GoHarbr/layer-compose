@@ -118,7 +118,7 @@ function sealService(lensConstructor, parent, { name, at }) {
 
                 lensConstructor(lensCore, $ => {
                     const r = cbWithService($)
-                    r && r.catch && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
+                    r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
 
                     queueForExecution($, resolveWhenInstantiated)
 
