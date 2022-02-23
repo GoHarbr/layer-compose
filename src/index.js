@@ -1,4 +1,8 @@
 import "./auto-type/onExit"
+import { lc } from "./layerCompose"
+import lens from "./external/patterns/lens"
+import { parent } from "./external/patterns/parent"
+import { findDependency } from "./external/patterns/findDependency"
 
 export {IS_DEV_MODE} from "./const"
 
@@ -9,16 +13,17 @@ export assign       from "./external/patterns/assign"
 export defaults       from "./external/patterns/defaults"
 export generate       from "./external/patterns/generate"
 export coreLens       from "./external/patterns/coreLens"
-export lens     from "./external/patterns/lens"
 export memo       from "./external/patterns/memo"
 export transform       from "./external/patterns/transform"
 export attach     from "./external/patterns/attach"
 export replace     from "./external/patterns/replace"
 export { defer }     from "./external/patterns/defer"
 export pause     from "./external/patterns/pause"
+export { select } from './external/patterns/select'
 
-export { parent }     from "./external/patterns/parent"
 export core     from "./external/patterns/core"
+
+export {lens, parent}
 
 export {unbox} from "./utils"
 // export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
@@ -26,3 +31,7 @@ export {unwrapProxy} from './proxies/utils'
 
 export {enableDebug} from './external/utils/enableDebug'
 export {getCompositionFromInstance} from './compose/markWithId'
+
+lc.parent = parent
+lc.lens = lens
+lc.dependency = findDependency
