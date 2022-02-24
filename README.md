@@ -413,6 +413,10 @@ Less commonly used approach, useful when processing lists. (todo)
 #### `core`
 #### `.mock`
 
+## Tips & Tricks
+### Custom comment theme in IDE
+Making flow type comments less visible will help readability.
+
 ## Related work
 
 ###Trait libraries

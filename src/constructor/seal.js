@@ -155,11 +155,12 @@ function sealMethod(method, $, { name }) {
         const _ = IS_DEV_MODE ? unwrapProxy($[$dataPointer]) : $[$dataPointer]
 
         if (GLOBAL_DEBUG.enabled) {
+            const at = new Error()
             const fullyQualifiedName = $[$fullyQualifiedName]
             const header = `~~   ${name.padEnd(25)}  ${fullyQualifiedName}`
-            console.debug(`${header.padEnd(95)} :: ${findLocationFromError(new Error()) || ''}`)
+            console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at) || ''}`)
 
-            trackExternalFunctionCall(fullyQualifiedName, name, $[$compositionId])
+            trackExternalFunctionCall(fullyQualifiedName, name, $[$compositionId], at)
         }
 
 

@@ -1,21 +1,22 @@
 import { retrieveLayer } from "../../compose/registerLayer"
 import { $composition, $layerOrder } from "../../const"
+import { getFunctionFromError } from "./getFunctionFromError"
 
 export const functionCallsByName = {}
 
 
-function addRecord(cname, fnName, layerIds) {
+function addRecord(cname, fnName, layerIds, at) {
     cname = cname || ''
     const record = functionCallsByName[cname] = functionCallsByName[cname] || []
 
-    record.push({ fnName, layerIds })
+    record.push({ fnName, layerIds, at })
 }
 
-export function trackExternalFunctionCall(fullyQualifiedName, functionName, compositionId) {
+export function trackExternalFunctionCall(fullyQualifiedName, functionName, compositionId, at) {
     const layer = retrieveLayer(compositionId) // should be pointing to the constructor
     const layerIds = layer[$composition][$layerOrder]
 
-    addRecord(fullyQualifiedName, functionName, layerIds)
+    addRecord(fullyQualifiedName, functionName, layerIds, at)
 }
 
 const __functions = Symbol('functions')
@@ -38,21 +39,25 @@ export function generateMapTree(functionCallsByName) {
                 [__meta]: {
                     pointer
                 },
-                [__functions]: new Set(),
+                [__functions]: {},
                 [__layers]: new Set()
             }
         }
 
         const logOfCalls = functionCallsByName[compositionFqName]
 
+        // updating the map through `branch`
         const distinctFunctions = branch[__functions]
         const distinctLayers = branch[__layers]
         for (const record of logOfCalls) {
-            const { fnName, layerIds } = record
+            const { fnName, layerIds, at } = record
 
-            distinctFunctions.add(fnName)
+
+            const fns = distinctFunctions[fnName] || (distinctFunctions[fnName] = [])
+            fns.push(getFunctionFromError(fnName, at))
             layerIds.forEach(l => distinctLayers.add(l))
         }
+
     }
 
     return mapTree
@@ -123,7 +128,7 @@ function generateMapCard(subtree) {
         const layers = Array.from(v[__layers]).map(retrieveLayer).map(l => l[$composition] || l)
 
         const title = { segments: v[__meta].pointer.split('.') }
-        const card = Card(title, layers, Array.from(v[__functions]), generateMapCard(v))
+        const card = Card(title, layers, Object.keys(v[__functions]), generateMapCard(v))
         cards.push(card)
     }
 
