@@ -4,6 +4,7 @@ import fs from "fs"
 import { functionCallsByName, generateMapFile, generateMapTree } from "./mapper/mapper"
 import { writeTypesToDisk } from "./trackTypes"
 import { flushTypesToDisk } from "./addTypes"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 
 export function enableTypeStorage() {
     process.on('exit', onExit)
@@ -18,6 +19,8 @@ let stored = false
 
 function onExit(...args) {
     if (!stored) {
+        stored = true
+
         console.debug("Storing types", ...args)
         const mapFile = path.join(process.cwd(), 'world.mapping.html')
 
@@ -26,10 +29,12 @@ function onExit(...args) {
 
         fs.writeFileSync(mapFile, contents)
 
-        stored = true
 
-        writeTypesToDisk()
-        flushTypesToDisk()
+        if (GLOBAL_DEBUG.writeTypes) {
+            writeTypesToDisk()
+            flushTypesToDisk()
+        }
+
         process.exit()
     }
 }

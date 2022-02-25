@@ -1,11 +1,12 @@
 import { enableTypeStorage } from "../../auto-type/onExit"
 
 export const GLOBAL_DEBUG = {
-    enabled: false
+    enabled: false,
 }
 
-export function enableDebug() {
+export function enableDebug({writeTypes = false} = {}) {
     GLOBAL_DEBUG.enabled = true
+    GLOBAL_DEBUG.writeTypes = writeTypes
 
     printIntroduction()
     enableTypeStorage()
