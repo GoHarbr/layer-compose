@@ -62,9 +62,13 @@ export function lc(tag) {
 
     return new Proxy(() => {}, {
         get(target, prop) {
-            if (!constructor) constructor = layerCompose(layers)
+            if (prop === $isLc) {
+                return true
+            } else {
+                if (!constructor) constructor = layerCompose(layers)
 
-            return constructor[prop]
+                return constructor[prop]
+            }
         },
 
         set(target, prop, value) {
@@ -109,7 +113,7 @@ export function lc(tag) {
                 if (prop in target && prop !== '_') throw new Error('Layer with such name already exists: ' + prop)
                 if (prop === '_' && !value[$isLc]) throw new Error('Non-composed layers must be named: ' + prop)
 
-                value[$at] = at
+                if (!value[$isLc]) value[$at] = at
                 layers.unshift(value)
                 target[prop] = true
 
