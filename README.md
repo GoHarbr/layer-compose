@@ -406,6 +406,8 @@ Less commonly used approach, useful when processing lists. (todo)
 
 ### Dependency Injection
 
+### Singletons
+
 ### Utilities
 
 #### `defaults`
