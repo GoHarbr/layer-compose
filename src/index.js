@@ -4,6 +4,11 @@ import lens from "./external/patterns/lens"
 import { parent } from "./external/patterns/parent"
 import { findDependency } from "./external/patterns/findDependency"
 
+lc.parent = parent
+lc.lens = lens
+lc.dependency = findDependency
+
+
 export {IS_DEV_MODE} from "./const"
 
 export layerCompose from './layerCompose'
@@ -31,7 +36,3 @@ export {unwrapProxy} from './proxies/utils'
 
 export {enableDebug} from './external/utils/enableDebug'
 export {getCompositionFromInstance} from './compose/markWithId'
-
-lc.parent = parent
-lc.lens = lens
-lc.dependency = findDependency

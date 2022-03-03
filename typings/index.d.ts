@@ -13,7 +13,10 @@ export const $: <T>(layer: T) => {
 }
 export const o: {$: typeof $}
 
-export function lc(tag?: string): {}
+export type lc = {
+    (tag?: string): {}
+    parent: typeof parent
+}
 
 export function coreLens(transform: (parentCore) => object): ($, _) => object
 
