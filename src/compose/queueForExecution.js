@@ -82,7 +82,7 @@ async function execute(queue, $) {
 
                 return execute(queue, $)
 
-            } else if (fnReturn[Symbol.asyncIterator] || fnReturn[Symbol.iterator]) {
+            } else if (fnReturn[Symbol.asyncIterator] || fnReturn[Symbol.iterator] && !Array.isArray(fnReturn)) {
                 const res = fnReturn.next()
 
                 const buffer = queue.buffer
