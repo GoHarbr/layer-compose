@@ -92,12 +92,12 @@ function sealService(lensConstructor, parent, { name, at }) {
         let lensCore = null
         let cbWithService
 
-        if (typeof cbOrCore === 'object') {
-            lensCore = cbOrCore
-            cbWithService = cb
-        } else {
+        if (typeof cbOrCore === 'function') {
             lensCore = {}
             cbWithService = cbOrCore
+        } else {
+            lensCore = cbOrCore
+            cbWithService = cb
         }
 
         if (!cbWithService) throw new Error("Callback must be present to access the service")
