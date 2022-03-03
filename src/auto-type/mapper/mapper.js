@@ -1,6 +1,5 @@
 import { retrieveLayer } from "../../compose/registerLayer"
 import { $composition, $layerOrder } from "../../const"
-import { getFunctionFromError } from "./getFunctionFromError"
 
 export const functionCallsByName = {}
 
@@ -54,7 +53,7 @@ export function generateMapTree(functionCallsByName) {
 
 
             const fns = distinctFunctions[fnName] || (distinctFunctions[fnName] = [])
-            fns.push(getFunctionFromError(fnName, at))
+            // fns.push(getFunctionFromError(fnName, at))
             layerIds.forEach(l => distinctLayers.add(l))
         }
 
