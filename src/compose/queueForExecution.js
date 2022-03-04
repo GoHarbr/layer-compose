@@ -31,7 +31,7 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
         }
         queue[$currentExecutor] = {
             then(cb) {
-                queueForExecution($, cb, null, {push: true})
+                queueForExecution($, () => {}, cb, {push: true})
             },
             catch(cb) {
                 catchWith.push(cb)
@@ -101,7 +101,7 @@ async function execute(queue, $) {
                 const next = await value
                 if (next && !next[$isCompositionInstance]) {
                     if (typeof next === 'function') {
-                        queueForExecution($, next, cb, {next: true})
+                        queueForExecution($, () => {next()}, cb, {next: true})
                     } else {
                         throw new Error("Cannot yield a value; must be a function to queue or void")
                     }
