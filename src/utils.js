@@ -21,8 +21,11 @@ export function isPromise(what) {
     return what && typeof what == "object" && ("then" in what) && isFunction(what.then) && !what[$isCompositionInstance]
 }
 
-export function isAwaitable(what) {
-    return what && typeof what == "object" && (what[$isCompositionInstance] || (("then" in what) && isFunction(what.then)))
+export function isAwaitable(what, allowCompositions = true) {
+    if (what && typeof what == "object" || (allowCompositions && what[$isCompositionInstance])) {
+        return (allowCompositions && what[$isCompositionInstance]) || ("then" in what) && isFunction(what.then)
+    }
+    return false
 }
 
 
