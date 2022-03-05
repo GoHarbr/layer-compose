@@ -4,6 +4,7 @@ import {
     $dataPointer,
     $fullyQualifiedName,
     $getterNames,
+    $isCompositionInstance,
     $isLc,
     $lensName,
     $parentInstance,
@@ -24,7 +25,7 @@ import { isPromise } from "../utils"
 import debugCoreUpdate from "./debugCoreUpdate"
 
 
-const PRIMORDIAL_LEVEL=0
+const PRIMORDIAL_LEVEL = 0
 
 export default function seal(composition) {
     const $ = function (arg) {
@@ -36,24 +37,24 @@ export default function seal(composition) {
 
         let coreUpdate
 
-            queueForExecution($, async () => coreUpdate = arg && await constructCoreObject(arg), () => {
+        queueForExecution($, async () => coreUpdate = arg && await constructCoreObject(arg), () => {
 
-                // pass on the message
-                queueForExecution($, () => {
-                    if (coreUpdate !== undefined) {
-                        $._ && $._(coreUpdate)
+            // pass on the message
+            queueForExecution($, () => {
+                if (coreUpdate !== undefined) {
+                    $._ && $._(coreUpdate)
 
-                        // runs after
-                        if (coreUpdate) {
-                            queueForExecution($, () => {
-                                const c = core($, PRIMORDIAL_LEVEL)
-                                defaults(c, coreUpdate)
-                            }, null, { prepend: true })
-                        }
+                    // runs after
+                    if (coreUpdate) {
+                        queueForExecution($, () => {
+                            const c = core($, PRIMORDIAL_LEVEL)
+                            defaults(c, coreUpdate)
+                        }, null, { prepend: true })
                     }
-                }, null, {prepend: true})
+                }
+            }, null, { prepend: true })
 
-            }, {prepend: true})
+        }, { prepend: true })
 
 
         return $
@@ -75,7 +76,7 @@ export default function seal(composition) {
         } else {
             const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
             if (isGetter) {
-                Object.defineProperty($, name, {get: sealMethod(methodOrLens, $, { name })})
+                Object.defineProperty($, name, { get: sealMethod(methodOrLens, $, { name }) })
                 $[$getterNames].push(name)
             } else {
                 $[name] = sealMethod(methodOrLens, $, { name })
@@ -105,35 +106,67 @@ function sealService(lensConstructor, parent, { name, at }) {
         parent = IS_DEV_MODE ? wrapCompositionWithProxy(parent) : parent
 
         const fullyQualifiedName = (parent[$fullyQualifiedName] || '') + `.${name}`
-        const diagnostics = !IS_DEV_MODE ? null : () => {
+        const diagnostics = !IS_DEV_MODE ? null : (symbol) => {
             if (GLOBAL_DEBUG.enabled) {
-                const header = `|>>  ${''.padEnd(25)}  ${fullyQualifiedName} () lens`
+                const header = `${symbol.padEnd(3)}  ${''.padEnd(25)}  ${fullyQualifiedName}`
                 console.debug(`${header.padEnd(95)} :: ${findLocationFromError(new Error())}`)
             }
         }
 
-        return new Promise(resolveWhenInstantiated => {
+        return new Promise(async resolveWhenInstantiated => {
 
-                diagnostics && diagnostics()
+            diagnostics && diagnostics('|>>')
 
-                lensConstructor(lensCore, $ => {
-                    const r = cbWithService($)
-                    r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
+            // singleton mechanism
+            const pCore = core_unsafe(parent)
+            const isSingleton = name in pCore
+            let resolveWithSingleton
 
-                    queueForExecution($, resolveWhenInstantiated)
+            let singletonFrom
+            if (isSingleton) {
+                diagnostics('@')
 
-                    return r
-                }, {
-                    lensName: name, fullyQualifiedName,
-                    preinitializer: ($) => {
-                        const _ = core_unsafe($)
-                        if (_[$parentInstance]) {
-                            console.warn('Object already has a parent instance reference')
-                        }
-                        _[$parentInstance] = parent
-                    },
-                    parent,
-                })
+                singletonFrom = pCore[name]
+                if (isPromise(singletonFrom)) {
+                    singletonFrom = await singletonFrom
+                }
+                if (singletonFrom === undefined) {
+                    // for cases after the first lens instantiation
+                    singletonFrom = pCore[name]
+                }
+                if (singletonFrom[$isCompositionInstance]) {
+                    // giving back the ready instance
+                    cbWithService(singletonFrom)
+                    queueForExecution(singletonFrom, resolveWhenInstantiated)
+
+                    // ! shortcut
+                    return
+
+                } else {
+                    // setting a placeholder, in case of concurrent lens access
+                    pCore[name] = new Promise(res => resolveWithSingleton = res)
+                }
+            }
+
+            lensConstructor(lensCore, $ => {
+                // giving singleton for future use
+                if (isSingleton) {
+                    pCore[name] = $
+                    resolveWithSingleton()
+                }
+
+                const r = cbWithService($)
+                r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
+
+                queueForExecution($, resolveWhenInstantiated)
+
+                return r
+            }, {
+                lensName: name,
+                fullyQualifiedName,
+                singleton: singletonFrom,
+                parent,
+            })
 
         })
     }
@@ -152,6 +185,9 @@ function sealMethod(method, $, { name }) {
                 throw new Error("Layer methods can take only named parameters/options or a single argument")
             }
         }
+
+        // ! here's the catch!!
+        // do not re-set $dataPointer past this point, it's cached from here on out
         const _ = IS_DEV_MODE ? unwrapProxy($[$dataPointer]) : $[$dataPointer]
 
         if (GLOBAL_DEBUG.enabled) {

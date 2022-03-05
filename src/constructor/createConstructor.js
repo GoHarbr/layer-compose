@@ -9,6 +9,7 @@ import {
     $isLc,
     $layers,
     $lensName,
+    $parentInstance,
     $tag,
     IS_DEV_MODE
 } from "../const"
@@ -24,6 +25,7 @@ import splitLocationIntoComponents from "../external/utils/splitLocationIntoComp
 import { wrapWithUtils } from "./wrapWithUtils"
 import changeCase from 'case'
 import { findDependency } from "../external/patterns/findDependency"
+import { core_unsafe } from "../external/patterns/core"
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {
@@ -65,7 +67,9 @@ export async function constructFromComposition(composition, coreObject, {
     lensName,
     fullyQualifiedName,
     preinitializer,
-    tag
+    tag,
+    singleton,
+    parent
 }) {
     const compositionInstance = seal(composition)
     wrapStandardMethods(compositionInstance) // for methods like .then
@@ -77,7 +81,8 @@ export async function constructFromComposition(composition, coreObject, {
     compositionInstance[$tag] = tag
     compositionInstance[$fullyQualifiedName] = fullyQualifiedName || tag
 
-    compositionInstance[$dataPointer] = {}
+    compositionInstance[$dataPointer] = singleton && core_unsafe(singleton) || singleton || {}
+    compositionInstance[$dataPointer][$parentInstance] = parent
 
     initialize(compositionInstance, coreObject)
     // preinitializer runs first, thus must be queued last
@@ -99,7 +104,7 @@ const _constructor = ({at}) => {
     return async function (coreObject, cb, {
         lensName,
         fullyQualifiedName,
-        preinitializer,
+        singleton,
         parent
     } = {}) {
         if (!cb && typeof coreObject == 'function') {
@@ -126,7 +131,7 @@ const _constructor = ({at}) => {
                     composition,
                     coreObject,
                     {
-                        lensName, fullyQualifiedName, preinitializer, tag
+                        lensName, fullyQualifiedName, singleton, parent, tag
                     })
 
                 // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
