@@ -13,7 +13,7 @@ export const $: <T>(layer: T) => {
 }
 export const o: {$: typeof $}
 
-export type lc = {
+export interface lc {
     (tag?: string): {}
     parent: typeof parent
 }
