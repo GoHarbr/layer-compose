@@ -6,7 +6,7 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 
 <p align="center" style="font-size:20px">
 <img src="docs/logo.png"/>
-Architecture Visualized (live)
+Architecture Specification Language in pure JavaScript
 <br/>
 </p>
 
@@ -31,7 +31,7 @@ Lenses meet Reactive OOP for maintainable architectures
 
 ## Goals
 - One way to do the same thing twice: creating predictable architecture patterns within and across teams
-- Saf**er** mutable state: have the peace of mind as when working with *immutable* state
+- Saf**er** mutable state: have the same peace of mind as when working with *immutable* state
 - **Ease when refactoring** architecture
 - Ability to split classes into reusable components (mixins) / **clear separation of concerns**
 - Ability to **visualize component relationships**
