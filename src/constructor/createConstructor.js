@@ -111,6 +111,9 @@ const _constructor = ({at}) => {
             cb = coreObject
             coreObject = null
         }
+
+        if (typeof cb != 'function') throw new Error('Must have callback')
+
         try {
 
             const composition = await this[$getComposition]({})
