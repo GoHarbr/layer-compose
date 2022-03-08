@@ -30,7 +30,7 @@ const PRIMORDIAL_LEVEL = 0
 export default function seal(composition) {
     const $ = function (arg) {
         if (IS_DEV_MODE) {
-            if (typeof arg !== 'object') throw new Error('only objects are allowed currently')
+            if (typeof arg !== 'object' && !arg?.[$isCompositionInstance]) throw new Error('Only objects or compositions are allowed currently')
             if (Array.isArray(arg) && arg.find(e => e === undefined)) throw new Error(`Likely a Promise.all() was yielded/returned from a generator function`)
         }
         debugCoreUpdate($)
@@ -64,6 +64,9 @@ export default function seal(composition) {
     $[$dataPointer] = null
     $[$compositionId] = composition[$compositionId]
     $[$getterNames] = []
+
+    // clearing existing methods
+    $.call = $.bind = $.apply = undefined
 
     for (const name in composition) {
         const methodOrLens = composition[name]
@@ -134,6 +137,8 @@ function sealService(lensConstructor, parent, { name, at }) {
                     // for cases after the first lens instantiation
                     singletonFrom = pCore[name]
                 }
+
+                // todo. verify type!!
                 if (singletonFrom[$isCompositionInstance]) {
                     // giving back the ready instance
                     cbWithService(singletonFrom)
@@ -146,6 +151,8 @@ function sealService(lensConstructor, parent, { name, at }) {
                     // setting a placeholder, in case of concurrent lens access
                     pCore[name] = new Promise(res => resolveWithSingleton = res)
                 }
+
+                lensCore = {...singletonFrom, ...lensCore}
             }
 
             lensConstructor(lensCore, $ => {
