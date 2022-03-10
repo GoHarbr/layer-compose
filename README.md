@@ -64,9 +64,10 @@ with [declarative](https://en.wikipedia.org/wiki/Declarative_programming) style 
 
 If you're looking to understand what makes `layer-compose` different from other _mixin/traits_ libraries or other _actor_ libraries:
 
-> _Layers_ are **additive**. There is no traditional overriding of methods with the same name.
-> While traits and mixins have resolution mechanism when there are naming conflicts, _Layers_ execute **all** the provided code. 
-
+> _Layers_ are **additive**. There is no traditional overriding of methods.
+> While traits and mixins have resolution mechanism when there are naming conflicts, _layer-compose_ generates methods by combining definitins across **all** _Layers_. 
+> Subtraction is achieved by layer reorganization, not overriding.
+ 
 ## Showcase
 
 ![diagram1](docs/layer-compose.png)

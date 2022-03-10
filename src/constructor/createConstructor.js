@@ -126,7 +126,10 @@ const _constructor = ({at}) => {
                     throw new Error('Failed to find dependency')
                 }
 
-                return queueCb($, cb)
+                // todo? get rid of? why needed?
+                // return queueCb($, cb)
+
+                cb($)
 
             } else {
 

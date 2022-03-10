@@ -75,7 +75,7 @@ export default function seal(composition) {
 
         if (methodOrLens[$isLc]) {
             const at = composition[$at]
-            $[name] = sealService(methodOrLens, $, { name, at })
+            $[name] = sealLens(methodOrLens, $, { name, at })
         } else {
             const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
             if (isGetter) {
@@ -91,12 +91,12 @@ export default function seal(composition) {
 }
 
 
-function sealService(lensConstructor, parent, { name, at }) {
+function sealLens(lensConstructor, parent, { name, at }) {
     function makeLens(cbOrCore, cb) {
         let lensCore = null
         let cbWithService
 
-        if (typeof cbOrCore === 'function') {
+        if (typeof cbOrCore === 'function' && !cbOrCore[$isCompositionInstance]) {
             lensCore = {}
             cbWithService = cbOrCore
         } else {
@@ -127,6 +127,10 @@ function sealService(lensConstructor, parent, { name, at }) {
 
             let singletonFrom
             if (isSingleton) {
+                if (lensCore[$isCompositionInstance]) {
+                    throw new Error("Dependency injection cannot be done through a Lens if it's also singleton")
+                }
+
                 diagnostics('@')
 
                 singletonFrom = pCore[name]
@@ -164,6 +168,8 @@ function sealService(lensConstructor, parent, { name, at }) {
 
                 const r = cbWithService($)
                 r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
+
+                // todo, think about if this is the correct way of awaiting
 
                 queueForExecution($, resolveWhenInstantiated)
 

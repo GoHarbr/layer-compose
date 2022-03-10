@@ -91,7 +91,7 @@ async function compose(layerLike, composed) {
 
         for (const name in layerLike) {
             // console.log('\t', name)
-            const value = layerLike[name]
+            const value = await layerLike[name]
 
             if (typeof value === 'object' || isLcConstructor(value)) {
                 // if this is a service definition then it starts with a capital letter
@@ -116,10 +116,9 @@ async function compose(layerLike, composed) {
                         serviceLayers.unshift(composed[serviceName]) // given that top layers are processed first, push in the opposite order
                         serviceLayers[$at] = value[$at] || layerLike[$at]
 
-                        s = createConstructor(serviceLayers)
-                    } else {
-                        s = createConstructor(serviceLayers)
                     }
+
+                    s = createConstructor(serviceLayers)
                 }
 
                 if (IS_DEV_MODE && !s[$layers]?.[$at]) debugger
