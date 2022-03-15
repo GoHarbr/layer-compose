@@ -1,4 +1,4 @@
-import { $currentExecutor, $executionQueue, $isCompositionInstance, IS_DEV_MODE } from "../const"
+import { $currentExecutor, $executionQueue, $isCompositionInstance } from "../const"
 import { isAwaitable } from "../utils"
 import core from "../external/patterns/core"
 import asap from "asap/raw"
@@ -26,28 +26,31 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
 
     if (!queue[$currentExecutor]) {
         const catchWith = []
-        if (IS_DEV_MODE) {
-            catchWith.push(e => console.error(e))
-        }
+
+        catchWith.push(e => console.error('!!! Handling error :: ', e))
+
         queue[$currentExecutor] = {
             then(cb) {
                 queueForExecution($, () => {}, cb, {push: true})
             },
             catch(cb) {
                 catchWith.push(cb)
-            }
+            },
+            fail(e) {
+                queue.length = 0
+                catchWith.forEach(cb => cb(e))
+            },
         }
 
-        asap(() => _execute($, queue, catchWith))
+        asap(() => _execute($, queue))
     }
 }
 
-async function _execute($, queue, catchWith) {
+async function _execute($, queue) {
     try {
         await execute(queue, $)
-
     } catch (e) {
-        catchWith.forEach(cb => cb(e))
+        queue[$currentExecutor].fail(e)
     }
 }
 
@@ -78,6 +81,7 @@ async function execute(queue, $) {
 
                 const res = await fnReturn
 
+                handleError(res, queue)
                 cb && cb(res)
 
                 return execute(queue, $)
@@ -99,7 +103,8 @@ async function execute(queue, $) {
                 if (!done) {doContinue = true}
 
                 const next = await value
-                if (next && !next[$isCompositionInstance]) {
+
+                if (!handleError(next, queue) && next && !next[$isCompositionInstance]) {
                     if (typeof next === 'function') {
                         queueForExecution($, () => {next()}, cb, {next: true})
                     } else {
@@ -111,7 +116,8 @@ async function execute(queue, $) {
                 queue.unshift(...buffer)
 
                 return execute(queue, $)
-
+            } else {
+                handleError(fnReturn, queue)
             }
         }
 
@@ -126,7 +132,7 @@ async function execute(queue, $) {
         return execute(queue, $)
 
     } catch (e) {
-        console.warn('!! Queue task failed:', e)
+        queue[$currentExecutor].fail(e)
 
         if (GLOBAL_DEBUG.enabled) {
             process.exit(1)
@@ -134,4 +140,13 @@ async function execute(queue, $) {
 
         throw e
     }
+}
+
+function handleError(e, queue) {
+    if (e instanceof Error) {
+        queue[$currentExecutor].fail(e)
+
+        return true
+    }
+    return false
 }
