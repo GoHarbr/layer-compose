@@ -18,6 +18,14 @@ import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { registerLayer } from "./registerLayer"
 
 async function compose(layerLike, composed) {
+    if (layerLike[Symbol.toStringTag] === 'Module') {
+        const def = layerLike.default
+        if (!def) {
+            throw new Error('Dynamic import must have a default export')
+        }
+        return compose(def, composed)
+    }
+
     const layerId = registerLayer(layerLike) // can also return compositionId
 
     if (composed) {
@@ -198,7 +206,10 @@ async function compose(layerLike, composed) {
 async function processFragmentOfLayers(layerLike, composed) {
     for (let i = 0; i < layerLike.length; i++) {
         const l = layerLike[i]
-        if (!l[$at] && !l[$isLc]) {
+
+        // todo. This is rather hacky.
+        //    at should already be set
+        if (!l[$at] && !l[$isLc] && l[Symbol.toStringTag] !== 'Module') {
             l[$at] = layerLike[$at]
         }
 
