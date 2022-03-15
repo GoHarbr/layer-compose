@@ -131,7 +131,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                     throw new Error("Dependency injection cannot be done through a Lens if it's also singleton")
                 }
 
-                diagnostics('@')
+                diagnostics && diagnostics('@')
 
                 singletonFrom = pCore[name]
                 if (isPromise(singletonFrom)) {
