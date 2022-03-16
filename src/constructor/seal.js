@@ -116,7 +116,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
             }
         }
 
-        return new Promise(async resolveWhenInstantiated => {
+        return new Promise(async (resolveWhenInstantiated, rejectWhenInstantiated) => {
 
             diagnostics && diagnostics('|>>')
 
@@ -144,6 +144,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
 
                 // todo. verify type!!
                 if (singletonFrom[$isCompositionInstance]) {
+                    singletonFrom.catch(rejectWhenInstantiated, 'initializer')
+
                     // giving back the ready instance
                     cbWithService(singletonFrom)
                     queueForExecution(singletonFrom, resolveWhenInstantiated)
@@ -180,8 +182,9 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 singleton: singletonFrom,
                 parent,
             })
-
+                .catch(rejectWhenInstantiated, 'initializer')
         })
+
     }
 
     makeLens.mock = lensConstructor.mock

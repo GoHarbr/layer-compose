@@ -101,11 +101,11 @@ const _constructor = ({at}) => {
     const { filename } = splitLocationIntoComponents(location)
     const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
 
-    return async function (coreObject, cb, {
+    return function (coreObject, cb, {
         lensName,
         fullyQualifiedName,
         singleton,
-        parent
+        parent,
     } = {}) {
         if (!cb && typeof coreObject == 'function') {
             cb = coreObject
@@ -114,50 +114,67 @@ const _constructor = ({at}) => {
 
         if (typeof cb != 'function') throw new Error('Must have callback')
 
-        try {
+        const readyPromise = new Promise(async (resolve) => {
+            try {
 
-            const composition = await this[$getComposition]({})
+                const composition = await this[$getComposition]({})
 
-            // dependency injection
-            if (coreObject?.[$isCompositionInstance]) {
-                const $ = findDependency(coreObject, composition, { location })
+                // dependency injection
+                if (coreObject?.[$isCompositionInstance]) {
+                    const $ = findDependency(coreObject, composition, { location })
 
-                if (!$) {
-                    throw new Error('Failed to find dependency')
+                    if (!$) {
+                        throw new Error('Failed to find dependency')
+                    }
+
+                    // todo? get rid of? why needed?
+                    // return queueCb($, cb)
+
+                    cb($)
+
+                    resolve([$])
+                } else {
+
+                    const [$] = await constructFromComposition(
+                        composition,
+                        coreObject,
+                        {
+                            lensName, fullyQualifiedName, singleton, parent, tag
+                        })
+
+
+                    // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
+
+                    resolve([$])
                 }
 
-                // todo? get rid of? why needed?
-                // return queueCb($, cb)
-
-                cb($)
-
-            } else {
-
-                const [$] = await constructFromComposition(
-                    composition,
-                    coreObject,
-                    {
-                        lensName, fullyQualifiedName, singleton, parent, tag
-                    })
-
-                // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
-                return queueCb($, cb)
+            } catch (e) {
+                console.error("layerCompose encountered an error:", e, e.stack)
+                if (IS_DEV_MODE) throw e
             }
+        })
 
-        } catch (e) {
-            console.error("layerCompose encountered an error:", e, e.stack)
-            if (IS_DEV_MODE) throw e
-        }
-
+        return queueCb(readyPromise, cb)
     }
 }
 
-function queueCb($, cb) {
-    return new Promise((resolve) => {
-        queueForExecution($, () => {
-        }, () => {
+function queueCb(p$, cb) {
+    // letting the outside know when the callback is executed
+    const readyPromise = p$.then(([$]) => new Promise(resolve => {
+        queueForExecution($, () => {}, () => {
             cb($)
-            resolve()
+            resolve([$])
         })
-    })
+    }))
+
+    // letting the outside queue catches right away
+    return {
+        catch: (handler) => p$.then(([$]) => {
+            $.catch(handler, 'initializer')
+        }),
+
+        then: (onResolve, onReject) => {
+            return readyPromise.then(([$]) => $.then(onResolve, onReject))
+        }
+    }
 }

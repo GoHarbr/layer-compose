@@ -1,4 +1,4 @@
-import { $currentExecutor, $executionQueue, $isCompositionInstance } from "../const"
+import { $currentExecutor, $executionQueue, $isCompositionInstance, IS_DEV_MODE } from "../const"
 import { isAwaitable } from "../utils"
 import core from "../external/patterns/core"
 import asap from "asap/raw"
@@ -25,20 +25,29 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
     }
 
     if (!queue[$currentExecutor]) {
-        const catchWith = []
+        let catchWith = {}
 
-        catchWith.push(e => console.error('!!! Handling error :: ', e))
+        catchWith['print'] = (e => console.error('!!! Handling error :: ', e))
 
+        let catchId = 1
         queue[$currentExecutor] = {
             then(cb) {
                 queueForExecution($, () => {}, cb, {push: true})
             },
-            catch(cb) {
-                catchWith.push(cb)
+            catch(cb, id) {
+                id = id || 'lc-catch-id-' + (catchId++)
+                catchWith[id] = cb
+            },
+            removeCatch(id) {
+                delete catchWith[id]
             },
             fail(e) {
                 queue.length = 0
-                catchWith.forEach(cb => cb(e))
+                Object.entries(catchWith).forEach(([id, cb]) => {
+                    if (IS_DEV_MODE) console.warn('Catching error with ' + id + ' : ', e)
+                    cb(e)
+                })
+                catchWith = {}
             },
         }
 
