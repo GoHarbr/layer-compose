@@ -128,9 +128,6 @@ const _constructor = ({at}) => {
                     }
 
                     // todo? get rid of? why needed?
-                    // return queueCb($, cb)
-
-                    cb($)
 
                     resolve([$])
                 } else {
