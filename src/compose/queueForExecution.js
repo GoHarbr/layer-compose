@@ -45,7 +45,7 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
                 queue.length = 0
                 Object.entries(catchWith).forEach(([id, cb]) => {
                     if (IS_DEV_MODE) console.warn('Catching error with ' + id + ' : ', e)
-                    cb(e)
+                    cb(e, $)
                 })
                 catchWith = {}
             },

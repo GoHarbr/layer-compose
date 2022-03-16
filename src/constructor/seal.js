@@ -135,10 +135,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
 
                 singletonFrom = pCore[name]
                 if (isPromise(singletonFrom)) {
-                    singletonFrom = await singletonFrom
-                }
-                if (singletonFrom === undefined) {
-                    // for cases after the first lens instantiation
+                    await singletonFrom
                     singletonFrom = pCore[name]
                 }
 
@@ -158,7 +155,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                     pCore[name] = new Promise(res => resolveWithSingleton = res)
                 }
 
-                lensCore = {...singletonFrom, ...lensCore}
+                lensCore = { ...singletonFrom, ...lensCore }
             }
 
             lensConstructor(lensCore, $ => {
@@ -182,7 +179,14 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 singleton: singletonFrom,
                 parent,
             })
-                .catch(rejectWhenInstantiated, 'initializer')
+                .catch((e, $) => {
+                    rejectWhenInstantiated()
+                    // keeping singleton for future use, even though it failed
+                    if (isSingleton) {
+                        pCore[name] = $
+                        resolveWithSingleton()
+                    }
+                }, 'initializer')
         })
 
     }
