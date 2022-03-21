@@ -200,7 +200,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
         return {
             catch: (handler) => {
                 catchFn = handler
-                creationPromise.then(([$]) => {
+                return creationPromise.then(([$]) => {
                     $.catch(handler, 'custom-lens-initializer')
                 })
             },
