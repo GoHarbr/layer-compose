@@ -1,5 +1,3 @@
-import {IS_DEV_MODE} from "../../const"
-
 export default function defaults(_, defaultValues) {
     for (const k of Object.keys(defaultValues)) {
         const notIn = !(k in _)

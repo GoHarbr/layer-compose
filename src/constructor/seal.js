@@ -121,6 +121,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
         }
 
 
+        let catchFn
         const creationPromise = new Promise(async (resolveWhenCreated, rejectWhenInstantiated) => {
 
             diagnostics && diagnostics('|>>')
@@ -182,6 +183,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 parent,
             })
                 .catch((e, $) => {
+                    catchFn && catchFn()
                     rejectWhenInstantiated(e) // todo. prevent rejecting after resolution
 
                     // keeping singleton for future use, even though it failed
@@ -196,9 +198,12 @@ function sealLens(lensConstructor, parent, { name, at }) {
 
         // letting the outside catch right away
         return {
-            catch: (handler) => creationPromise.then(([$]) => {
-                $.catch(handler, 'custom-lens-initializer')
-            }),
+            catch: (handler) => {
+                catchFn = handler
+                creationPromise.then(([$]) => {
+                    $.catch(handler, 'custom-lens-initializer')
+                })
+            },
 
             then: (onResolve, onReject) => {
                 return cbPromise.then(onResolve, onReject)
