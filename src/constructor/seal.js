@@ -140,7 +140,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 }
 
                 // todo. verify type!!
-                if (singletonFrom[$isCompositionInstance]) {
+                if (singletonFrom?.[$isCompositionInstance]) {
                     singletonFrom.catch(rejectWhenInstantiated, 'initializer')
 
                     // giving back the ready instance
@@ -169,7 +169,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
 
                 // todo, think about if this is the correct way of awaiting
-
+                // todo return the instance in resolve (match the constructor)
                 queueForExecution($, resolveWhenInstantiated)
 
                 return r
@@ -180,7 +180,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 parent,
             })
                 .catch((e, $) => {
-                    rejectWhenInstantiated()
+                    rejectWhenInstantiated(e) // todo. prevent rejecting after resolution
+
                     // keeping singleton for future use, even though it failed
                     if (isSingleton) {
                         pCore[name] = $

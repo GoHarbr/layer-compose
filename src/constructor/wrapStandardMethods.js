@@ -20,25 +20,27 @@ function wrapThen(instance) {
         if (onRejected) {
             queueForExecution(instance, () => {
                 getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + id)
-            }, null, { next: true })
+            }, null, { immediate: true })
         }
 
         queueForExecution(instance, () => {
             getExecutionQueue(instance)[$currentExecutor].removeCatch('standard-methods-' + id)
-            onFulfilled()
+            return onFulfilled()
         }, null, {push: true})
 
         return instance
     }
 
-    instance.catch = (onRejected) => {
+    instance.catch = (onRejected, marker) => {
         if (IS_DEV_MODE && typeof onRejected != "function") {
             throw new Error("Improper use of Async: `onRejected` must be a function")
         }
+        id += 1
+        const thisId = marker ? marker + '-' + id : 'standard-methods-' + id
 
         if (onRejected) {
             queueForExecution(instance, () => {
-                getExecutionQueue(instance)[$currentExecutor].catch(onRejected)
+                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, thisId)
             }, null, { next: true })
         }
 

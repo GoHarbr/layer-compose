@@ -5,14 +5,25 @@ import asap from "asap/raw"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 
 let id = 0
+const deadlocks = {}
+let lastExecutionTime = -1
+export function getDeadlocks() {
+    return {functions: {...deadlocks}, lastExecutionTime}
+}
 
-export function queueForExecution($, fn, cb, { push = false, next = false, prepend = false } = {}) {
+export function queueForExecution($, fn, cb, { push = false, next = false, prepend = false, immediate = false, at } = {}) {
     const queue = getExecutionQueue($)
 
-    const item = { fn, cb, id: id++ }
+    const item = { fn, cb, id: id++, at: GLOBAL_DEBUG.trackDeadlocks && (at || new Error('Deadlock tracking')) }
     if (prepend) {
         if (queue.buffer) {
             queue.buffer.push(item)
+        } else {
+            queue.unshift(item)
+        }
+    } else if (immediate) {
+        if (queue.buffer) {
+            queue.buffer.unshift(item)
         } else {
             queue.unshift(item)
         }
@@ -24,35 +35,7 @@ export function queueForExecution($, fn, cb, { push = false, next = false, prepe
         queue.push(item)
     }
 
-    if (!queue[$currentExecutor]) {
-        let catchWith = {}
-
-        catchWith['print'] = (e => console.error('!!! Handling error :: ', e))
-
-        let catchId = 1
-        queue[$currentExecutor] = {
-            then(cb) {
-                queueForExecution($, () => {}, cb, {push: true})
-            },
-            catch(cb, id) {
-                id = id || 'lc-catch-id-' + (catchId++)
-                catchWith[id] = cb
-            },
-            removeCatch(id) {
-                delete catchWith[id]
-            },
-            fail(e) {
-                queue.length = 0
-                Object.entries(catchWith).forEach(([id, cb]) => {
-                    if (IS_DEV_MODE) console.warn('Catching error with ' + id + ' : ', e)
-                    cb(e, $)
-                })
-                catchWith = {}
-            },
-        }
-
-        asap(() => _execute($, queue))
-    }
+    queue[$currentExecutor].start()
 }
 
 async function _execute($, queue) {
@@ -64,24 +47,75 @@ async function _execute($, queue) {
 }
 
 export function getExecutionQueue($) {
-    return core($)[$executionQueue] || (core($)[$executionQueue] = [])
+    const queue = core($)[$executionQueue] || (core($)[$executionQueue] = [])
+
+    if (!queue[$currentExecutor]) {
+        let catchWith = {}
+        let catchId = 1
+
+        catchWith['print'] = (e => console.error('!!! Handling error :: ', e))
+
+        let isStarted = false
+        queue[$currentExecutor] = {
+            stop() {
+                isStarted = false
+            },
+            start() {
+                if (!isStarted) {
+                    isStarted = true
+                    asap(() => _execute($, queue))
+                }
+            },
+            then(cb) {
+                queueForExecution($, () => {}, cb, {push: true})
+            },
+            catch(cb, id) {
+                id = id || 'lc-catch-id-' + (catchId++)
+                catchWith[id] = cb
+            },
+            removeCatch(id) {
+                delete catchWith[id]
+            },
+            fail(e) {
+                queue[$currentExecutor].stop()
+
+                queue.buffer = null
+                queue.length = 0
+                Object.entries(catchWith).forEach(([id, cb]) => {
+                    if (IS_DEV_MODE) console.warn('Catching error with ' + id)
+                    cb(e, $)
+                })
+                catchWith = {}
+            },
+        }
+    }
+
+    return queue
 }
 
 async function execute(queue, $) {
-    const next = queue.shift()
-    if (!next) {
-        queue[$currentExecutor] = null
-
+    const currentEntry = queue.shift()
+    if (!currentEntry) {
+        queue[$currentExecutor].stop()
         return null
     }
 
-    const { fn, cb } = next
+    const { fn, cb } = currentEntry
 
     if (queue.buffer != null) debugger
     queue.buffer = []
 
     try {
+        if (GLOBAL_DEBUG.trackDeadlocks) {
+            deadlocks[currentEntry.id] = {at: currentEntry.at}
+            lastExecutionTime = Date.now()
+        }
+
         const fnReturn = fn()
+        if(GLOBAL_DEBUG.trackDeadlocks) {
+            deadlocks[currentEntry.id].fnReturn = fnReturn
+        }
+
 
         if (fnReturn) {
             if (isAwaitable(fnReturn)) {
@@ -90,11 +124,14 @@ async function execute(queue, $) {
 
                 const res = await fnReturn
 
-                handleError(res, queue)
-                cb && cb(res)
+                if (handleError(res, queue)) {
+                    return
+                } else {
+                    cb && cb(res)
 
-                return execute(queue, $)
-
+                    if (GLOBAL_DEBUG.trackDeadlocks) delete deadlocks[currentEntry.id]
+                    return execute(queue, $)
+                }
             } else if (fnReturn[Symbol.asyncIterator] || fnReturn[Symbol.iterator] && !Array.isArray(fnReturn)) {
                 const res = fnReturn.next()
 
@@ -105,7 +142,7 @@ async function execute(queue, $) {
                 let doContinue
                 queueForExecution($,() => {
                     return doContinue && fnReturn
-                }, null, {next: true})
+                }, null, {next: true, at: currentEntry.at})
 
                 const { value, done } = await res
 
@@ -113,20 +150,27 @@ async function execute(queue, $) {
 
                 const next = await value
 
-                if (!handleError(next, queue) && next && !next[$isCompositionInstance]) {
+                if (GLOBAL_DEBUG.trackDeadlocks) delete deadlocks[currentEntry.id]
+                if (handleError(next, queue)) {
+                    return
+                }
+
+                if (next && !next[$isCompositionInstance]) {
                     if (typeof next === 'function') {
-                        queueForExecution($, () => {next()}, cb, {next: true})
+                        queueForExecution($, () => {next()}, cb, {next: true, at: currentEntry.at})
                     } else {
                         throw new Error("Cannot yield a value; must be a function to queue or void")
                     }
                 }
 
+
                 // make sure to flush buffer before executing the yielded function
                 queue.unshift(...buffer)
 
                 return execute(queue, $)
-            } else {
-                handleError(fnReturn, queue)
+            } else if (handleError(fnReturn, queue)) {
+                if (GLOBAL_DEBUG.trackDeadlocks) delete deadlocks[currentEntry.id]
+                return
             }
         }
 
@@ -137,13 +181,15 @@ async function execute(queue, $) {
 
         cb && cb(fnReturn)
 
-
+        if (GLOBAL_DEBUG.trackDeadlocks) delete deadlocks[currentEntry.id]
         return execute(queue, $)
 
     } catch (e) {
         queue[$currentExecutor].fail(e)
 
         if (GLOBAL_DEBUG.enabled) {
+            console.error('EXITING', e)
+            if (currentEntry.at) console.error('AT', currentEntry.at)
             process.exit(1)
         }
 
