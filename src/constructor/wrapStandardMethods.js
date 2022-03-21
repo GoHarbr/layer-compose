@@ -28,7 +28,6 @@ function wrapThen(instance) {
             return onFulfilled()
         }, null, {push: true})
 
-        return instance
     }
 
     instance.catch = (onRejected, marker) => {
@@ -36,16 +35,17 @@ function wrapThen(instance) {
             throw new Error("Improper use of Async: `onRejected` must be a function")
         }
         id += 1
-        const thisId = marker ? marker + '-' + id : 'standard-methods-' + id
+        const thisId = marker ? marker : 'standard-methods-' + id
 
         if (onRejected) {
             queueForExecution(instance, () => {
                 getExecutionQueue(instance)[$currentExecutor].catch(onRejected, thisId)
             }, null, { next: true })
         }
-
-        return instance
     }
+
+    instance.removeCatch = (marker) =>
+        getExecutionQueue(instance)[$currentExecutor].removeCatch(marker)
 }
 
 function wrapJson(instance) {

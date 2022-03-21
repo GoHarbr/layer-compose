@@ -127,8 +127,6 @@ const _constructor = ({at}) => {
                         throw new Error('Failed to find dependency')
                     }
 
-                    // todo? get rid of? why needed?
-
                     resolve([$])
                 } else {
 
@@ -159,8 +157,7 @@ function queueCb(p$, cb) {
     // letting the outside know when the callback is executed
     const readyPromise = p$.then(([$]) => new Promise(resolve => {
         queueForExecution($, () => {}, () => {
-            cb($)
-            resolve([$])
+            resolve(cb($))
         })
     }))
 
@@ -171,7 +168,7 @@ function queueCb(p$, cb) {
         }),
 
         then: (onResolve, onReject) => {
-            return readyPromise.then(([$]) => $.then(onResolve, onReject))
+            return readyPromise.then(onResolve, onReject)
         }
     }
 }

@@ -8,6 +8,7 @@ import {
     $isLc,
     $lensName,
     $parentInstance,
+    $traceId,
     $writableKeys,
     GETTER_NAMING_CONVENTION_RE,
     IS_DEV_MODE
@@ -26,6 +27,7 @@ import debugCoreUpdate from "./debugCoreUpdate"
 
 
 const PRIMORDIAL_LEVEL = 0
+let debugId = 1
 
 export default function seal(composition) {
     const $ = function (arg) {
@@ -64,10 +66,12 @@ export default function seal(composition) {
     $[$dataPointer] = null
     $[$compositionId] = composition[$compositionId]
     $[$getterNames] = []
+    if (IS_DEV_MODE) $[$traceId] = debugId++
 
     // clearing existing methods
     $.call = $.bind = $.apply = undefined
 
+    // sealing methods, lenses and accessors
     for (const name in composition) {
         const methodOrLens = composition[name]
         if (typeof name == "symbol") continue
@@ -116,7 +120,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
             }
         }
 
-        return new Promise(async (resolveWhenInstantiated, rejectWhenInstantiated) => {
+
+        const creationPromise = new Promise(async (resolveWhenCreated, rejectWhenInstantiated) => {
 
             diagnostics && diagnostics('|>>')
 
@@ -143,9 +148,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 if (singletonFrom?.[$isCompositionInstance]) {
                     singletonFrom.catch(rejectWhenInstantiated, 'initializer')
 
-                    // giving back the ready instance
-                    cbWithService(singletonFrom)
-                    queueForExecution(singletonFrom, resolveWhenInstantiated)
+                    // resolveWhenCreated(cbWithService(singletonFrom))
+                    resolveWhenCreated([singletonFrom])
 
                     // ! shortcut
                     return
@@ -165,14 +169,12 @@ function sealLens(lensConstructor, parent, { name, at }) {
                     resolveWithSingleton()
                 }
 
-                const r = cbWithService($)
-                r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
+                //
+                // const r = cbWithService($)
+                // r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
 
-                // todo, think about if this is the correct way of awaiting
-                // todo return the instance in resolve (match the constructor)
-                queueForExecution($, resolveWhenInstantiated)
-
-                return r
+                $.removeCatch('lens-initializer')
+                resolveWhenCreated([$])
             }, {
                 lensName: name,
                 fullyQualifiedName,
@@ -187,9 +189,21 @@ function sealLens(lensConstructor, parent, { name, at }) {
                         pCore[name] = $
                         resolveWithSingleton()
                     }
-                }, 'initializer')
+                }, 'lens-initializer')
         })
 
+        const cbPromise = creationPromise.then(([$]) => cbWithService($))
+
+        // letting the outside catch right away
+        return {
+            catch: (handler) => creationPromise.then(([$]) => {
+                $.catch(handler, 'custom-lens-initializer')
+            }),
+
+            then: (onResolve, onReject) => {
+                return cbPromise.then(onResolve, onReject)
+            }
+        }
     }
 
     makeLens.mock = lensConstructor.mock

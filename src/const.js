@@ -19,6 +19,7 @@ export const $dataPointer = Symbol('dataPointer')
 export const $isNullCore = Symbol('nullCore')
 export const $parentInstance = Symbol('parentComposition')
 export const $isComposed = Symbol('isComposed')
+export const $traceId = Symbol('traceId')
 
 export const $isInitialized = Symbol()
 export const $importsComplete = Symbol('importComplete')
