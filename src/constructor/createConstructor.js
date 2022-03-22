@@ -116,31 +116,40 @@ const _constructor = ({at}) => {
 
         const readyPromise = new Promise(async (resolve) => {
             try {
+                // if not a composition, then it's a wrapped instance
+                singleton = singleton?.[$isCompositionInstance] ? singleton : (await singleton)?.$
+                if (singleton) {
+                    // singleton mechanism
+                    resolve([singleton])
 
-                const composition = await this[$getComposition]({})
-
-                // dependency injection
-                if (coreObject?.[$isCompositionInstance]) {
-                    const $ = findDependency(coreObject, composition, { location })
-
-                    if (!$) {
-                        throw new Error('Failed to find dependency')
-                    }
-
-                    resolve([$])
                 } else {
+                    const composition = await this[$getComposition]({})
 
-                    const [$] = await constructFromComposition(
-                        composition,
-                        coreObject,
-                        {
-                            lensName, fullyQualifiedName, singleton, parent, tag
-                        })
+                    if (coreObject?.[$isCompositionInstance]) {
+                        // dependency injection
+
+                        const $ = findDependency(coreObject, composition, { location })
+
+                        if (!$) {
+                            throw new Error('Failed to find dependency')
+                        }
+
+                        resolve([$])
+                    } else {
+
+                        const [$] = await constructFromComposition(
+                            composition,
+                            coreObject,
+                            {
+                                lensName, fullyQualifiedName, singleton, parent, tag
+                            })
 
 
-                    // methods triggered in the callback must not be put into the buffer, ie. executed before other actions
+                        // methods triggered in the callback must not be put into the buffer, ie. executed before other
+                        // actions
 
-                    resolve([$])
+                        resolve([$])
+                    }
                 }
 
             } catch (e) {
@@ -164,7 +173,9 @@ function queueCb(p$, cb) {
     // letting the outside queue catches right away
     return {
         catch: (handler) => p$.then(([$]) => {
-            $.catch(handler, 'initializer')
+            // fixme. Will this result in multiple of the same catches for singletons?
+            $.catch(handler)
+            return readyPromise
         }),
 
         then: (onResolve, onReject) => {

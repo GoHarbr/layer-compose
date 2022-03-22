@@ -6,6 +6,7 @@ import {
     $getterNames,
     $isCompositionInstance,
     $isLc,
+    $isWrappedCompositionInstance,
     $lensName,
     $parentInstance,
     $traceId,
@@ -22,7 +23,7 @@ import core, { core_unsafe } from "../external/patterns/core"
 import { trackExternalFunctionCall } from "../auto-type/mapper/mapper"
 import defaults from "../external/patterns/defaults"
 import constructCoreObject from "./constructCoreObject"
-import { isPromise } from "../utils"
+import { isAwaitable, isPromise } from "../utils"
 import debugCoreUpdate from "./debugCoreUpdate"
 
 
@@ -120,95 +121,59 @@ function sealLens(lensConstructor, parent, { name, at }) {
             }
         }
 
+        diagnostics && diagnostics('|>>')
 
-        let catchFn
-        const creationPromise = new Promise(async (resolveWhenCreated, rejectWhenInstantiated) => {
+        // singleton mechanism
+        const pCore = core_unsafe(parent)
+        const isSingleton = name in pCore
+        let resolveWithSingleton
 
-            diagnostics && diagnostics('|>>')
-
-            // singleton mechanism
-            const pCore = core_unsafe(parent)
-            const isSingleton = name in pCore
-            let resolveWithSingleton
-
-            let singletonFrom
-            if (isSingleton) {
-                if (lensCore[$isCompositionInstance]) {
-                    throw new Error("Dependency injection cannot be done through a Lens if it's also singleton")
-                }
-
-                diagnostics && diagnostics('@')
-
-                singletonFrom = pCore[name]
-                if (isPromise(singletonFrom)) {
-                    await singletonFrom
-                    singletonFrom = pCore[name]
-                }
-
-                // todo. verify type!!
-                if (singletonFrom?.[$isCompositionInstance]) {
-                    singletonFrom.catch(rejectWhenInstantiated, 'initializer')
-
-                    // resolveWhenCreated(cbWithService(singletonFrom))
-                    resolveWhenCreated([singletonFrom])
-
-                    // ! shortcut
-                    return
-
-                } else {
-                    // setting a placeholder, in case of concurrent lens access
-                    pCore[name] = new Promise(res => resolveWithSingleton = res)
-                }
-
-                lensCore = { ...singletonFrom, ...lensCore }
+        let singletonSeed
+        if (isSingleton) {
+            if (lensCore[$isCompositionInstance]) {
+                throw new Error("Dependency injection cannot be done through a Lens if it's also singleton")
             }
 
-            lensConstructor(lensCore, $ => {
-                // giving singleton for future use
-                if (isSingleton) {
-                    pCore[name] = $
-                    resolveWithSingleton()
+            singletonSeed = pCore[name]
+            if (!singletonSeed || !isAwaitable(singletonSeed)) {
+                // setting a placeholder, in case of concurrent lens access
+                pCore[name] = new Promise(res => resolveWithSingleton = res).then(r => {
+                    pCore[name] = r.$
+                    return r
+                })
+                lensCore = { ...singletonSeed, ...lensCore }
+
+                diagnostics && diagnostics('@@')
+            } else {
+                diagnostics && diagnostics('@')
+            }
+        }
+
+        return lensConstructor(lensCore, $ => {
+                // giving singleton for future use, only if it's not already set
+                if (isSingleton && resolveWithSingleton) {
+                    resolveWithSingleton({
+                        $, [$isWrappedCompositionInstance]: true
+                    })
+                    resolveWithSingleton = null // preventing double call in `catch`
                 }
 
-                //
-                // const r = cbWithService($)
-                // r && typeof r == 'object' && "catch" in r && r.catch(e => console.error(`ERROR during instantiation >> ${fullyQualifiedName} () lens`, e))
-
                 $.removeCatch('lens-initializer')
-                resolveWhenCreated([$])
-            }, {
+                return cbWithService($)
+        }, {
                 lensName: name,
                 fullyQualifiedName,
-                singleton: singletonFrom,
+                singleton: singletonSeed,
                 parent,
             })
                 .catch((e, $) => {
-                    catchFn && catchFn()
-                    rejectWhenInstantiated(e) // todo. prevent rejecting after resolution
-
                     // keeping singleton for future use, even though it failed
-                    if (isSingleton) {
-                        pCore[name] = $
-                        resolveWithSingleton()
+                    if (resolveWithSingleton && isSingleton) {
+                        resolveWithSingleton({
+                            $, [$isWrappedCompositionInstance]: true
+                        })
                     }
                 }, 'lens-initializer')
-        })
-
-        const cbPromise = creationPromise.then(([$]) => cbWithService($))
-
-        // letting the outside catch right away
-        return {
-            catch: (handler) => {
-                catchFn = handler
-                return creationPromise.then(([$]) => {
-                    $.catch(handler, 'custom-lens-initializer')
-                })
-            },
-
-            then: (onResolve, onReject) => {
-                return cbPromise.then(onResolve, onReject)
-            }
-        }
     }
 
     makeLens.mock = lensConstructor.mock

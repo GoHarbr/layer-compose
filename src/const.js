@@ -7,6 +7,7 @@ if (IS_DEV_MODE) {
 export const $isLc = Symbol('isLc')
 export const $compositionId = Symbol('compositionId')
 export const $isCompositionInstance = Symbol("isCompositionInstance")
+export const $isWrappedCompositionInstance = Symbol("isWrappedCompositionInstance")
 export const $getComposition = Symbol("getComposition")
 
 export const $isService = Symbol('isService')
