@@ -5,7 +5,7 @@ import { findLocationFromError } from "../external/utils/findLocationFromError"
 export default function ($) {
     if (GLOBAL_DEBUG.enabled) {
         const at = new Error()
-        const header = `()   ${$[$fullyQualifiedName] || $[$tag] || ''} [${$[$traceId]}]`
+        const header = `()   ${$[$fullyQualifiedName] || $[$tag] || ''} [${$[$traceId] || ''}]`
         console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
     }
 }
