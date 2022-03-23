@@ -1,6 +1,6 @@
 import { $currentExecutor, IS_DEV_MODE } from "../const"
 import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
-import core from "../external/patterns/core"
+import { deepJSON } from "../external/utils/deepJSON"
 
 let id = 0
 function wrapThen(instance) {
@@ -47,11 +47,8 @@ function wrapThen(instance) {
 }
 
 function wrapJson(instance) {
-    instance.toJSON = () => {
-        if ("_JSON" in instance) {
-            return instance._JSON
-        }
-        return core(instance)
+    instance.toJSON = (options) => {
+        return deepJSON(instance, options)
     }
 }
 

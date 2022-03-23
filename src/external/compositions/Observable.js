@@ -1,5 +1,5 @@
 import layerCompose from '../../layerCompose'
-import defaults     from "../patterns/defaults"
+import defaults from "../patterns/defaults"
 
 const $owner = Symbol()
 const $assign = Symbol()
@@ -8,6 +8,8 @@ const $assign = Symbol()
  * Notifies all layers of the current object that a write has been performed to the internal interface (which usually
  * would be a POJO)
  * */
+
+// ! SAFE to DELETE
 
 export default layerCompose(
     ($, _) => {

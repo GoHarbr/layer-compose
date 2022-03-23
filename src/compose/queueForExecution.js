@@ -189,7 +189,6 @@ async function execute(queue, $) {
 
         if (GLOBAL_DEBUG.enabled) {
             console.error('EXITING', e)
-            if (currentEntry.at) console.error('AT', currentEntry.at)
             process.exit(1)
         }
 

@@ -1,7 +1,9 @@
-import layerCompose  from '../../layerCompose'
-import transform     from "../patterns/transform"
-import defaults      from "../patterns/defaults"
-import {IS_DEV_MODE} from "../../const"
+import layerCompose from '../../layerCompose'
+import transform from "../patterns/transform"
+import defaults from "../patterns/defaults"
+import { IS_DEV_MODE } from "../../const"
+
+// ! SAFE to DELETE
 
 const Await = layerCompose(
     transform(_ => ({awaitTarget: _})),
