@@ -10,7 +10,6 @@ function wrapThen(instance) {
         if (IS_DEV_MODE && typeof onFulfilled != "function") {
             throw new Error("Improper use of Async: `onFulfilled` must be a function")
         }
-        id += 1
 
         then && then({
             onFulfilled: () => {},
@@ -19,12 +18,12 @@ function wrapThen(instance) {
 
         if (onRejected) {
             queueForExecution(instance, () => {
-                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + id)
+                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + id++)
             }, null, { immediate: true })
         }
 
         queueForExecution(instance, () => {
-            getExecutionQueue(instance)[$currentExecutor].removeCatch('standard-methods-' + id)
+            getExecutionQueue(instance)[$currentExecutor].removeCatch('standard-methods-' + id++)
             return onFulfilled()
         }, null, {push: true})
 
@@ -34,11 +33,10 @@ function wrapThen(instance) {
         if (IS_DEV_MODE && typeof onRejected != "function") {
             throw new Error("Improper use of Async: `onRejected` must be a function")
         }
-        id += 1
-        const thisId = marker ? marker : 'standard-methods-' + id
 
         if (onRejected) {
             queueForExecution(instance, () => {
+                const thisId = marker ? marker : 'standard-methods-' + id++
                 getExecutionQueue(instance)[$currentExecutor].catch(onRejected, thisId)
             }, null, { next: true })
         }

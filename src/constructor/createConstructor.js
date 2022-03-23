@@ -164,18 +164,34 @@ const _constructor = ({at}) => {
 
 function queueCb(p$, cb) {
     // letting the outside know when the callback is executed
-    const readyPromise = p$.then(([$]) => new Promise(resolve => {
-        queueForExecution($, () => {}, () => {
+    const readyPromise = p$.then(([$]) => new Promise((resolve) => {
+        $.then(() => {
             resolve(cb($))
-        })
+        }, () => resolve())
     }))
 
-    // letting the outside queue catches right away
+    // letting the outside queue catch right away
     return {
-        catch: (handler) => p$.then(([$]) => {
+        catch: (handler, id) => p$.then(([$]) => {
             // fixme. Will this result in multiple of the same catches for singletons?
-            $.catch(handler)
-            return readyPromise
+            return new Promise((resolve) => {
+                $.catch((e,$) => {
+                    const r = handler(e,$)
+                    resolve && resolve(r)
+                }, id)
+
+                queueForExecution($, () => {}, () => {
+                    resolve()
+                    resolve = null // prevent double execution
+                })
+
+
+                readyPromise.catch((e) => {
+                    // this will only trigger if callback fails, not the composition
+                    handler(e,$)
+                    resolve()
+                })
+            })
         }),
 
         then: (onResolve, onReject) => {

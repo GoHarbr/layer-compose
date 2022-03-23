@@ -149,7 +149,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
             }
         }
 
-        return lensConstructor(lensCore, $ => {
+        const constructorResult = lensConstructor(lensCore, $ => {
                 // giving singleton for future use, only if it's not already set
                 if (isSingleton && resolveWithSingleton) {
                     resolveWithSingleton({
@@ -166,7 +166,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 singleton: singletonSeed,
                 parent,
             })
-                .catch((e, $) => {
+
+        constructorResult.catch((e, $) => {
                     // keeping singleton for future use, even though it failed
                     if (resolveWithSingleton && isSingleton) {
                         resolveWithSingleton({
@@ -174,6 +175,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
                         })
                     }
                 }, 'lens-initializer')
+
+        return constructorResult
     }
 
     makeLens.mock = lensConstructor.mock
