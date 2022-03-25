@@ -4,7 +4,7 @@ import { $isCompositionInstance } from "../../const.js"
 export function deepJSON(what, options = {
     resolveCircularReferencesWith: false,
     resolveFunctionReferencesWith: false
-}, seen = new Set()) {
+}, seen = []) {
     if (!what) return what // null, undefined, empty strings, 0
 
     const t = typeof what
@@ -23,7 +23,7 @@ export function deepJSON(what, options = {
         return what
     }
 
-    if (seen.has(what)) {
+    if (seen.includes(what)) {
         if (!options.resolveCircularReferencesWith) {
             const e = new ReferenceError('Circular references cannot be resolved without `resolveCircularReferencesWith`')
             e.failedOn = what
@@ -31,7 +31,7 @@ export function deepJSON(what, options = {
         }
         return options.resolveCircularReferencesWith(what)
     } else {
-        seen.add(what)
+        seen = [what, ...seen]
     }
 
     const coreJson = what?.[$isCompositionInstance] ? ("_JSON" in what ? what._JSON : core(what)) : what
