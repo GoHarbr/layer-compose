@@ -25,6 +25,9 @@ export replace     from "./external/patterns/replace"
 export { defer }     from "./external/patterns/defer"
 export pause     from "./external/patterns/pause"
 export { select } from './external/patterns/select'
+export { orNull } from './external/patterns/orNull'
+export { copy } from './external/patterns/copy'
+export {findDependency}
 
 export core     from "./external/patterns/core"
 

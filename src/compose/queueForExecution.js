@@ -1,8 +1,17 @@
-import { $currentExecutor, $executionQueue, $isCompositionInstance, IS_DEV_MODE } from "../const"
+import {
+    $currentExecutor,
+    $executionQueue,
+    $isCompositionInstance,
+    $isFailed,
+    $isInitialized,
+    $traceId,
+    IS_DEV_MODE
+} from "../const"
 import { isAwaitable } from "../utils"
 import core from "../external/patterns/core"
 import asap from "asap/raw"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import initialize from "../constructor/initialize"
 
 let id = 0
 const deadlocks = {}
@@ -13,6 +22,10 @@ export function getDeadlocks() {
 
 export function queueForExecution($, fn, cb, { push = false, next = false, prepend = false, immediate = false, at } = {}) {
     const queue = getExecutionQueue($)
+
+    if ($[$isFailed] && !$[$isInitialized]) {
+        initialize($, null)
+    }
 
     const item = { fn, cb, id: id++, at: GLOBAL_DEBUG.trackDeadlocks && (at || new Error('Deadlock tracking')) }
     if (prepend) {
@@ -62,6 +75,7 @@ export function getExecutionQueue($) {
             },
             start() {
                 if (!isStarted) {
+                    $[$isFailed] = false
                     isStarted = true
                     asap(() => _execute($, queue))
                 }
@@ -77,6 +91,9 @@ export function getExecutionQueue($) {
                 delete catchWith[id]
             },
             fail(e) {
+                $[$isInitialized] = false
+                $[$isFailed] = true
+
                 queue[$currentExecutor].stop()
 
                 queue.buffer = null
@@ -107,7 +124,7 @@ async function execute(queue, $) {
 
     try {
         if (GLOBAL_DEBUG.trackDeadlocks) {
-            deadlocks[currentEntry.id] = {at: currentEntry.at}
+            deadlocks[currentEntry.id] = {at: currentEntry.at, traceId: $[$traceId]}
             lastExecutionTime = Date.now()
         }
 

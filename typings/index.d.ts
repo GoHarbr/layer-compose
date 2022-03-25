@@ -34,6 +34,8 @@ export function core($: lcInstance<any>): lcInstance<any>
 export function defer($: lcInstance<any>, fn: Function): lcInstance<any>
 export function pause($: lcInstance<any>, fn: Function): () => void
 
+export function orNull(what): any
+export function copy(define: (object) => void): ($,_,o) => void
 /**
 * Copies (generated) value into the core
 * */
@@ -47,4 +49,17 @@ export function replace($: lcInstance<any>, replaceWith: object): void
 export const IS_DEV_MODE: boolean
 
 export function unbox(instance: lcInstance<any>): object
-export function enableDebug(): void
+export function enableDebug(options: {
+    trackDeadlocks: boolean,
+    logTypes: {
+        propertySet: boolean,
+        propertyRead: boolean,
+        accessorCall: boolean,
+        methodCall: boolean,
+        methodExecuted: boolean,
+        coreUpdate: boolean,
+        singleton: boolean,
+        lens: boolean,
+        dependency: boolean
+    }
+}): void

@@ -19,16 +19,14 @@ import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
 import { queueForExecution } from "../compose/queueForExecution"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
-import core, { core_unsafe } from "../external/patterns/core"
+import { core_unsafe } from "../external/patterns/core"
 import { trackExternalFunctionCall } from "../auto-type/mapper/mapper"
-import defaults from "../external/patterns/defaults"
 import constructCoreObject from "./constructCoreObject"
 import { isAwaitable, isPromise } from "../utils"
 import debugCoreUpdate from "./debugCoreUpdate"
 
 
-const PRIMORDIAL_LEVEL = 0
-let debugId = 1
+let traceId = 1
 
 export default function seal(composition) {
     const $ = function (arg) {
@@ -46,14 +44,6 @@ export default function seal(composition) {
             queueForExecution($, () => {
                 if (coreUpdate !== undefined) {
                     $._ && $._(coreUpdate)
-
-                    // runs after
-                    if (coreUpdate) {
-                        queueForExecution($, () => {
-                            const c = core($, PRIMORDIAL_LEVEL)
-                            defaults(c, coreUpdate)
-                        }, null, { prepend: true })
-                    }
                 }
             }, null, { prepend: true })
 
@@ -67,7 +57,7 @@ export default function seal(composition) {
     $[$dataPointer] = null
     $[$compositionId] = composition[$compositionId]
     $[$getterNames] = []
-    if (IS_DEV_MODE) $[$traceId] = debugId++
+    $[$traceId] = traceId++
 
     // clearing existing methods
     $.call = $.bind = $.apply = undefined
@@ -138,6 +128,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
             if (!singletonSeed || !isAwaitable(singletonSeed)) {
                 // setting a placeholder, in case of concurrent lens access
                 pCore[name] = new Promise(res => resolveWithSingleton = res).then(r => {
+                    if (!r) return // can happen if singleton failed to initialize
                     pCore[name] = r.$
                     return r
                 })
@@ -149,34 +140,22 @@ function sealLens(lensConstructor, parent, { name, at }) {
             }
         }
 
-        const constructorResult = lensConstructor(lensCore, $ => {
-                // giving singleton for future use, only if it's not already set
-                if (isSingleton && resolveWithSingleton) {
-                    resolveWithSingleton({
-                        $, [$isWrappedCompositionInstance]: true
-                    })
-                    resolveWithSingleton = null // preventing double call in `catch`
-                }
+        return lensConstructor(lensCore, $ => {
+            // giving singleton for future use, only if it's not already set
+            if (isSingleton && resolveWithSingleton) {
+                resolveWithSingleton({
+                    $, [$isWrappedCompositionInstance]: true
+                })
+                resolveWithSingleton = null // preventing double call in `catch`
+            }
 
-                $.removeCatch('lens-initializer')
-                return cbWithService($)
+            return cbWithService($)
         }, {
-                lensName: name,
-                fullyQualifiedName,
-                singleton: singletonSeed,
-                parent,
-            })
-
-        constructorResult.catch((e, $) => {
-                    // keeping singleton for future use, even though it failed
-                    if (resolveWithSingleton && isSingleton) {
-                        resolveWithSingleton({
-                            $, [$isWrappedCompositionInstance]: true
-                        })
-                    }
-                }, 'lens-initializer')
-
-        return constructorResult
+            lensName: name,
+            fullyQualifiedName,
+            singleton: singletonSeed,
+            parent,
+        })
     }
 
     makeLens.mock = lensConstructor.mock

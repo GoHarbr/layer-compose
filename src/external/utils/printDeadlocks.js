@@ -11,8 +11,8 @@ export function printDeadlocks() {
     if (lastExecutionTime !== lastPrintTime && (Date.now() - lastExecutionTime) > 5000) {
         lastPrintTime = lastExecutionTime
 
-        for (const [id, {at, fnReturn}] of Object.entries(functions)) {
-            console.log(id, fnReturn, at.stack)
+        for (const [id, {at, traceId, fnReturn}] of Object.entries(functions)) {
+            console.log(id, `${traceId}`, fnReturn, at.stack)
         }
     }
 }

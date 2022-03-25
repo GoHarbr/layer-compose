@@ -16,14 +16,18 @@ function wrapThen(instance) {
             onRejected: onRejected || null
         })
 
+        let catchId
         if (onRejected) {
             queueForExecution(instance, () => {
-                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + id++)
+                catchId = id++
+                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + catchId)
             }, null, { immediate: true })
         }
 
         queueForExecution(instance, () => {
-            getExecutionQueue(instance)[$currentExecutor].removeCatch('standard-methods-' + id++)
+            if (catchId) {
+                getExecutionQueue(instance)[$currentExecutor].removeCatch('standard-methods-' + catchId)
+            }
             return onFulfilled()
         }, null, {push: true})
 
@@ -41,9 +45,6 @@ function wrapThen(instance) {
             }, null, { next: true })
         }
     }
-
-    instance.removeCatch = (marker) =>
-        getExecutionQueue(instance)[$currentExecutor].removeCatch(marker)
 }
 
 function wrapJson(instance) {

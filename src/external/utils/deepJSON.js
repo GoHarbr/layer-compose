@@ -26,7 +26,7 @@ export function deepJSON(what, options = {
     if (seen.has(what)) {
         if (!options.resolveCircularReferencesWith) {
             const e = new ReferenceError('Circular references cannot be resolved without `resolveCircularReferencesWith`')
-            e.failedOn = v
+            e.failedOn = what
             throw e
         }
         return options.resolveCircularReferencesWith(what)

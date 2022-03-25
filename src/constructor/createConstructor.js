@@ -2,23 +2,18 @@ import {
     $at,
     $composition,
     $compositionId,
-    $dataPointer,
-    $fullyQualifiedName,
+    $currentExecutor,
     $getComposition,
     $isCompositionInstance,
     $isLc,
     $layers,
-    $lensName,
     $parentInstance,
     $tag,
+    $traceId,
     IS_DEV_MODE
 } from "../const"
-import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
-import wrapStandardMethods from "./wrapStandardMethods"
 import compose from "../compose/compose"
-import seal from "./seal"
-import initialize from "./initialize"
-import { queueForExecution } from "../compose/queueForExecution"
+import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
 import { markWithId } from "../compose/markWithId"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
@@ -26,6 +21,8 @@ import { wrapWithUtils } from "./wrapWithUtils"
 import changeCase from 'case'
 import { findDependency } from "../external/patterns/findDependency"
 import { core_unsafe } from "../external/patterns/core"
+import { is } from '../external/patterns/is'
+import { constructFromComposition } from "./compositionToInstance"
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {
@@ -63,38 +60,6 @@ export function createConstructor(layers) {
     return constructor
 }
 
-export async function constructFromComposition(composition, coreObject, {
-    lensName,
-    fullyQualifiedName,
-    preinitializer,
-    tag,
-    singleton,
-    parent
-}) {
-    const compositionInstance = seal(composition)
-    wrapStandardMethods(compositionInstance) // for methods like .then
-
-    compositionInstance[$isCompositionInstance] = true
-    // compositionInstance[$composition] = composition
-    compositionInstance[$lensName] = lensName
-
-    compositionInstance[$tag] = tag
-    compositionInstance[$fullyQualifiedName] = fullyQualifiedName || tag
-
-    compositionInstance[$dataPointer] = singleton && core_unsafe(singleton) || singleton || {}
-    compositionInstance[$dataPointer][$parentInstance] = parent
-
-    initialize(compositionInstance, coreObject)
-    // preinitializer runs first, thus must be queued last
-    preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance), null, { next: true })
-
-    if (IS_DEV_MODE) {
-        return [wrapCompositionWithProxy(compositionInstance)]
-    } else {
-        return [compositionInstance]
-    }
-}
-
 const mjsRe = /m?js/
 const _constructor = ({at}) => {
     const location = findLocationFromError(at)
@@ -126,15 +91,27 @@ const _constructor = ({at}) => {
                     const composition = await this[$getComposition]({})
 
                     if (coreObject?.[$isCompositionInstance]) {
-                        // dependency injection
+                        if (is(coreObject, composition)) {
+                            // passthrough, same type
 
-                        const $ = findDependency(coreObject, composition, { location })
+                            queueForExecution(coreObject, () => {
+                                const existingParent = core_unsafe(coreObject)?.[$parentInstance]
+                                if ((parent && !existingParent) || (existingParent && !parent) || parent[$traceId] !==  existingParent[$traceId]) {
+                                    throw new Error("Compositions pass-through cannot happen because the parents do not match")
+                                }
+                                resolve([coreObject])
+                            })
 
-                        if (!$) {
-                            throw new Error('Failed to find dependency')
+                        } else {
+                            // dependency injection
+                            const $ = findDependency(coreObject, composition, { location })
+
+                            if (!$) {
+                                throw new Error('Failed to find dependency')
+                            }
+
+                            resolve([$])
                         }
-
-                        resolve([$])
                     } else {
 
                         const [$] = await constructFromComposition(
@@ -164,11 +141,9 @@ const _constructor = ({at}) => {
 
 function queueCb(p$, cb) {
     // letting the outside know when the callback is executed
-    const readyPromise = p$.then(([$]) => new Promise((resolve) => {
-        $.then(() => {
-            resolve(cb($))
-        }, () => resolve())
-    }))
+    const readyPromise = p$.then(async ([$]) => {
+        await cb($)
+    })
 
     // letting the outside queue catch right away
     return {
@@ -181,6 +156,8 @@ function queueCb(p$, cb) {
                 }, id)
 
                 queueForExecution($, () => {}, () => {
+                    // todo. wait for the ready promise instead
+
                     resolve()
                     resolve = null // prevent double execution
                 })
@@ -188,8 +165,11 @@ function queueCb(p$, cb) {
 
                 readyPromise.catch((e) => {
                     // this will only trigger if callback fails, not the composition
-                    handler(e,$)
-                    resolve()
+                    // console.error("Callback failed. This must not happen. Callbacks must be safe: use try/catch or refactor the callback into a method inside the Composition", e)
+                    // console.log("Occurred at", new Error().stack)
+                    // if (IS_DEV_MODE) process.exit(1)
+                    getExecutionQueue($)[$currentExecutor].fail(e)
+                    resolve && resolve()
                 })
             })
         }),
