@@ -23,7 +23,7 @@ export function enableDebug({writeTypes = false, logTypes, trackDeadlocks = fals
     }, logTypes)
 
     printIntroduction()
-    enableTypeStorage()
+    if (writeTypes) enableTypeStorage()
     if (trackDeadlocks) printDeadlocks()
 
     Object.freeze(GLOBAL_DEBUG)
@@ -56,6 +56,7 @@ function printIntroduction() {
     .   Method executed (one . per layer)
     ()  Updated issued
     
+    @@  Singleton loaded (first access)
     @   Singleton loaded
     |>> Lens instantiated
     <<| Dependency injected
