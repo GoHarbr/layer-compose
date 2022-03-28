@@ -6,7 +6,7 @@ import { findLocationFromError } from "../external/utils/findLocationFromError"
 
 export const borrowProxy = (layerId) => ({
     get(target, prop) {
-        if (GLOBAL_DEBUG.logTypes.propertyRead) {
+        if (GLOBAL_DEBUG?.logTypes?.propertyRead) {
             if (typeof prop !== 'symbol') {
                 const at = new Error()
                 const header = `+    '${prop}' read`
@@ -38,7 +38,7 @@ export const borrowProxy = (layerId) => ({
 
             target[$borrowedKeys][prop] = layerId
 
-            if (GLOBAL_DEBUG.logTypes.propertySet) {
+            if (GLOBAL_DEBUG?.logTypes?.propertySet) {
                 const at = new Error()
                 const header = `-    '${prop}' set`
                 console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)

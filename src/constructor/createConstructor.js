@@ -155,19 +155,7 @@ function queueCb(p$, cb) {
                     resolve && resolve(r)
                 }, id)
 
-                queueForExecution($, () => {}, () => {
-                    // todo. wait for the ready promise instead
-
-                    resolve()
-                    resolve = null // prevent double execution
-                })
-
-
-                readyPromise.catch((e) => {
-                    // this will only trigger if callback fails, not the composition
-                    // console.error("Callback failed. This must not happen. Callbacks must be safe: use try/catch or refactor the callback into a method inside the Composition", e)
-                    // console.log("Occurred at", new Error().stack)
-                    // if (IS_DEV_MODE) process.exit(1)
+                readyPromise.then(resolve, (e) => {
                     getExecutionQueue($)[$currentExecutor].fail(e)
                     resolve && resolve()
                 })
