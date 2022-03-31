@@ -18,9 +18,10 @@ function wrapThen(instance) {
 
         let catchId
         if (onRejected) {
+            const at = IS_DEV_MODE ? new Error() : null
             queueForExecution(instance, () => {
                 catchId = id++
-                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + catchId)
+                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, 'standard-methods-' + catchId, at)
             }, null, { immediate: true })
         }
 
@@ -33,15 +34,17 @@ function wrapThen(instance) {
 
     }
 
-    instance.catch = (onRejected, marker) => {
+    instance.catch = (onRejected, marker, at) => {
         if (IS_DEV_MODE && typeof onRejected != "function") {
             throw new Error("Improper use of Async: `onRejected` must be a function")
         }
 
         if (onRejected) {
+            at = at || (IS_DEV_MODE ? new Error() : null)
+
             queueForExecution(instance, () => {
                 const thisId = marker ? marker : 'standard-methods-' + id++
-                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, thisId)
+                getExecutionQueue(instance)[$currentExecutor].catch(onRejected, thisId, at)
             }, null, { next: true })
         }
     }

@@ -147,20 +147,24 @@ function queueCb(p$, cb) {
 
     // letting the outside queue catch right away
     return {
-        catch: (handler, id) => p$.then(([$]) => {
-            // fixme. Will this result in multiple of the same catches for singletons?
-            return new Promise((resolve) => {
-                $.catch((e,$) => {
-                    const r = handler(e,$)
-                    resolve && resolve(r)
-                }, id)
+        catch: (handler, id) => {
+            const at = IS_DEV_MODE ? new Error() : null
 
-                readyPromise.then(resolve, (e) => {
-                    getExecutionQueue($)[$currentExecutor].fail(e)
-                    resolve && resolve()
+            return p$.then(([$]) => {
+                // fixme. Will this result in multiple of the same catches for singletons?
+                return new Promise((resolve) => {
+                    $.catch((e,$) => {
+                        const r = handler(e,$)
+                        resolve && resolve(r)
+                    }, id, at)
+
+                    readyPromise.then(resolve, (e) => {
+                        getExecutionQueue($)[$currentExecutor].fail(e)
+                        resolve && resolve()
+                    })
                 })
             })
-        }),
+        },
 
         then: (onResolve, onReject) => {
             return readyPromise.then(onResolve, onReject)

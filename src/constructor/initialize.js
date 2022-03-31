@@ -5,8 +5,6 @@ export default function initialize($, coreUpdate) {
     if ($[$isInitialized]) {
         return
     }
-    $[$isInitialized] = true
-
 
     $(coreUpdate)
 
@@ -16,5 +14,9 @@ export default function initialize($, coreUpdate) {
             $.$()
         })
     }
+
+    queueForExecution($, () => {
+        $[$isInitialized] = true
+    })
 }
 

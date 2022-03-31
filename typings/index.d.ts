@@ -32,7 +32,7 @@ export function parent($: lcInstance<any>): lcInstance<any>
 export function core($: lcInstance<any>): lcInstance<any>
 
 export function defer($: lcInstance<any>, fn: Function): lcInstance<any>
-export function pause($: lcInstance<any>, fn: Function): () => void
+export function pause($: lcInstance<any>): () => void
 
 export function orNull(what): any
 export function copy(define: (object) => void): ($,_,o) => void

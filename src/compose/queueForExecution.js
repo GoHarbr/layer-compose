@@ -1,6 +1,7 @@
 import {
     $currentExecutor,
     $executionQueue,
+    $fullyQualifiedName,
     $isCompositionInstance,
     $isFailed,
     $isInitialized,
@@ -22,10 +23,6 @@ export function getDeadlocks() {
 
 export function queueForExecution($, fn, cb, { push = false, next = false, prepend = false, immediate = false, at } = {}) {
     const queue = getExecutionQueue($)
-
-    if ($[$isFailed] && !$[$isInitialized]) {
-        initialize($, null)
-    }
 
     const item = { fn, cb, id: id++, at: GLOBAL_DEBUG.trackDeadlocks && (at || new Error('Deadlock tracking')) }
     if (prepend) {
@@ -64,9 +61,9 @@ export function getExecutionQueue($) {
 
     if (!queue[$currentExecutor]) {
         let catchWith = {}
+        let logCatchAt = {}
+        let catchOrder = []
         let catchId = 1
-
-        catchWith['print'] = (e => console.error('!!! Handling error :: ', e))
 
         let isStarted = false
         queue[$currentExecutor] = {
@@ -75,31 +72,51 @@ export function getExecutionQueue($) {
             },
             start() {
                 if (!isStarted) {
-                    $[$isFailed] = false
+                    if ($[$isFailed] && !$[$isInitialized]) {
+                        $[$isFailed] = false
+
+                        queueForExecution($, () => {
+                            initialize($, null)
+                        }, null, {immediate: true})
+                    }
+
                     isStarted = true
+
                     asap(() => _execute($, queue))
                 }
             },
             then(cb) {
                 queueForExecution($, () => {}, cb, {push: true})
             },
-            catch(cb, id) {
+            catch(cb, id, at) {
                 id = id || 'lc-catch-id-' + (catchId++)
+                if (!catchOrder.includes(id)) {
+                    catchOrder.unshift(id)
+                }
                 catchWith[id] = cb
+                if (at) logCatchAt[id] = at
             },
             removeCatch(id) {
                 delete catchWith[id]
             },
             fail(e) {
-                $[$isInitialized] = false
                 $[$isFailed] = true
 
                 queue[$currentExecutor].stop()
 
                 queue.buffer = null
                 queue.length = 0
-                Object.entries(catchWith).forEach(([id, cb]) => {
-                    if (IS_DEV_MODE) console.warn('Catching error with ' + id)
+                if (IS_DEV_MODE && !catchOrder.length) {
+                    console.error('Error occurred and not caught', $[$fullyQualifiedName])
+                    console.error(e)
+                    process.exit(1)
+                }
+
+                catchOrder.forEach(id => {
+                    const cb = catchWith[id]
+                    if (IS_DEV_MODE) {
+                        console.warn('Catching error with ' + id, 'at: ', logCatchAt[id])
+                    }
                     cb(e, $)
                 })
                 catchWith = {}
