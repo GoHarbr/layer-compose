@@ -63,6 +63,7 @@ export function getExecutionQueue($) {
         let catchWith = {}
         let logCatchAt = {}
         let catchOrder = []
+        let processedErrors = new Set()
         let catchId = 1
 
         let isStarted = false
@@ -72,6 +73,9 @@ export function getExecutionQueue($) {
             },
             start() {
                 if (!isStarted) {
+                    isStarted = true
+                    processedErrors = new Set()
+
                     if ($[$isFailed] && !$[$isInitialized]) {
                         $[$isFailed] = false
 
@@ -79,8 +83,6 @@ export function getExecutionQueue($) {
                             initialize($, null)
                         }, null, {immediate: true})
                     }
-
-                    isStarted = true
 
                     asap(() => _execute($, queue))
                 }
@@ -97,12 +99,18 @@ export function getExecutionQueue($) {
                 if (at) logCatchAt[id] = at
             },
             removeCatch(id) {
+                delete catchOrder[catchOrder.indexOf(id)]
                 delete catchWith[id]
             },
             fail(e) {
                 $[$isFailed] = true
 
                 queue[$currentExecutor].stop()
+
+                // short-circuit
+                if (processedErrors.has(e)) {
+                    return
+                }
 
                 queue.buffer = null
                 queue.length = 0
@@ -113,12 +121,15 @@ export function getExecutionQueue($) {
                 }
 
                 catchOrder.forEach(id => {
+                    if (!id) return
                     const cb = catchWith[id]
                     if (IS_DEV_MODE) {
                         console.warn('Catching error with ' + id, 'at: ', logCatchAt[id])
                     }
                     cb(e, $)
                 })
+                processedErrors.add(e)
+                catchOrder = []
                 catchWith = {}
             },
         }
