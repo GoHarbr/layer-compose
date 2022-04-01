@@ -24,7 +24,7 @@ export function enableDebug({writeTypes = false, logTypes, trackDeadlocks = fals
 
     printIntroduction()
     if (writeTypes) enableTypeStorage()
-    if (trackDeadlocks) printDeadlocks()
+    if (trackDeadlocks) printDeadlocks(typeof trackDeadlocks == 'number' ? trackDeadlocks : null)
 
     Object.freeze(GLOBAL_DEBUG)
 }

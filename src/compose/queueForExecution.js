@@ -16,7 +16,12 @@ import initialize from "../constructor/initialize"
 
 let id = 0
 const deadlocks = {}
+let openQueues = 0
 let lastExecutionTime = -1
+
+export function getOpenQueues () {
+    return openQueues
+}
 export function getDeadlocks() {
     return {functions: {...deadlocks}, lastExecutionTime}
 }
@@ -69,10 +74,14 @@ export function getExecutionQueue($) {
         let isStarted = false
         queue[$currentExecutor] = {
             stop() {
-                isStarted = false
+                if (isStarted) {
+                    isStarted = false
+                    openQueues--
+                }
             },
             start() {
                 if (!isStarted) {
+                    openQueues++
                     isStarted = true
                     processedErrors = new Set()
 
