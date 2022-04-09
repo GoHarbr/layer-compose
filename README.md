@@ -6,8 +6,9 @@ Photo by <a href="https://unsplash.com/@mufidpwt?utm_source=unsplash&utm_medium=
 
 <p align="center" style="font-size:20px">
 <img src="docs/logo.png"/>
-Architecture Specification Language in pure JavaScript
+Architecture Specification Language in pure JavaScript, or
 <br/>
+in plain language: <b>The minimum toolset one needs to write quality software</b>
 </p>
 
 [//]: # ()
@@ -20,13 +21,15 @@ Architecture Specification Language in pure JavaScript
 [//]: # (</p>)
 
 
---------
+[//]: # (--------)
 
-Lenses meet Reactive OOP for maintainable architectures
+[//]: # ()
+[//]: # (Lenses meet Reactive OOP for maintainable architectures)
 
----
+[//]: # ()
+[//]: # (---)
 
-## `layer-compose` is born: I got tired of writing sh*tty code.
+## `layer-compose` is born: I tire of writing sh.. sub-quality code.
 
 
 ## Goals
