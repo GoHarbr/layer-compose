@@ -19,7 +19,6 @@ import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
 import { wrapWithUtils } from "./wrapWithUtils"
 import changeCase from 'case'
-import { findDependency } from "../external/patterns/findDependency"
 import { core_unsafe } from "../external/patterns/core"
 import { is } from '../external/patterns/is'
 import { constructFromComposition } from "./compositionToInstance"
@@ -31,9 +30,15 @@ export function createConstructor(layers) {
         return layers[0]
     }
 
-    const _c = _constructor({at: layers[$at]})
+    const at = layers[$at]
+    const location = findLocationFromError(at)
+    const { filename } = splitLocationIntoComponents(location)
+    const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
+
+    const _c = _constructor({at})
     const constructor = _c.bind(_c)
 
+    constructor[$tag] = tag
     constructor[$isLc] = true
     constructor[$layers] = layers
     markWithId(constructor)
@@ -61,10 +66,7 @@ export function createConstructor(layers) {
 }
 
 const mjsRe = /m?js/
-const _constructor = ({at}) => {
-    const location = findLocationFromError(at)
-    const { filename } = splitLocationIntoComponents(location)
-    const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
+function _constructor ({at, tag}) {
 
     return function (coreObject, cb, {
         lensName,
@@ -103,12 +105,12 @@ const _constructor = ({at}) => {
                             })
 
                         } else {
-                            // dependency injection
-                            const $ = findDependency(coreObject, composition, { location })
-
-                            if (!$) {
-                                throw new Error('Failed to find dependency')
-                            }
+                            const [$] = await constructFromComposition(
+                                composition,
+                                core_unsafe(coreObject),
+                                {
+                                    lensName, fullyQualifiedName, singleton, parent, tag
+                                })
 
                             resolve([$])
                         }

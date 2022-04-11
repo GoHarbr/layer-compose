@@ -1,17 +1,14 @@
-import { $isCompositionInstance, $tag } from "../../const"
+import { $isCompositionInstance } from "../../const"
 import { core_unsafe } from "./core"
 import { isExtensionOf } from "./isExtensionOf"
-import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import { parent } from './parent'
 
-export function findDependency($, ofType, {location} = {}) {
+export function findDependency($, ofType) {
     const core = core_unsafe($)
 
     for (const v of Object.values(core)) {
         if (v && v[$isCompositionInstance]) {
             if (isExtensionOf(v, ofType)) {
-
-                notify(ofType, location)
 
                 return v
             }
@@ -24,7 +21,6 @@ export function findDependency($, ofType, {location} = {}) {
     }
 
     if (isExtensionOf(p, ofType)) {
-        notify(ofType, location)
 
         return p
     } else {
@@ -33,9 +29,3 @@ export function findDependency($, ofType, {location} = {}) {
 
 }
 
-function notify(ofType, location) {
-    if (GLOBAL_DEBUG.enabled) {
-        const header = `${ofType[$tag]} injected`
-        console.debug(`<<|  ${header.padEnd(95)} :: ${location || ''}`)
-    }
-}

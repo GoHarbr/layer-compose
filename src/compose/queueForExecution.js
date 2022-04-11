@@ -104,8 +104,10 @@ export function getExecutionQueue($) {
                 if (!catchOrder.includes(id)) {
                     catchOrder.unshift(id)
                 }
-                catchWith[id] = cb
-                if (at) logCatchAt[id] = at
+                if (!Object.values(catchWith).includes(cb)) {
+                    catchWith[id] = cb
+                    if (at) logCatchAt[id] = at
+                }
             },
             removeCatch(id) {
                 delete catchOrder[catchOrder.indexOf(id)]

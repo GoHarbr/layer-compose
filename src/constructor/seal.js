@@ -159,6 +159,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
     }
 
     makeLens.mock = lensConstructor.mock
+    makeLens.inject = cb => lensConstructor.inject(parent, cb)
 
     return makeLens
 }
