@@ -1,5 +1,5 @@
 import lens from "../external/patterns/lens"
-import { $at, $layers, $tag, IS_DEV_MODE } from "../const"
+import { $at, $composition, $layers, $tag, IS_DEV_MODE } from "../const"
 import { findDependency } from "../external/patterns/findDependency"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
@@ -15,6 +15,7 @@ export function wrapWithUtils(constructor) {
     constructor.mock = (...layers) => {
         layers[$at] = new Error()
         constructor[$layers] = layers
+        constructor[$composition] = null
     }
 
     constructor.inject = ($, cb) => {
