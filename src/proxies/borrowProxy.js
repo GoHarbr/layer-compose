@@ -19,7 +19,7 @@ export const borrowProxy = (layerId) => ({
 
     set(target, prop, value) {
         if (value === undefined) {
-            throw new Error('Not allow to set values to `undefined`')
+            throw new Error(`Not allow to set values to 'undefined' (key: '${prop}')`)
         }
 
         value = unwrapProxy(value)
