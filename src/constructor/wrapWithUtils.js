@@ -1,5 +1,5 @@
 import lens from "../external/patterns/lens"
-import { $at, $composition, $layers, $tag, IS_DEV_MODE } from "../const"
+import { $at, $composition, $getComposition, $layers, $tag, IS_DEV_MODE } from "../const"
 import { findDependency } from "../external/patterns/findDependency"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
@@ -20,6 +20,10 @@ export function wrapWithUtils(constructor) {
 
     constructor.inject = ($, cb) => {
         const location = IS_DEV_MODE ? findLocationFromError(new Error()) : null
+        if (IS_DEV_MODE) {
+            // verify that composition is properly constructed
+            constructor[$getComposition]()
+        }
 
         const dep = findDependency($, constructor, { location })
 

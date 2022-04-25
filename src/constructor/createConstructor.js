@@ -9,7 +9,6 @@ import {
     $layers,
     $parentInstance,
     $tag,
-    $traceId,
     IS_DEV_MODE
 } from "../const"
 import compose from "../compose/compose"
@@ -22,6 +21,7 @@ import changeCase from 'case'
 import { core_unsafe } from "../external/patterns/core"
 import { is } from '../external/patterns/is'
 import { constructFromComposition } from "./compositionToInstance"
+import { isSameInstance } from "../external/patterns/isSameInstance"
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {
@@ -98,7 +98,7 @@ function _constructor ({at, tag}) {
 
                             queueForExecution(coreObject, () => {
                                 const existingParent = core_unsafe(coreObject)?.[$parentInstance]
-                                if ((parent && !existingParent) || (existingParent && !parent) || parent[$traceId] !==  existingParent[$traceId]) {
+                                if ((parent && !existingParent) || (existingParent && !parent) || !isSameInstance(parent, existingParent)) {
                                     throw new Error("Compositions pass-through cannot happen because the parents do not match")
                                 }
                                 resolve([coreObject])
