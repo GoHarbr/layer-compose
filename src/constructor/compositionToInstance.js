@@ -10,7 +10,6 @@ import {
 import { core_unsafe } from "../external/patterns/core"
 import seal from "./seal"
 import wrapStandardMethods from "./wrapStandardMethods"
-import { setAccessors } from "./setAccessors"
 import initialize from "./initialize"
 import { queueForExecution } from "../compose/queueForExecution"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
@@ -34,7 +33,7 @@ export async function constructFromComposition(composition, coreObject, {
         parent
     })
 
-    setAccessors(compositionInstance)
+    // setAccessors(compositionInstance) // todo. remove?
     initialize(compositionInstance, coreObject)
     // preinitializer runs first, thus must be queued last
     preinitializer && queueForExecution(compositionInstance, () => preinitializer(compositionInstance), null, { next: true })
