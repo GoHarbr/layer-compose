@@ -1,6 +1,14 @@
-import { $dataProxyMap, $executionQueue, $isNullCore, $parentInstance, IS_DEV_MODE } from "../const"
+import {
+    $dataProxyMap,
+    $executionQueue,
+    $isCompositionInstance,
+    $isNullCore,
+    $parentInstance,
+    IS_DEV_MODE
+} from "../const"
 import { isPromise } from "../utils"
 import { unwrapProxy } from "../proxies/utils"
+import { core_unsafe } from "../external/patterns/core"
 
 export default async function constructCoreObject(proposed, composition) {
     let core
@@ -12,6 +20,11 @@ export default async function constructCoreObject(proposed, composition) {
         core = proposed
     }
 
+
+    if (core?.[$isCompositionInstance]) {
+        await core
+        core = core_unsafe(core)
+    }
     if (IS_DEV_MODE) {
         core = unwrapProxy(core)
     }
