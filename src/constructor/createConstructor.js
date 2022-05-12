@@ -12,7 +12,7 @@ import {
     IS_DEV_MODE
 } from "../const"
 import compose from "../compose/compose"
-import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
+import { getExecutionQueue } from "../compose/queueForExecution"
 import { markWithId } from "../compose/markWithId"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
@@ -92,29 +92,21 @@ function _constructor ({at, tag}) {
                 } else {
                     const composition = await this[$getComposition]({})
 
+                    let isResolved = false
+
                     if (coreObject?.[$isCompositionInstance]) {
                         if (is(coreObject, composition)) {
                             // passthrough, same type
-
-                            queueForExecution(coreObject, () => {
-                                const existingParent = core_unsafe(coreObject)?.[$parentInstance]
-                                if ((parent && !existingParent) || (existingParent && !parent) || !isSameInstance(parent, existingParent)) {
-                                    throw new Error("Compositions pass-through cannot happen because the parents do not match")
-                                }
+                            const existingParent = core_unsafe(coreObject)?.[$parentInstance]
+                            if ((!parent && !existingParent) || (existingParent && parent && isSameInstance(parent, existingParent))) {
                                 resolve([coreObject])
-                            })
-
-                        } else {
-                            const [$] = await constructFromComposition(
-                                composition,
-                                core_unsafe(coreObject),
-                                {
-                                    lensName, fullyQualifiedName, singleton, parent, tag
-                                })
-
-                            resolve([$])
+                                isResolved = true
+                                // throw new Error("Compositions pass-through cannot happen because the parents do not match")
+                            }
                         }
-                    } else {
+                    }
+
+                    if (!isResolved) {
 
                         const [$] = await constructFromComposition(
                             composition,
