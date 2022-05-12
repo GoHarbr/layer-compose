@@ -27,6 +27,8 @@ export pause     from "./external/patterns/pause"
 export { select } from './external/patterns/select'
 export { orNull } from './external/patterns/orNull'
 export { copy } from './external/patterns/copy'
+export { composeFunctions as compose } from './external/patterns/composeFunctions'
+
 export {findDependency}
 
 export core     from "./external/patterns/core"
