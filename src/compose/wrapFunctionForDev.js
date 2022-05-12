@@ -2,7 +2,7 @@ import { getDataProxy } from "../data/getDataProxy"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
 import { isProxy } from "../proxies/utils"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
-import { $lensName, $tag } from "../const"
+import { $fullyQualifiedName, $tag, $traceId } from "../const"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { trackTypes } from "../auto-type/trackTypes"
 
@@ -16,7 +16,7 @@ export function wrapFunctionForDev(layerId, fn, { name, at }) {
         const $$ = wrapCompositionWithProxy($, layerId)
 
         if (GLOBAL_DEBUG.enabled) {
-            const header = `.    ${name.padEnd(25)}  ${$$[$lensName] || $[$tag] || ''}`
+            const header = `.    ${name.padEnd(25)}  ${$[$fullyQualifiedName] || $[$tag] || ''} [${$[$traceId] || ''}]`
             console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
         }
 
