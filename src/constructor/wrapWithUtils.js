@@ -3,7 +3,7 @@ import { $at, $composition, $getComposition, $layers, $tag, IS_DEV_MODE } from "
 import { findDependency } from "../external/patterns/findDependency"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
-import { isPromise } from "../utils"
+import { isAwaitable } from "../utils"
 
 export function wrapWithUtils(constructor) {
     /** @deprecated */
@@ -36,14 +36,14 @@ export function wrapWithUtils(constructor) {
 
         return {
             then: (onResolve, onReject) => {
-                return isPromise(cbRes) ? cbRes.then(onResolve, onReject) : onResolve()
+                return isAwaitable(cbRes) ? cbRes.then(onResolve, onReject) : onResolve()
             },
             catch: (handler,id) => {
                 const at = IS_DEV_MODE ? new Error() : null
                 $.catch(handler, id, at)
 
                 return new Promise((onResolve, onReject) => {
-                    isPromise(cbRes) ? cbRes.then(onResolve, onReject) : onResolve()
+                    isAwaitable(cbRes) ? cbRes.then(onResolve, onReject) : onResolve()
                 })
             }
         }
