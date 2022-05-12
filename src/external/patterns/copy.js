@@ -11,7 +11,8 @@ export function copy(def) {
 
     return ($,_,o) => {
         for (const f of fields) {
-            (f in o) && (_[f] = o[f])
+            // if in o AND not the same in _
+            (f in o && !(f in _ && o[f] == _[f])) && (_[f] = o[f])
         }
     }
 }
