@@ -13,10 +13,11 @@ export const $: <T>(layer: T) => {
 }
 export const o: {$: typeof $}
 
-export type lc = {
+type lc = {
     (tag?: string): {}
     parent: typeof parent
 }
+export const lc: lc;
 
 export function coreLens(transform: (parentCore) => object): ($, _) => object
 
@@ -30,6 +31,7 @@ export function attach(generator: (($,_) => object) | object): ($, _) => object
 
 export function parent($: lcInstance<any>): lcInstance<any>
 export function core($: lcInstance<any>): lcInstance<any>
+export function compose(...fns: [($,_,o) => void]): ($,_,o) => void
 
 export function defer($: lcInstance<any>, fn: Function): lcInstance<any>
 export function pause($: lcInstance<any>): () => void
