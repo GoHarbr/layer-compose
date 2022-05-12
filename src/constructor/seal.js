@@ -74,7 +74,29 @@ export default function seal(composition) {
         } else {
             const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
             if (isGetter) {
-                Object.defineProperty($, name, { get: sealMethod(methodOrLens, $, { name }) })
+                const getter = sealMethod(methodOrLens, $, { name, isGetter })
+
+                // TODO
+                //   does not make sense -- pre-getter needs to be awaited
+                //   or does it? What if it's a non async function?
+
+                const preGetterName = name.slice(1) // todo change if getter convention changes
+                const preGetter = composition[preGetterName] ?
+                    sealMethod(composition[preGetterName], $, { name: preGetterName, isGetter }) : null
+                if (preGetter && typeof preGetter == 'function') {
+                    Object.defineProperty($, name, {
+                        get: () => {
+                            const pgr = preGetter()
+                            if (IS_DEV_MODE) {
+                                if (pgr instanceof Promise) throw new Error('Pre-accessor call functions cannot be async!')
+                            }
+
+                            return getter()
+                        }
+                    })
+                } else {
+                    Object.defineProperty($, name, { get: getter })
+                }
                 $[$getterNames].push(name)
             } else {
                 $[name] = sealMethod(methodOrLens, $, { name })
@@ -164,8 +186,8 @@ function sealLens(lensConstructor, parent, { name, at }) {
     return makeLens
 }
 
-function sealMethod(method, $, { name }) {
-    const isGetter = GETTER_NAMING_CONVENTION_RE.test(name)
+function sealMethod(method, $, { name, isGetter }) {
+    isGetter = isGetter || GETTER_NAMING_CONVENTION_RE.test(name)
 
     return function (opt, ...rest) {
         if (IS_DEV_MODE) {
