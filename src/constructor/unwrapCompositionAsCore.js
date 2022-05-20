@@ -1,10 +1,9 @@
-import {$executionQueue, $isCompositionInstance, $lensName, $parentInstance, IS_DEV_MODE} from "../const"
-import {queueForExecution}                                                                from "../compose/queueForExecution"
-import core, {core_unsafe}                                                   from "../external/patterns/core"
-import parent                                                                from "../external/patterns/parent"
-import {GLOBAL_DEBUG}                                                        from "../external/utils/enableDebug"
-import {isExtensionOf}                                                       from "../external/patterns/isExtensionOf"
-import {unwrapProxy}                                                         from "../proxies/utils"
+import { $executionQueue, $isCompositionInstance, $lensName, $parentInstance, IS_DEV_MODE } from "../const"
+import { queueForExecution } from "../execution/queueForExecution"
+import { core_unsafe } from "../external/patterns/core"
+import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { isExtensionOf } from "../external/patterns/isExtensionOf"
+import { unwrapProxy } from "../proxies/utils"
 
 export function unwrapCompositionAsCore(proposedCore, composition) {
     if (proposedCore[$isCompositionInstance]) {

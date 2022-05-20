@@ -1,4 +1,5 @@
 import {
+    $awaitedUponBy,
     $dataPointer,
     $fullyQualifiedName,
     $isCompositionInstance,
@@ -11,7 +12,7 @@ import { core_unsafe } from "../external/patterns/core"
 import seal from "./seal"
 import wrapStandardMethods from "./wrapStandardMethods"
 import initialize from "./initialize"
-import { queueForExecution } from "../compose/queueForExecution"
+import { queueForExecution } from "../execution/queueForExecution"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
 
 export async function constructFromComposition(composition, coreObject, {
@@ -62,5 +63,5 @@ function setProperties(compositionInstance, {
 
     compositionInstance[$dataPointer] = singleton && core_unsafe(singleton) || singleton || {}
     compositionInstance[$dataPointer][$parentInstance] = parent
-
+    compositionInstance[$awaitedUponBy] = []
 }

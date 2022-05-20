@@ -1,4 +1,4 @@
-import {queueForExecution} from "../../compose/queueForExecution"
+import { queueForExecution } from "../../execution/queueForExecution"
 
 export default function pause($) {
     let resolveWith

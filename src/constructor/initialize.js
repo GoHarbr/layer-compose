@@ -1,5 +1,5 @@
 import { $isInitialized } from "../const"
-import { queueForExecution } from "../compose/queueForExecution"
+import { queueForExecution } from "../execution/queueForExecution"
 
 export default function initialize($, coreUpdate) {
     if ($[$isInitialized]) {

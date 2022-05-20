@@ -29,6 +29,7 @@ export const $layerOrder = Symbol("layerOrder")
 export const $dataProxyMap = Symbol('dataProxyMap')
 export const $borrowedKeys = Symbol('borrowedKeys')
 export const $writableKeys = Symbol('writableKeys')
+export const $awaitedUponBy = Symbol('awaitedUponBy')
 
 export const $layerId = Symbol("layerId")
 export const $at = Symbol("at")

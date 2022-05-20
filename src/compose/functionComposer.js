@@ -1,4 +1,4 @@
-import {queueForExecution} from "./queueForExecution"
+import { queueForExecution } from "../execution/queueForExecution"
 
 export function functionComposer(existing, next, {isReverse} = {}) {
     /*

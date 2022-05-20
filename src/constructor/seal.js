@@ -16,7 +16,7 @@ import {
 } from "../const"
 import { unwrapProxy } from "../proxies/utils"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
-import { queueForExecution } from "../compose/queueForExecution"
+import { queueForExecution } from "../execution/queueForExecution"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { core_unsafe } from "../external/patterns/core"

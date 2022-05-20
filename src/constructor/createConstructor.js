@@ -12,7 +12,7 @@ import {
     IS_DEV_MODE
 } from "../const"
 import compose from "../compose/compose"
-import { getExecutionQueue } from "../compose/queueForExecution"
+import { getExecutionQueue } from "../execution/queueForExecution"
 import { markWithId } from "../compose/markWithId"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"

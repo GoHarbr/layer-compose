@@ -1,4 +1,4 @@
-import { getDeadlocks, getOpenQueues } from "../../compose/queueForExecution"
+import { getDeadlocks, getOpenQueues } from "../../execution/queueForExecution"
 
 let lastPrintTime
 let lastRunTime

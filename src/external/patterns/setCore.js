@@ -1,6 +1,6 @@
-import {$dataPointer, $isCompositionInstance, IS_DEV_MODE} from "../../const"
-import {isPromise}                                         from "../../utils"
-import {queueForExecution}                                 from "../../compose/queueForExecution"
+import { $dataPointer, $isCompositionInstance, IS_DEV_MODE } from "../../const"
+import { isPromise } from "../../utils"
+import { queueForExecution } from "../../execution/queueForExecution"
 
 export default function replace($, replaceCoreWith) {
         if (replaceCoreWith) {

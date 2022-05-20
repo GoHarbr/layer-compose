@@ -1,4 +1,4 @@
-import { queueForExecution } from "../compose/queueForExecution"
+import { queueForExecution } from "../execution/queueForExecution"
 import core from "../external/patterns/core"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 import { findLocationFromError } from "../external/utils/findLocationFromError"

@@ -1,6 +1,7 @@
 import { $currentExecutor, IS_DEV_MODE } from "../const"
-import { getExecutionQueue, queueForExecution } from "../compose/queueForExecution"
+import { getExecutionQueue, queueForExecution } from "../execution/queueForExecution"
 import { deepJSON } from "../external/utils/deepJSON"
+import { wrapAwait } from "../execution/wrapAwait"
 
 let id = 0
 function wrapThen(instance) {
@@ -59,4 +60,5 @@ function wrapJson(instance) {
 export default function wrapStandardMethods(instance) {
     wrapThen(instance)
     wrapJson(instance)
+    wrapAwait(instance)
 }
