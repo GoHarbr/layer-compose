@@ -3,6 +3,7 @@ import { lc } from "./layerCompose"
 import lens from "./external/patterns/lens"
 import { parent } from "./external/patterns/parent"
 import { findDependency } from "./external/patterns/findDependency"
+import { deepJSON } from "./external/utils/deepJSON"
 
 lc.parent = parent
 lc.lens = lens
@@ -28,6 +29,7 @@ export { select } from './external/patterns/select'
 export { orNull } from './external/patterns/orNull'
 export { copy } from './external/patterns/copy'
 export { composeFunctions as compose } from './external/patterns/composeFunctions'
+export const serialize = (_,opt = {accessors: ['_Serialized', '_JSON']}) => deepJSON(_,opt)
 
 export {findDependency}
 

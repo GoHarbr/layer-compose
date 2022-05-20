@@ -13,8 +13,14 @@ export const $: <T>(layer: T) => {
 }
 export const o: {$: typeof $}
 
+type constructor = {
+    (core: any, cb?: Function) : object
+    inject: Function
+    isExtendedBy: Function
+    mock: Function
+}
 type lc = {
-    (tag?: string): {}
+    (tag?: string): constructor
     parent: typeof parent
 }
 export const lc: lc;
@@ -32,7 +38,7 @@ export function attach(generator: (($,_) => object) | object): ($, _) => object
 export function parent($: lcInstance<any>): lcInstance<any>
 export function core($: lcInstance<any>): lcInstance<any>
 export function compose(...fns: [($,_,o) => void]): ($,_,o) => void
-
+export function serialize(what: any, options?: object): object
 export function defer($: lcInstance<any>, fn: Function): lcInstance<any>
 export function pause($: lcInstance<any>): () => void
 

@@ -3,7 +3,10 @@ import { $isCompositionInstance } from "../../const.js"
 
 export function deepJSON(what, options = {
     resolveCircularReferencesWith: false,
-    resolveFunctionReferencesWith: false
+    resolveFunctionReferencesWith: false,
+    alwaysUseCore: false,
+    accessors: ['_JSON'],
+    storeLensNames: false
 }, seen = []) {
     if (!what) return what // null, undefined, empty strings, 0
 
@@ -34,9 +37,22 @@ export function deepJSON(what, options = {
         seen = [what, ...seen]
     }
 
-    const coreJson = what?.[$isCompositionInstance] ? ("_JSON" in what ? what._JSON : core(what)) : what
+    let coreJson
+    if (what?.[$isCompositionInstance]) {
+        if (options.alwaysUseCore) {
+            coreJson = core(what)
+        } else {
+            const a = options.accessors.find(a => a in what)
+            coreJson = a ? what[a] : core(what)
+        }
+    } else {
+        coreJson = what
+    }
 
     const convertedJson = {}
+    // if (options.storeLensNames && what?.[$isCompositionInstance]) {
+    //     convertedJson.__lens = what[$lensName]
+    // }
     for (const [k, v] of Object.entries(coreJson)) {
         if (Array.isArray(v)) {
             convertedJson[k] = v.map(e => deepJSON(e, options, seen))
