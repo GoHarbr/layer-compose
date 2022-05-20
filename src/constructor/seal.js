@@ -27,7 +27,14 @@ import debugCoreUpdate from "./debugCoreUpdate"
 
 // todo switch to using Symbol because of int overflow
 
-let traceId = 1
+let traceIdSerial = 1
+function nextTraceId() {
+    const s = Symbol(traceIdSerial)
+    if (traceIdSerial >= Number.MAX_SAFE_INTEGER) traceIdSerial = 0
+    traceIdSerial++
+
+    return s
+}
 
 export default function seal(composition) {
     const $ = function (arg) {
@@ -57,7 +64,7 @@ export default function seal(composition) {
     $[$dataPointer] = null
     $[$compositionId] = composition[$compositionId]
     $[$getterNames] = []
-    $[$traceId] = traceId++
+    $[$traceId] = nextTraceId()
 
     // clearing existing methods
     $.call = $.bind = $.apply = undefined

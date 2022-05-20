@@ -63,5 +63,5 @@ function setProperties(compositionInstance, {
 
     compositionInstance[$dataPointer] = singleton && core_unsafe(singleton) || singleton || {}
     compositionInstance[$dataPointer][$parentInstance] = parent
-    compositionInstance[$awaitedUponBy] = []
+    compositionInstance[$awaitedUponBy] = new Set()
 }

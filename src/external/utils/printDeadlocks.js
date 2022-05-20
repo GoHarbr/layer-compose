@@ -26,7 +26,7 @@ export function printDeadlocks(waitTime) {
         lastPrintTime = lastExecutionTime
 
         for (const [id, {at, traceId, fnReturn}] of Object.entries(functions)) {
-            console.log(id, `${traceId}`, fnReturn, at.stack)
+            console.log(id, `${traceId.toString()}`, fnReturn, at.stack)
         }
     }
 }

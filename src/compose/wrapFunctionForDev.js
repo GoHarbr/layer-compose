@@ -16,7 +16,7 @@ export function wrapFunctionForDev(layerId, fn, { name, at }) {
         const $$ = wrapCompositionWithProxy($, layerId)
 
         if (GLOBAL_DEBUG.enabled) {
-            const header = `.    ${name.padEnd(25)}  ${$[$fullyQualifiedName] || $[$tag] || ''} [${$[$traceId] || ''}]`
+            const header = `.    ${name.padEnd(25)}  ${$[$fullyQualifiedName] || $[$tag] || ''} [${$[$traceId].toString() || ''}]`
             console.debug(`${header.padEnd(95)} :: ${findLocationFromError(at)}`)
         }
 
