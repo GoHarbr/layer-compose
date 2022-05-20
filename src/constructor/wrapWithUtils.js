@@ -4,6 +4,8 @@ import { findDependency } from "../external/patterns/findDependency"
 import { findLocationFromError } from "../external/utils/findLocationFromError"
 import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
 import { isAwaitable } from "../utils"
+import { isExtensionOf } from "../external/patterns/isExtensionOf"
+import { is } from "../external/patterns/is"
 
 export function wrapWithUtils(constructor) {
     /** @deprecated */
@@ -47,6 +49,14 @@ export function wrapWithUtils(constructor) {
                 })
             }
         }
+    }
+
+    constructor.isExtendedBy = (other) => {
+        return isExtensionOf(other, constructor)
+    }
+
+    constructor.is = (other) => {
+        return is(other, constructor)
     }
 
     // constructor.injectOrSelf = ($, cb) => {
