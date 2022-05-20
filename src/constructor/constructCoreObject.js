@@ -53,6 +53,7 @@ export default async function constructCoreObject(proposed, composition) {
         }
     }
 
+    // fixme. Copy!!
 
     return core
 }
