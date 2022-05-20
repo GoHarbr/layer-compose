@@ -25,6 +25,7 @@ import constructCoreObject from "./constructCoreObject"
 import { isAwaitable, isPromise } from "../utils"
 import debugCoreUpdate from "./debugCoreUpdate"
 
+// todo switch to using Symbol because of int overflow
 
 let traceId = 1
 
@@ -48,7 +49,6 @@ export default function seal(composition) {
             }, null, { prepend: true })
 
         }, { prepend: true })
-
 
         return $
     }
@@ -80,23 +80,23 @@ export default function seal(composition) {
                 //   does not make sense -- pre-getter needs to be awaited
                 //   or does it? What if it's a non async function?
 
-                const preGetterName = name.slice(1) // todo change if getter convention changes
-                const preGetter = composition[preGetterName] ?
-                    sealMethod(composition[preGetterName], $, { name: preGetterName, isGetter }) : null
-                if (preGetter && typeof preGetter == 'function') {
-                    Object.defineProperty($, name, {
-                        get: () => {
-                            const pgr = preGetter()
-                            if (IS_DEV_MODE) {
-                                if (pgr instanceof Promise) throw new Error('Pre-accessor call functions cannot be async!')
-                            }
-
-                            return getter()
-                        }
-                    })
-                } else {
-                    Object.defineProperty($, name, { get: getter })
-                }
+                // const preGetterName = name.slice(1) // todo change if getter convention changes
+                // const preGetter = composition[preGetterName] ?
+                //     sealMethod(composition[preGetterName], $, { name: preGetterName, isGetter }) : null
+                // if (preGetter && typeof preGetter == 'function') {
+                //     Object.defineProperty($, name, {
+                //         get: () => {
+                //             const pgr = preGetter()
+                //             if (IS_DEV_MODE) {
+                //                 if (pgr instanceof Promise) throw new Error('Pre-accessor call functions cannot be async!')
+                //             }
+                //
+                //             return getter()
+                //         }
+                //     })
+                // } else {
+                    // }
+                Object.defineProperty($, name, { get: getter })
                 $[$getterNames].push(name)
             } else {
                 $[name] = sealMethod(methodOrLens, $, { name })
