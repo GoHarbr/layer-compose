@@ -4,9 +4,9 @@ export function composeFunctions(...fns) {
     let fn = fns.shift()
     for (const next of fns) {
         const previous = fn
-        fn = function ($,_,o) {
-            previous($,_,o)
-            next($,_,o)
+        fn = async function ($,_,o) {
+            await previous($,_,o)
+            await next($,_,o)
         }
     }
 
