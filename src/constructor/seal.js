@@ -24,6 +24,7 @@ import { trackExternalFunctionCall } from "../auto-type/mapper/mapper"
 import constructCoreObject from "./constructCoreObject"
 import { isAwaitable, isPromise } from "../utils"
 import debugCoreUpdate from "./debugCoreUpdate"
+import { awaitLens } from "../execution/wrapAwait"
 
 // todo switch to using Symbol because of int overflow
 
@@ -169,7 +170,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
             }
         }
 
-        return lensConstructor(lensCore, $ => {
+        return lensConstructor(lensCore, async $ => {
             // giving singleton for future use, only if it's not already set
             if (isSingleton && resolveWithSingleton) {
                 resolveWithSingleton({
@@ -178,7 +179,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 resolveWithSingleton = null // preventing double call in `catch`
             }
 
-            return cbWithService($)
+            await awaitLens($, parent, cbWithService)
         }, {
             lensName: name,
             fullyQualifiedName,
