@@ -1,4 +1,16 @@
-export default function defaults(_, defaultValues) {
+export default function defaults(...args) {
+    if (typeof args[0] == 'object' && args.length == 1) {
+        return defaultsAuto(...args)
+    } else {
+        return defaultsManual(...args)
+    }
+}
+function defaultsAuto(defaultValues) {
+    return ($,_) => {
+        defaultsManual(_, defaultValues)
+    }
+}
+function defaultsManual(_, defaultValues) {
     for (const k of Object.keys(defaultValues)) {
         const notIn = !(k in _)
 
