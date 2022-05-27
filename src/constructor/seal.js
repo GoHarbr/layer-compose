@@ -179,7 +179,7 @@ function sealLens(lensConstructor, parent, { name, at }) {
                 resolveWithSingleton = null // preventing double call in `catch`
             }
 
-            await awaitLens($, parent, cbWithService)
+            return await awaitLens($, parent, cbWithService)
         }, {
             lensName: name,
             fullyQualifiedName,

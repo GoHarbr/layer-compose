@@ -136,7 +136,7 @@ function _constructor ({at, tag}) {
 function queueCb(p$, cb) {
     // letting the outside know when the callback is executed
     const readyPromise = p$.then(async ([$]) => {
-        await cb($)
+        await awaitReturn(cb($), $)
     })
 
     // letting the outside queue catch right away
