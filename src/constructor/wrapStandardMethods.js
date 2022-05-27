@@ -54,6 +54,7 @@ function wrapThen(instance) {
 
 function wrapJson(instance) {
     instance.toJSON = (options) => {
+        options = typeof options == 'object' ? options : undefined
         return deepJSON(instance, options)
     }
 }
