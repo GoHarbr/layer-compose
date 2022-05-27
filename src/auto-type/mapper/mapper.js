@@ -1,7 +1,7 @@
 import { retrieveLayer } from "../../compose/registerLayer"
-import { $composition, $layerOrder } from "../../const"
+import { $at, $composition, $layerOrder } from "../../const"
 import { Card } from "./html-elems"
-import { getFunctionFromError } from "./getFunctionFromError"
+import { getFunctionDetails } from "./getFunctionDetails"
 
 export const functionCallsByName = {}
 
@@ -54,11 +54,24 @@ export function generateMapTree(functionCallsByName) {
         for (const record of logOfCalls) {
             const { fnName, layerIds, at } = record
 
-            const fns = distinctFunctions[fnName] || (distinctFunctions[fnName] = [])
+            // const fns = distinctFunctions[fnName] || (distinctFunctions[fnName] = [])
+
+            distinctFunctions[fnName] || (distinctFunctions[fnName] = [])
+
             // adding actual code definitions here
-            fns.push(getFunctionFromError(fnName, at))
+            // fns.push(getFunctionFromError(fnName, at, pathFragments))
 
             layerIds.forEach(l => distinctLayers.add(l))
+        }
+
+        for (const l of distinctLayers) {
+            const layer = retrieveLayer(l)
+
+            for (const fnName of Object.keys(distinctFunctions)) {
+                distinctFunctions[fnName].push(
+                    getFunctionDetails(fnName, layer[$at], pathFragments)
+                )
+            }
         }
 
     }

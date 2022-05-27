@@ -3,7 +3,7 @@ export function findLocationFromError(error, {shorten} = {}) {
             const not = !line.includes('layer-compose') && line.trim() !== 'Error'
                 && !line.startsWith('node') && line.includes('js')
 
-            return not || line.includes('.spec.js')
+            return not || line.includes('.layer.js')
         }
     )
 
