@@ -22,6 +22,7 @@ import { core_unsafe } from "../external/patterns/core"
 import { is } from '../external/patterns/is'
 import { constructFromComposition } from "./compositionToInstance"
 import { isSameInstance } from "../external/patterns/isSameInstance"
+import { awaitReturn } from "../execution/wrapAwait"
 
 export function createConstructor(layers) {
     if (!layers || layers.length === 0) {

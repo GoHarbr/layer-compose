@@ -1,14 +1,18 @@
 import { enableTypeStorage } from "../../auto-type/onExit"
 import { printDeadlocks } from "./printDeadlocks"
+import { startDevServer } from "../../auto-type/server"
 
 export const GLOBAL_DEBUG = {
     enabled: false,
 }
 
-export function enableDebug({writeTypes = false, logTypes, trackDeadlocks = false} = {}) {
+export function enableDebug({writeTypes = false, logTypes, trackDeadlocks = false, map = true} = {}) {
     GLOBAL_DEBUG.enabled = true
+
+    // probably @deprecated
     GLOBAL_DEBUG.writeTypes = writeTypes
     GLOBAL_DEBUG.trackDeadlocks = trackDeadlocks
+    GLOBAL_DEBUG.map = map
 
     GLOBAL_DEBUG.logTypes = Object.assign({
         propertySet: GLOBAL_DEBUG.enabled,
@@ -19,12 +23,13 @@ export function enableDebug({writeTypes = false, logTypes, trackDeadlocks = fals
         coreUpdate: GLOBAL_DEBUG.enabled,
         singleton: GLOBAL_DEBUG.enabled,
         lens: GLOBAL_DEBUG.enabled,
-        dependency: GLOBAL_DEBUG.enabled
+        dependency: GLOBAL_DEBUG.enabled,
     }, logTypes)
 
     printIntroduction()
     if (writeTypes) enableTypeStorage()
     if (trackDeadlocks) printDeadlocks(typeof trackDeadlocks == 'number' ? trackDeadlocks : null)
+    if (map) startDevServer()
 
     Object.freeze(GLOBAL_DEBUG)
 }
