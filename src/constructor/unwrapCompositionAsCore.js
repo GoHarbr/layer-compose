@@ -1,7 +1,7 @@
 import { $executionQueue, $isCompositionInstance, $lensName, $parentInstance, IS_DEV_MODE } from "../const"
 import { queueForExecution } from "../execution/queueForExecution"
 import { core_unsafe } from "../external/patterns/core"
-import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import { isExtensionOf } from "../external/patterns/isExtensionOf"
 import { unwrapProxy } from "../proxies/utils"
 

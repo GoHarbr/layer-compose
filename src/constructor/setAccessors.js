@@ -1,7 +1,7 @@
 import { queueForExecution } from "../execution/queueForExecution"
 import core from "../external/patterns/core"
-import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
-import { findLocationFromError } from "../external/utils/findLocationFromError"
+import { GLOBAL_DEBUG } from "../utils/enableDebug"
+import { findLocationFromError } from "../utils/findLocationFromError"
 
 export function setAccessors($) {
     queueForExecution($, () => {

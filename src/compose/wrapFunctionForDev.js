@@ -1,9 +1,9 @@
 import { getDataProxy } from "../data/getDataProxy"
 import { wrapCompositionWithProxy } from "../proxies/wrapCompositionWithProxy"
 import { isProxy } from "../proxies/utils"
-import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import { $fullyQualifiedName, $tag, $traceId } from "../const"
-import { findLocationFromError } from "../external/utils/findLocationFromError"
+import { findLocationFromError } from "../utils/findLocationFromError"
 import { trackTypes } from "../auto-type/trackTypes"
 
 export function wrapFunctionForDev(layerId, fn, { name, at }) {

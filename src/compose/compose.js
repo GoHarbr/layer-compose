@@ -14,7 +14,7 @@ import { functionComposer } from "./functionComposer"
 import makeBaseComposition from "./makeBaseComposition"
 import { createConstructor } from "../constructor/createConstructor"
 import { wrapFunctionForDev } from "./wrapFunctionForDev"
-import { findLocationFromError } from "../external/utils/findLocationFromError"
+import { findLocationFromError } from "../utils/findLocationFromError"
 import { registerLayer } from "./registerLayer"
 
 async function compose(layerLike, composed) {

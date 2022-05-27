@@ -14,8 +14,8 @@ import {
 import compose from "../compose/compose"
 import { getExecutionQueue } from "../execution/queueForExecution"
 import { markWithId } from "../compose/markWithId"
-import { findLocationFromError } from "../external/utils/findLocationFromError"
-import splitLocationIntoComponents from "../external/utils/splitLocationIntoComponents"
+import { findLocationFromError } from "../utils/findLocationFromError"
+import splitLocationIntoComponents from "../utils/splitLocationIntoComponents"
 import { wrapWithUtils } from "./wrapWithUtils"
 import changeCase from 'case'
 import { core_unsafe } from "../external/patterns/core"

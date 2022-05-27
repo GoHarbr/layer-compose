@@ -11,7 +11,7 @@ import {
 import { isAwaitable } from "../utils"
 import core from "../external/patterns/core"
 import asap from "asap/raw"
-import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
+import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import initialize from "../constructor/initialize"
 
 let id = 0

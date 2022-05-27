@@ -1,8 +1,8 @@
 import { $borrowedKeys } from "../const"
 import { definedGetProxy } from "./proxies"
 import { unwrapProxy } from "./utils"
-import { GLOBAL_DEBUG } from "../external/utils/enableDebug"
-import { findLocationFromError } from "../external/utils/findLocationFromError"
+import { GLOBAL_DEBUG } from "../utils/enableDebug"
+import { findLocationFromError } from "../utils/findLocationFromError"
 
 export const borrowProxy = (layerId) => ({
     get(target, prop) {

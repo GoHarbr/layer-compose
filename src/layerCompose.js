@@ -1,6 +1,6 @@
 import { $at, $isLc, GETTER_NAMING_CONVENTION_RE, IS_DEV_MODE } from "./const"
 import { createConstructor } from "./constructor/createConstructor"
-import { findLocationFromError } from "./external/utils/findLocationFromError"
+import { findLocationFromError } from "./utils/findLocationFromError"
 
 export default function layerCompose(...layers) {
     if (layers.length === 1 && Array.isArray(layers[0])) {

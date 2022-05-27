@@ -1,5 +1,4 @@
-import {renameIntoGetter} from "../../utils"
-import {isFunction}       from "../../utils"
+import { isFunction, renameIntoGetter } from "../utils"
 
 export default function (obj) {
     for (const name of Object.keys(obj)) {

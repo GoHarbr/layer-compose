@@ -1,5 +1,5 @@
-import { findLocationFromError } from "../../external/utils/findLocationFromError"
-import splitLocationIntoComponents from "../../external/utils/splitLocationIntoComponents"
+import { findLocationFromError } from "../../utils/findLocationFromError"
+import splitLocationIntoComponents from "../../utils/splitLocationIntoComponents"
 
 const astCache = {}
 
@@ -11,6 +11,5 @@ export function getFunctionFromError(fnName, at) {
 
     const {filename} = splitLocationIntoComponents(loc)
 
-
-    return {name: fnName, at, body}
+    return {name: fnName, at, filename, body: 'function hello ($,_) {}'}
 }

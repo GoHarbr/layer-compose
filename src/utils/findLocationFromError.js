@@ -1,7 +1,3 @@
-import process                     from 'process'
-import path                        from 'path'
-import splitLocationIntoComponents from "./splitLocationIntoComponents"
-
 export function findLocationFromError(error, {shorten} = {}) {
     const errorLine = error.stack.split('\n').find(line => {
             const not = !line.includes('layer-compose') && line.trim() !== 'Error'

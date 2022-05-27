@@ -3,7 +3,7 @@ import { lc } from "./layerCompose"
 import lens from "./external/patterns/lens"
 import { parent } from "./external/patterns/parent"
 import { findDependency } from "./external/patterns/findDependency"
-import { deepJSON } from "./external/utils/deepJSON"
+import { deepJSON } from "./utils/deepJSON"
 
 lc.parent = parent
 lc.lens = lens
@@ -41,5 +41,5 @@ export {unbox} from "./utils"
 // export {unbox, getComposition, getLayerId, renameIntoGetter} from "./utils"
 export {unwrapProxy} from './proxies/utils'
 
-export {enableDebug} from './external/utils/enableDebug'
+export {enableDebug} from './utils/enableDebug'
 export {getCompositionFromInstance} from './compose/markWithId'

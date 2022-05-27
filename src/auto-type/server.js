@@ -1,6 +1,7 @@
 import express from "express"
 import process from "process"
-import { functionCallsByName, generateMapFile, generateMapTree } from "./mapper/mapper"
+import { functionCallsByName, generateMapTree } from "./mapper/mapper"
+import { generateMapFile } from "./mapper/generateMapFile"
 
 let resolveServer
 export const serverPromise = new Promise(res => resolveServer = res)

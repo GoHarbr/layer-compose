@@ -1,6 +1,6 @@
 import { $currentExecutor, IS_DEV_MODE } from "../const"
 import { getExecutionQueue, queueForExecution } from "../execution/queueForExecution"
-import { deepJSON } from "../external/utils/deepJSON"
+import { deepJSON } from "../utils/deepJSON"
 
 let id = 0
 

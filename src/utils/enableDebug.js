@@ -1,6 +1,6 @@
-import { enableTypeStorage } from "../../auto-type/onExit"
+import { enableTypeStorage } from "../auto-type/onExit"
 import { printDeadlocks } from "./printDeadlocks"
-import { startDevServer } from "../../auto-type/server"
+import { startDevServer } from "../auto-type/server"
 
 export const GLOBAL_DEBUG = {
     enabled: false,

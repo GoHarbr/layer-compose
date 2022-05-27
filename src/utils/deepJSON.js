@@ -1,5 +1,5 @@
-import core from "../patterns/core.js"
-import { $isCompositionInstance } from "../../const.js"
+import core from "../external/patterns/core.js"
+import { $isCompositionInstance } from "../const.js"
 
 export function deepJSON(what, options = {
     resolveCircularReferencesWith: false,
