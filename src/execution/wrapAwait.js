@@ -1,10 +1,11 @@
 import { $awaitedUponBy, $isCompositionInstance, $traceId } from "../const"
 
 export async function awaitLens(lens, parent, callback) {
+    let cbRes
     if (shouldAwait(lens, parent)) {
         lens[$awaitedUponBy].add(parent)
         await lens
-        await callback(lens)
+        cbRes = await callback(lens)
         lens[$awaitedUponBy].delete(parent)
 
         // return new Promise(resolve => {
@@ -14,13 +15,13 @@ export async function awaitLens(lens, parent, callback) {
         // })
         // })
     } else {
-        await callback(lens)
+        cbRes = await callback(lens)
     }
+    return cbRes
 }
 
 export async function awaitReturn(ret, instance) {
-    if (!ret || !ret[$isCompositionInstance]) return ret
-    
+    if (!ret || !ret[$isCompositionInstance] || shouldAwait(ret, instance)) await ret
 }
 
 // export function wrapAwait(instance) {
@@ -55,31 +56,27 @@ export async function awaitReturn(ret, instance) {
 // }
 
 function shouldAwait(what, who, seen = new Set()) {
+    if (what[$traceId] === who[$traceId]) return false
+
     seen.add(who[$traceId])
 
-    // if (who[$awaitedUponBy].has(what[$traceId])) {
-    //     return false
-    // } else {
+    // todo. This is a depth first search. Turn it into a breadth-first search for performance
+    // though that's just a hunch
 
-        // todo. This is a depth first search. Turn it into a breadth-first search for performance
-        // though that's just a hunch
-
-        let result = true
-        who[$awaitedUponBy].forEach(nextWho => {
-            if (result) {
-                const nextId = nextWho[$traceId]
-                if (nextId == what[$traceId]) {
-                    result = false
-                    return // continue to exit
-                }
-
-                if (!seen.has(nextId)) {
-                    result = shouldAwait(what, nextWho)
-                }
+    let result = true
+    who[$awaitedUponBy].forEach(nextWho => {
+        if (result) {
+            const nextId = nextWho[$traceId]
+            if (nextId == what[$traceId]) {
+                result = false
+                return // continue to exit
             }
-        })
 
-        return result
-        // return result == null ? true : result
-    // }
+            if (!seen.has(nextId)) {
+                result = shouldAwait(what, nextWho)
+            }
+        }
+    })
+
+    return result
 }
