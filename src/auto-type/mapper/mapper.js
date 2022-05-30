@@ -42,7 +42,7 @@ export function generateMapTree(functionCallsByName) {
                     pointer
                 },
                 [__functions]: {},
-                [__layers]: new Set()
+                [__layers]: []
             }
         }
 
@@ -61,7 +61,7 @@ export function generateMapTree(functionCallsByName) {
             // adding actual code definitions here
             // fns.push(getFunctionFromError(fnName, at, pathFragments))
 
-            layerIds.forEach(l => distinctLayers.add(l))
+            layerIds.forEach(l => !distinctLayers.includes(l) && distinctLayers.push(l))
         }
 
         for (const l of distinctLayers) {

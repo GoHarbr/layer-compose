@@ -32,16 +32,22 @@ function Function(fnName, defs) {
         <div class="function-call">
             <div class="function-name">${fnName}</div>
             <div class="function-defs-list">
-                ${defs.map(FunctionDef).join('\n')}
+                ${[...defs].reverse().map(FunctionDef).join('\n')}
             </div>
         </div>
     `
 }
 
 function FunctionDef(def) {
+    if (!def.body) return
+
+    let fn = def.filename.split('/')
+    fn = fn[fn.length - 1]
     return html`
         <div class="function-def">
-            <div class="function-location">${def.filename}</div>
+            <div class="function-location">
+                <a target='_blank' href="file://${def.filename}">${fn}</a>
+            </div>
             <div class="function-body">
                 <textarea class="code">${def.body}</textarea>
             </div>

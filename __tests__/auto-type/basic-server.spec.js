@@ -12,8 +12,8 @@ describe("Auto-type server", () => {
     test('Renders execution diagram', async () => {
         await new Promise(res => {
             TestDiagram(async c => {
-                await c.fn()
-                await c.Lens(l => l.lensFn().then(res))
+                await c.callMeFirst()
+                res()
             })
         })
 
