@@ -4,18 +4,19 @@ import { RemoteLens } from "./TestDiagramLens.layer"
 export const TestDiagram = lc()
 
 TestDiagram._layer = {
-    fn($,_,) {
+    fn($, _,) {
         _.key = null
-
-        console.log('fn')
+        console.log('f n')
         $.Lens(l => {
             l.lensFn()
         })
     },
 
     Lens: {
-        lensFn($,_) {
-            console.log('lens fn')
+        lensFn($, _) {
+            console.log('lens fn -- ch')
+            // and stzs comment
+            console.log('more code from')
         }
     },
 
@@ -26,7 +27,7 @@ TestDiagram._layer = {
 
 TestDiagram._layer2 = {
     fn($) {
-        return RemoteLens(l => {
+        return $.RemoteLens(l => {
             l.remoteFn()
         })
     }

@@ -2,6 +2,8 @@ import express from "express"
 import process from "process"
 import { functionCallsByName, generateMapTree } from "./mapper/mapper"
 import { generateMapFile } from "./mapper/generateMapFile"
+import { readFileSync, writeFileSync } from 'fs'
+import { clearAstCache } from "./mapper/getFunctionDetails"
 
 let resolveServer
 export const serverPromise = new Promise(res => resolveServer = res)
@@ -15,9 +17,26 @@ export async function startDevServer() {
 
     app.get('/', (req, res) => {
         res.end(makeMap())
+        clearAstCache()
     })
+
     app.post('/', (req, res) => {
-        console.log(req.body)
+        const {start, end, path, body, body_indent} = req.body
+        const file = readFileSync(path).toString()
+
+        let indent = ''
+        if (body_indent) {
+            while(indent.length < Number(body_indent)) {
+                indent += ' '
+            }
+        }
+
+        let cleanBody = body.trim()
+        cleanBody = indent + cleanBody.replaceAll('\n', '\n' + indent)
+        cleanBody += '\n'
+        const updated = file.slice(0, Number(start)) + cleanBody + file.slice(Number(end) + 1)
+
+        writeFileSync(path, updated)
 
         res.end(makeMap())
     })

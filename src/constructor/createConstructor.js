@@ -34,9 +34,9 @@ export function createConstructor(layers) {
     const location = findLocationFromError(at)
     const { filename } = splitLocationIntoComponents(location)
     // const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
-    const tag = filename.split('/').pop()
+    const tag = filename.split('/').pop().replaceAll('.', '_')
 
-    const _c = _constructor({at})
+    const _c = _constructor({at, tag})
     const constructor = _c.bind(_c)
 
     constructor[$at] = at

@@ -6,7 +6,11 @@ import * as parser from "@babel/parser"
 
 const { parse } = parser
 
-const astCache = {}
+let astCache = {}
+
+export function clearAstCache() {
+    astCache = {}
+}
 
 export function getFunctionDetails(fnName, at, pathSegments) {
     pathSegments = pathSegments.filter(s => !!s)
@@ -17,10 +21,10 @@ export function getFunctionDetails(fnName, at, pathSegments) {
     if (!loc) debugger
 
     const { filename, line } = splitLocationIntoComponents(loc)
-    const {ast, source} = getAst(filename)
-    const {body, start, end} = getBody(ast, source, fnName, line, pathSegments)
+    const { ast, source } = getAst(filename)
+    const { body, start, end, bodyIndent } = getBody(ast, source, fnName, line, pathSegments)
 
-    return { name: fnName, at, filename, body, start, end }
+    return { name: fnName, at, filename, body, start, end, bodyIndent}
 }
 
 function getAst(filename) {
@@ -34,13 +38,15 @@ function getAst(filename) {
         astCache[filename] = { ast, source }
     }
 
-    return {ast, source}
+    return { ast, source }
 }
 
 function getBody(ast, source, fnName, line, lensPathSegments) {
     let body = ''
     let start, end
     let lenses = []
+
+    let bodyIndent
 
     traverse(ast, {
         enter(path) {
@@ -49,14 +55,52 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
                 path.node.properties.forEach(prop => {
                     if ((prop.type === 'ObjectMethod') && prop.key.name == fnName) {
                         let b
+                        const processedComments = new Set()
                         for (b of prop.body.body) {
-                            if (start == null) start = b.start
-                            body += source.slice(b.start, b.end) + '\n'
+                            let indent = ''
+                            let char
+                            for (let i = b.start - 1; true; i--) {
+                                char = source[i]
+                                if (char == ' ') {
+                                    indent += ' '
+                                } else if (char == '\t') {
+                                    indent += "    "
+                                } else {
+                                    break;
+                                }
+                            }
+                            if (!bodyIndent || indent.length < bodyIndent) {
+                                bodyIndent = indent.length
+                            }
+
+                            if (start == null) start = b.start - indent.length
+
+                            for (const lc of b.leadingComments || []) {
+                                const id = `${lc.start}.${lc.end}`
+                                if (processedComments.has(id)) continue
+                                body += source.slice(lc.start, lc.end) + '\n'
+                                processedComments.add(id)
+                            }
+
+                            const lines = source.slice(b.start, b.end).split('\n')
+                            const sep = lines.length > 1 ? '\n' : ''
+                            body += lines[0] + sep + lines.slice(1).map(l => l.slice(indent.length)).join('\n') + '\n'
+
+                            for (const tc of b.trailingComments || []) {
+                                const id = `${tc.start}.${tc.end}`
+                                if (processedComments.has(id)) continue
+
+                                body += source.slice(tc.start, tc.end) + '\n'
+                                processedComments.add(id)
+                            }
                         }
+
                         end = b.end
                     }
-                    if (!body && prop.type == 'ObjectProperty' && prop.value.type == 'ObjectExpression') {
-                        lenses.push({lensName: prop.key.name, lensLine: prop.loc.start.line})
+                    if (!body && prop.type == 'ObjectProperty' && prop.value.type == 'ObjectExpression'
+                        // || (prop.value?.type == 'Identifier' && typeof prop.value.name == 'string' && prop.value.name[0] == prop.value.name[0].toUpperCase())
+                    ) {
+                        lenses.push({ lensName: prop.key.name, lensLine: prop.loc.start.line })
                     }
                 })
             }
@@ -64,7 +108,7 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
     })
 
     if (!body) {
-        for (const {lensLine, lensName} of lenses) {
+        for (const { lensLine, lensName } of lenses) {
             if (body) continue
 
             const i = lensPathSegments.indexOf(lensName)
@@ -74,9 +118,10 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
                 body = r.body
                 start = r.start
                 end = r.end
+                bodyIndent = r.bodyIndent
             }
         }
     }
 
-    return {body, start, end}
+    return { body, start, end, bodyIndent }
 }

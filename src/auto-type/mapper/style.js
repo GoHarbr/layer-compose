@@ -79,6 +79,8 @@ export const style = html`
             font-weight: bold;
             font-family: Lora, serif;
             background-color: white;
+            border-top: 1px solid lightgray;
+            padding-top: 0.5em;
         }
         
         .function-calls .function-name {

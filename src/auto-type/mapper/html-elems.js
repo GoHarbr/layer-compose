@@ -1,4 +1,5 @@
 import html from 'tagged-template-noop'
+import crypto from "crypto"
 
 function getBucketBySize(fnName) {
     return Math.floor(Math.log2(1 + fnName.length))
@@ -48,6 +49,9 @@ function FunctionDef(def) {
     const id = `fnid-${def.layerId}-${def.name}`
     let fn = def.filename.split('/')
     fn = fn[fn.length - 1]
+
+    const keep = crypto.createHash('sha256').update(def.body, 'utf-8').digest('hex')
+
     return html`
         <div class="function-def">
             <div class="function-location">
@@ -55,10 +59,11 @@ function FunctionDef(def) {
             </div>
             <div class="function-body">
                 <form class="editor" method="post" id="${id}" up-submit>
+                    <input type="hidden" name="body_indent" value="${def.bodyIndent}">
                     <input type="hidden" name="start" value="${def.start}">
                     <input type="hidden" name="end" value="${def.end}">
                     <input type="hidden" name="path" value="${def.filename}">
-                    <textarea name="body" class="code" up-keep>${def.body}</textarea>
+                    <textarea name="body" class="code" up-keep="${keep}">${def.body}</textarea>
                 </form>
             </div>
         </div>

@@ -2,17 +2,22 @@ import html from 'tagged-template-noop'
 
 export const scripts = html`
     <script>
-        document.querySelectorAll('form.editor').forEach(form => {
+        // document.querySelectorAll('form.editor').forEach(form => {
+        //
+        // })
+        
+        up.compiler('textarea.code', te => {
+            // const te = form.querySelector('textarea.code')
+            const form = te.parentElement
+            const editor = CodeMirror.fromTextArea(te, {
+                lineNumbers: true
+            });
 
-            const te = form.querySelector('textarea.code')
-                const editor = CodeMirror.fromTextArea(te, {
-                    lineNumbers: true
-                });
-
-                editor.on('blur', () => {
-                    editor.save()
-                    up.submit(form, {method: 'post', navigate: false, target: '#' + form.id})
-                })
+            editor.on('blur', () => {
+                editor.save()
+                up.submit(form, {method: 'post', navigate: false, target: '#' + form.id})
+            })
+            
         })
         
         let activeSidebar
