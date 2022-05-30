@@ -64,8 +64,12 @@ export function generateMapTree(functionCallsByName) {
             layerIds.forEach(l => !distinctLayers.includes(l) && distinctLayers.push(l))
         }
 
+        const distinctAt = new Set()
         for (const l of distinctLayers) {
             const layer = retrieveLayer(l)
+
+            if (distinctAt.has(layer[$at])) continue
+            distinctAt.add(layer[$at])
 
             for (const fnName of Object.keys(distinctFunctions)) {
                 const details = getFunctionDetails(fnName, layer[$at], pathFragments)
