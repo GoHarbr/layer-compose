@@ -5,5 +5,6 @@ export const RemoteLens = lc()
 RemoteLens._layer = {
     remoteFn($,_,) {
         console.log('remote fn')
+        console.log('perfect')
     },
 }

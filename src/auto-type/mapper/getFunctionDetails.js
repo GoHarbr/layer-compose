@@ -53,10 +53,13 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
             // line can be missing on purpose when traversing nested Lens definitions
             if (path.node.type === 'ObjectExpression' && (!line || path.node.loc.start.line == line)) {
                 path.node.properties.forEach(prop => {
-                    if ((prop.type === 'ObjectMethod') && prop.key.name == fnName) {
+                    if ((prop.type === 'ObjectMethod' || prop.value?.type === 'ArrowFunctionExpression') && prop.key.name == fnName) {
+                        let bodies = prop.type === 'ObjectMethod' ? prop.body.body : (prop.value.body.body || prop.value.body)
+                        bodies = Array.isArray(bodies) ? bodies : [bodies]
+
                         let b
                         const processedComments = new Set()
-                        for (b of prop.body.body) {
+                        for (b of bodies) {
                             let indent = ''
                             let char
                             for (let i = b.start - 1; true; i--) {

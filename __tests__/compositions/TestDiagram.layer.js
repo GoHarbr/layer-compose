@@ -22,7 +22,7 @@ TestDiagram._layer = {
 
     RemoteLens,
 
-    _Accessor: (_) => _.key
+    _Accessor: (_) => _.key + 1
 }
 
 TestDiagram._layer2 = {
@@ -38,7 +38,7 @@ TestDiagram._layer3 = {
         $.fn()
     },
 
-    fn() {
-        console.log('fn 3')
+    fn($) {
+        console.log('accessor', $._Accessor)
     }
 }

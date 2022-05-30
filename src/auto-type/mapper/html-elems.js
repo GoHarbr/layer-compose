@@ -8,6 +8,7 @@ function getBucketBySize(fnName) {
 export function Card(title, layers, functions, childCards) {
     let functionOrder = Object.keys(functions).sort((a, b) => a.localeCompare(b))
     functionOrder = functionOrder.sort((a, b) => getBucketBySize(a) - getBucketBySize(b))
+    functionOrder = functionOrder.sort((a,b) => a.startsWith('_') - b.startsWith('_'))
 
     return `
     <div class='card'>
@@ -50,7 +51,7 @@ function FunctionDef(def) {
     let fn = def.filename.split('/')
     fn = fn[fn.length - 1]
 
-    const keep = crypto.createHash('sha256').update(def.body, 'utf-8').digest('hex')
+    const keep = 'keep-' + crypto.createHash('sha256').update(def.body, 'utf-8').digest('hex')
 
     return html`
         <div class="function-def">
