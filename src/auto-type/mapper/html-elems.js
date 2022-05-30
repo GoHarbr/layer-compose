@@ -8,7 +8,7 @@ function getBucketBySize(fnName) {
 export function Card(title, layers, functions, childCards) {
     let functionOrder = Object.keys(functions).sort((a, b) => a.localeCompare(b))
     functionOrder = functionOrder.sort((a, b) => getBucketBySize(a) - getBucketBySize(b))
-    functionOrder = functionOrder.sort((a,b) => a.startsWith('_') - b.startsWith('_'))
+    functionOrder = functionOrder.sort((a,b) => (a.startsWith('_') && a.length > 1) - (b.startsWith('_') && b.length > 1))
 
     return `
     <div class='card'>

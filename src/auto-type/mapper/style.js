@@ -44,6 +44,7 @@ export const style = html`
             min-width: 250px;
             max-width: 400px;
             border-left: 7px solid #7933B260;
+            border-top: 1px solid #7933B260;
         }
         
         .sidebar.active {

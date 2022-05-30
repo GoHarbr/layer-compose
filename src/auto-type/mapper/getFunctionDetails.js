@@ -57,6 +57,8 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
                         let bodies = prop.type === 'ObjectMethod' ? prop.body.body : (prop.value.body.body || prop.value.body)
                         bodies = Array.isArray(bodies) ? bodies : [bodies]
 
+                        if (!bodies.length) return
+
                         let b
                         const processedComments = new Set()
                         for (b of bodies) {
@@ -76,7 +78,10 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
                                 bodyIndent = indent.length
                             }
 
-                            if (start == null) start = b.start - indent.length
+                            if (start == null) {
+                                const lc = b.leadingComments && b.leadingComments[0]
+                                start = (lc ? lc.start : b.start) - indent.length
+                            }
 
                             for (const lc of b.leadingComments || []) {
                                 const id = `${lc.start}.${lc.end}`
