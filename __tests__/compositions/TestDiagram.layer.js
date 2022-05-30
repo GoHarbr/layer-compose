@@ -5,6 +5,8 @@ export const TestDiagram = lc()
 
 TestDiagram._layer = {
     fn($,_,) {
+        _.key = null
+
         console.log('fn')
         $.Lens(l => {
             l.lensFn()
@@ -17,7 +19,9 @@ TestDiagram._layer = {
         }
     },
 
-    RemoteLens
+    RemoteLens,
+
+    _Accessor: (_) => _.key
 }
 
 TestDiagram._layer2 = {

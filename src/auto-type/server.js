@@ -7,10 +7,18 @@ let resolveServer
 export const serverPromise = new Promise(res => resolveServer = res)
 
 export async function startDevServer() {
-    const port = process.env.PORT || 8008
+    const port = process.env.LC_PORT || 8008
     const app = express()
 
+    app.use(express.urlencoded({ extended: false }))
+    app.use(express.json())
+
     app.get('/', (req, res) => {
+        res.end(makeMap())
+    })
+    app.post('/', (req, res) => {
+        console.log(req.body)
+
         res.end(makeMap())
     })
 

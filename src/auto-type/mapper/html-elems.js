@@ -27,6 +27,10 @@ export function Card(title, layers, functions, childCards) {
     `
 }
 
+function CardMenu() {
+
+}
+
 function Function(fnName, defs) {
     return html`
         <div class="function-call">
@@ -41,6 +45,7 @@ function Function(fnName, defs) {
 function FunctionDef(def) {
     if (!def.body) return
 
+    const id = `fnid-${def.layerId}-${def.name}`
     let fn = def.filename.split('/')
     fn = fn[fn.length - 1]
     return html`
@@ -49,7 +54,12 @@ function FunctionDef(def) {
                 <a target='_blank' href="file://${def.filename}">${fn}</a>
             </div>
             <div class="function-body">
-                <textarea class="code">${def.body}</textarea>
+                <form class="editor" method="post" id="${id}" up-submit>
+                    <input type="hidden" name="start" value="${def.start}">
+                    <input type="hidden" name="end" value="${def.end}">
+                    <input type="hidden" name="path" value="${def.filename}">
+                    <textarea name="body" class="code" up-keep>${def.body}</textarea>
+                </form>
             </div>
         </div>
     `

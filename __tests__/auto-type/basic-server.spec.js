@@ -13,7 +13,7 @@ describe("Auto-type server", () => {
         await new Promise(res => {
             TestDiagram(async c => {
                 await c.callMeFirst()
-                res()
+                // res()
             })
         })
 

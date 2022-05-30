@@ -17,7 +17,6 @@ import { markWithId } from "../compose/markWithId"
 import { findLocationFromError } from "../utils/findLocationFromError"
 import splitLocationIntoComponents from "../utils/splitLocationIntoComponents"
 import { wrapWithUtils } from "./wrapWithUtils"
-import changeCase from 'case'
 import { core_unsafe } from "../external/patterns/core"
 import { is } from '../external/patterns/is'
 import { constructFromComposition } from "./compositionToInstance"
@@ -34,11 +33,13 @@ export function createConstructor(layers) {
     const at = layers[$at]
     const location = findLocationFromError(at)
     const { filename } = splitLocationIntoComponents(location)
-    const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
+    // const tag = changeCase.pascal(filename.split('/').pop().replace(mjsRe, ''))
+    const tag = filename.split('/').pop()
 
     const _c = _constructor({at})
     const constructor = _c.bind(_c)
 
+    constructor[$at] = at
     constructor[$tag] = tag
     constructor[$isLc] = true
     constructor[$layers] = layers

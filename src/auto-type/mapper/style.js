@@ -28,7 +28,7 @@ export const style = html`
         }
 
         .card .title .name {
-            font-weight: bold;
+            /*font-weight: bold;*/
             padding: 0.3em;
             font-family: Lora, serif;
         }
@@ -40,10 +40,14 @@ export const style = html`
 
         .sidebar {
             background-color: #C37AFF0A;
-            width: 25%;
+            /*width: 25%;*/
             min-width: 250px;
             max-width: 400px;
-            border-left: 1px solid #7933B260;
+            border-left: 7px solid #7933B260;
+        }
+        
+        .sidebar.active {
+            max-width: 700px;
         }
 
         .window {
@@ -52,7 +56,7 @@ export const style = html`
 
 
         .function-calls {
-            padding: 0.5em 0.5em 0.5em 1em;
+            padding: 0.5em 0.5em 0.5em 1.5em;
             flex-direction: column;
         }
 
@@ -63,7 +67,7 @@ export const style = html`
         }
 
         .function-call {
-            margin-bottom: 0.3em;
+            margin-bottom: 1em;
             width: 100%;
         }
 
@@ -74,6 +78,12 @@ export const style = html`
         .function-name {
             font-weight: bold;
             font-family: Lora, serif;
+            background-color: white;
+        }
+        
+        .function-calls .function-name {
+            position: relative;
+            left: -1em;
         }
 
         .function-location {

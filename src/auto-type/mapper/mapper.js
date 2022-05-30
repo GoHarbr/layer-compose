@@ -68,8 +68,9 @@ export function generateMapTree(functionCallsByName) {
             const layer = retrieveLayer(l)
 
             for (const fnName of Object.keys(distinctFunctions)) {
+                const details = getFunctionDetails(fnName, layer[$at], pathFragments)
                 distinctFunctions[fnName].push(
-                    getFunctionDetails(fnName, layer[$at], pathFragments)
+                    { ...details, layerId: l.toString(), name: fnName }
                 )
             }
         }

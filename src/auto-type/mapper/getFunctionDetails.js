@@ -18,9 +18,9 @@ export function getFunctionDetails(fnName, at, pathSegments) {
 
     const { filename, line } = splitLocationIntoComponents(loc)
     const {ast, source} = getAst(filename)
-    const body = getBody(ast, source, fnName, line, pathSegments)
+    const {body, start, end} = getBody(ast, source, fnName, line, pathSegments)
 
-    return { name: fnName, at, filename, body }
+    return { name: fnName, at, filename, body, start, end }
 }
 
 function getAst(filename) {
@@ -39,6 +39,7 @@ function getAst(filename) {
 
 function getBody(ast, source, fnName, line, lensPathSegments) {
     let body = ''
+    let start, end
     let lenses = []
 
     traverse(ast, {
@@ -46,10 +47,13 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
             // line can be missing on purpose when traversing nested Lens definitions
             if (path.node.type === 'ObjectExpression' && (!line || path.node.loc.start.line == line)) {
                 path.node.properties.forEach(prop => {
-                    if (prop.type === 'ObjectMethod' && prop.key.name == fnName) {
-                        for (const b of prop.body.body) {
+                    if ((prop.type === 'ObjectMethod') && prop.key.name == fnName) {
+                        let b
+                        for (b of prop.body.body) {
+                            if (start == null) start = b.start
                             body += source.slice(b.start, b.end) + '\n'
                         }
+                        end = b.end
                     }
                     if (!body && prop.type == 'ObjectProperty' && prop.value.type == 'ObjectExpression') {
                         lenses.push({lensName: prop.key.name, lensLine: prop.loc.start.line})
@@ -66,10 +70,13 @@ function getBody(ast, source, fnName, line, lensPathSegments) {
             const i = lensPathSegments.indexOf(lensName)
             if (i > -1) {
                 const relativePath = lensPathSegments.slice(0, i + 1)
-                body = getBody(ast, source, fnName, lensLine, relativePath)
+                const r = getBody(ast, source, fnName, lensLine, relativePath)
+                body = r.body
+                start = r.start
+                end = r.end
             }
         }
     }
 
-    return body
+    return {body, start, end}
 }
