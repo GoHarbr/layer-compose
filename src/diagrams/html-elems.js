@@ -13,6 +13,12 @@ export function Card(title, layers, functions, childCards) {
     return `
     <div class='card'>
         <div class="sidebar">
+        
+            <div class="controls" >
+                <button class="collapse">collapse</button>
+                <button class="expand">expand</button>
+            </div>
+            
             ${Title(title)}
             <div class="layers">
               ${layers.map(l => Layer(l)).join('')}  
@@ -35,7 +41,7 @@ function CardMenu() {
 
 function Function(fnName, defs) {
     return html`
-        <div class="function-call">
+        <div class="function-call collapsed">
             <div class="function-name">${fnName}</div>
             <div class="function-defs-list">
                 ${[...defs].reverse().map(FunctionDef).join('\n')}

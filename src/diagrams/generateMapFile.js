@@ -23,6 +23,12 @@ export function generateMapFile(tree) {
             <title></title>
         </head>
         <body>
+        
+        <div class="controls" id="global-controls">
+            <button class="collapse" id="control-collapse-all">collapse all</button>
+            <button class="expand" id="control-expand-all">expand all</button>
+        </div>
+        
         ${generateMapCard(tree)}
 
         ${scripts}

@@ -44,7 +44,7 @@ export async function startDevServer() {
 
     const server = await new Promise(res => {
         const s = app.listen(port, () => {
-            console.log('Express is started on ' + port)
+            console.log('Layer-compose server started on port ' + port)
 
             res(s)
             resolveServer(s)

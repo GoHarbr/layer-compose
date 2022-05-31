@@ -87,12 +87,33 @@ export const style = html`
         .function-calls .function-name {
             position: relative;
             left: -1em;
+            cursor: pointer;
         }
 
         .function-location {
             display: flex;
             justify-content: end;
             font-size: 0.7em;
+        }
+        
+        .function-call.collapsed .function-defs-list {
+            display: none;
+        }
+        
+        .controls {
+            padding: 0.5em;
+            display: flex;
+        }
+        
+        .sidebar .controls {
+            padding-bottom: 0;
+            justify-content: end;
+        }
+        
+        .controls button {
+            border: 0;
+            border-bottom: 1px solid black;
+            cursor: pointer;
         }
     </style>
 
