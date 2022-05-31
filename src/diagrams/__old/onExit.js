@@ -1,11 +1,11 @@
 import process from "process"
 import path from "path"
 import fs from "fs"
-import { functionCallsByName, generateMapTree } from "./mapper/mapper"
+import { functionCallsByName, generateMapTree } from "../mapper"
 import { writeTypesToDisk } from "./trackTypes"
 import { flushTypesToDisk } from "./addTypes"
-import { GLOBAL_DEBUG } from "../utils/enableDebug"
-import { generateMapFile } from "./mapper/generateMapFile"
+import { GLOBAL_DEBUG } from "../../utils/enableDebug"
+import { generateMapFile } from "../generateMapFile"
 
 export function enableTypeStorage() {
     process.on('exit', onExit)

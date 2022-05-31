@@ -1,4 +1,4 @@
-const { serverPromise } = require("../../src/auto-type/server.js")
+const { serverPromise } = require("../../src/diagrams/server.js")
 const { enableDebug } = require("../../src/index")
 const { TestDiagram } = require("../compositions/TestDiagram.layer")
 

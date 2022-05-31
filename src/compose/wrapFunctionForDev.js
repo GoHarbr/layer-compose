@@ -4,7 +4,7 @@ import { isProxy } from "../proxies/utils"
 import { GLOBAL_DEBUG } from "../utils/enableDebug"
 import { $fullyQualifiedName, $tag, $traceId } from "../const"
 import { findLocationFromError } from "../utils/findLocationFromError"
-import { trackTypes } from "../auto-type/trackTypes"
+import { trackTypes } from "../diagrams/__old/trackTypes"
 
 export function wrapFunctionForDev(layerId, fn, { name, at }) {
     return function ($, _, opt) {

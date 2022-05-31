@@ -5,12 +5,12 @@ import generate from "@babel/generator"
 import fs from 'fs'
 import path from 'path'
 import process from 'process'
-import { IS_DEV_MODE } from "../const"
+import { IS_DEV_MODE } from "../../const"
 import prettier from "prettier"
 import { addExportTypes } from "./addExportTypes"
 import { prependFlowComment } from "./prependFlowComment"
 import { modifyLayerAstWithType } from "./modifyLayerAstWithType"
-import * as lcAst from "./lc-notation/modifyAstWithType"
+// import * as lcAst from "./modifyAstWithType"
 
 const { parse } = parser
 
@@ -91,9 +91,9 @@ export function rewriteFileWithTypes({ filename, line: startingLine, types }) {
                 ast, startingLine, types
             })
             modifyAstWithExports(ast)
-            lcAst.modifyAstWithType({
-                ast, startingLine, types
-            })
+            // lcAst.modifyAstWithType({
+            //     ast, startingLine, types
+            // })
 
             pendingWrites.push({filename, ast, original: source})
         } catch (e) {

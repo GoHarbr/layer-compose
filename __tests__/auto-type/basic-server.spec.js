@@ -1,4 +1,4 @@
-import { serverPromise } from "../../src/auto-type/server.js"
+import { serverPromise } from "../../src/diagrams/server.js"
 import { enableDebug } from "../../src/index"
 import { TestDiagram } from "../compositions/TestDiagram.layer"
 

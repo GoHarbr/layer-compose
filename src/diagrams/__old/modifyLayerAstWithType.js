@@ -1,5 +1,5 @@
 // let layerId = 0
-import { GETTER_NAMING_CONVENTION_RE } from "../const"
+import { GETTER_NAMING_CONVENTION_RE } from "../../const"
 
 export function modifyLayerAstWithType(ast, functionArgTypes, {suffix = "", containerAst, writeLayerHeader} = {}) {
 

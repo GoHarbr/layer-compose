@@ -1,9 +1,9 @@
 import express from "express"
 import process from "process"
-import { functionCallsByName, generateMapTree } from "./mapper/mapper"
-import { generateMapFile } from "./mapper/generateMapFile"
+import { functionCallsByName, generateMapTree } from "./mapper"
+import { generateMapFile } from "./generateMapFile"
 import { readFileSync, writeFileSync } from 'fs'
-import { clearAstCache } from "./mapper/getFunctionDetails"
+import { clearAstCache } from "./getFunctionDetails"
 
 let resolveServer
 export const serverPromise = new Promise(res => resolveServer = res)

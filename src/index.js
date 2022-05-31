@@ -1,4 +1,4 @@
-import "./auto-type/onExit"
+import "./diagrams/__old/onExit"
 import { lc } from "./layerCompose"
 import lens from "./external/patterns/lens"
 import { parent } from "./external/patterns/parent"

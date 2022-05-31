@@ -1,6 +1,6 @@
-import { findLocationFromError } from "../utils/findLocationFromError"
-import splitLocationIntoComponents from "../utils/splitLocationIntoComponents"
-import { $getterNames, GETTER_NAMING_CONVENTION_RE, IS_DEV_MODE } from "../const"
+import { findLocationFromError } from "../../utils/findLocationFromError"
+import splitLocationIntoComponents from "../../utils/splitLocationIntoComponents"
+import { $getterNames, GETTER_NAMING_CONVENTION_RE, IS_DEV_MODE } from "../../const"
 import equal from 'fast-deep-equal/es6'
 
 const trackedLocations = {}

@@ -1,5 +1,5 @@
-import { retrieveLayer } from "../../compose/registerLayer"
-import { $at, $composition, $layerOrder } from "../../const"
+import { retrieveLayer } from "../compose/registerLayer"
+import { $at, $composition, $layerOrder } from "../const"
 import { Card } from "./html-elems"
 import { getFunctionDetails } from "./getFunctionDetails"
 

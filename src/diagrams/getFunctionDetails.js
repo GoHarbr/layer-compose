@@ -1,5 +1,5 @@
-import { findLocationFromError } from "../../utils/findLocationFromError"
-import splitLocationIntoComponents from "../../utils/splitLocationIntoComponents"
+import { findLocationFromError } from "../utils/findLocationFromError"
+import splitLocationIntoComponents from "../utils/splitLocationIntoComponents"
 import fs from "fs"
 import traverse from "@babel/traverse"
 import * as parser from "@babel/parser"
